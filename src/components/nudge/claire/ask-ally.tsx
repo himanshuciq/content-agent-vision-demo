@@ -1,0 +1,133 @@
+"use client"
+
+import { useRef, useState } from "react"
+import { motion } from "framer-motion"
+import { Send, Sparkles, X } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Answer, QUESTIONS } from "./ask-ally-answers"
+import type { Question } from "./ask-ally-answers"
+
+/** Keyword match so a typed question lands on the same answers as the chips. */
+function match(text: string): Question | null {
+  const t = text.toLowerCase()
+  if (t.includes("invest") || t.includes("$1m")) return QUESTIONS[0]
+  if (t.includes("adoption") || t.includes("hasn't acted") || t.includes("by team")) return QUESTIONS[1]
+  if (t.includes("behind") || t.includes("miss") || t.includes("60")) return QUESTIONS[2]
+  if (t.includes("autopilot")) return QUESTIONS[3]
+  if (t.includes("plan")) return QUESTIONS[4]
+  return null
+}
+
+/**
+ * Ask Ally as a floating bar: a slim translucent pill that stays out of the way.
+ * Focus opens the chips above it; a chip or a typed question opens the answer
+ * there, built from the numbers already on the page.
+ */
+export function AskAlly() {
+  const [value, setValue] = useState("")
+  const [open, setOpen] = useState(false)
+  const [asked, setAsked] = useState<Question | null>(null)
+  const [thinking, setThinking] = useState(false)
+  const timer = useRef<number | undefined>(undefined)
+
+  function ask(q: Question | null, text?: string) {
+    if (text !== undefined) setValue(text)
+    if (!q) return
+    window.clearTimeout(timer.current)
+    setAsked(q)
+    setOpen(true)
+    setThinking(true)
+    timer.current = window.setTimeout(() => setThinking(false), 700)
+  }
+
+  function close() {
+    setOpen(false)
+    setAsked(null)
+    setValue("")
+  }
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
+      <div className="pointer-events-auto flex w-full max-w-[760px] flex-col gap-2">
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-h-[60vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-pane-lg backdrop-blur"
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="flex flex-wrap gap-2">
+                {QUESTIONS.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => ask(q, q)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                      asked === q
+                        ? "border-brand-300 bg-brand-50 text-brand-700"
+                        : "border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700",
+                    )}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+              <button type="button" aria-label="Close" onClick={close} className="shrink-0 text-slate-400 hover:text-slate-700">
+                <X className="size-4" />
+              </button>
+            </div>
+            {asked && (
+              <div className="rounded-xl border border-slate-100 bg-slate-25 px-4 py-4 text-sm leading-relaxed text-slate-700">
+                <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-brand-700">
+                  <Sparkles className="size-3.5" />
+                  {asked}
+                </div>
+                {thinking ? (
+                  <div className="flex gap-1.5 py-2" aria-label="Ally is working on it">
+                    {[0, 1, 2].map((i) => (
+                      <motion.span
+                        key={i}
+                        className="size-1.5 rounded-full bg-brand-400"
+                        animate={{ opacity: [0.3, 1, 0.3] }}
+                        transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                    <Answer q={asked} />
+                  </motion.div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            ask(match(value))
+          }}
+          className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/80 py-1.5 pr-1.5 pl-4 shadow-pane backdrop-blur transition-colors focus-within:border-brand-300 focus-within:bg-white"
+        >
+          <Sparkles className="size-4 shrink-0 text-brand-600" />
+          <input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onFocus={() => setOpen(true)}
+            placeholder="Ask Ally: what can I take from your plate?"
+            className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+          />
+          <button
+            type="submit"
+            aria-label="Ask Ally"
+            className="flex size-8 items-center justify-center rounded-full bg-brand-500 text-white transition-colors hover:bg-brand-600"
+          >
+            <Send className="size-4" />
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
