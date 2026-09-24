@@ -108,3 +108,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - "On pace" renamed "current run rate": sentence now "Your current run rate is $40M in sales against a plan of $45M."; first chart bar "Current run rate · if nothing changes".
 - First chart bar caption removed: just "Current run rate".
 - Bridge order: Current run rate → On autopilot → One approval away → Needs your team → With Ally (zero effort first, then rising effort).
+- "With Ally" bar caption "by area" removed.
