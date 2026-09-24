@@ -35,7 +35,7 @@ interface Column {
 
 const frac = (v: number) => (v - AXIS_MIN) / (AXIS_MAX - AXIS_MIN)
 
-/** On pace → + each open bucket → where Ally takes you, against the plan line. */
+/** Current run rate → + each open bucket → where Ally takes you, against the plan line. */
 function buildColumns(): Column[] {
   const { pace } = BUSINESS.quarter
   let acc = pace
@@ -45,7 +45,7 @@ function buildColumns(): Column[] {
     return col
   })
   return [
-    { key: "pace", label: "On pace", sub: "current run rate", valueLabel: fmtBiz(pace), start: AXIS_MIN, end: pace, selectable: false },
+    { key: "pace", label: "Current run rate", sub: "if nothing changes", valueLabel: fmtBiz(pace), start: AXIS_MIN, end: pace, selectable: false },
     ...steps,
     { key: "total", label: "With Ally", sub: "by area", valueLabel: `$${acc.toFixed(1)}M`, start: AXIS_MIN, end: acc, selectable: true },
   ]

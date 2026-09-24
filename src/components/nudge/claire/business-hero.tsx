@@ -61,7 +61,7 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
 
       {/* Same size and weight as the first line on Mike's and Michelle's pages. */}
       <div className="mt-5 text-2xl font-semibold tracking-tight text-slate-700">
-        You&apos;re on pace to hit <span className="font-mono text-slate-950">{fmtBiz(b.pace)}</span> in sales against a plan of{" "}
+        Your current run rate is <span className="font-mono text-slate-950">{fmtBiz(b.pace)}</span> in sales against a plan of{" "}
         <span className="font-mono text-slate-950">{fmtBiz(b.plan)}</span>.
       </div>
 
