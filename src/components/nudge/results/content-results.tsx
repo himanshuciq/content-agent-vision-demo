@@ -59,7 +59,6 @@ export function ContentResults() {
   const sections = view === "all" ? results.sections : results.sections.filter((s) => s.type === view)
   const current = view === "all" ? null : sections[0]
   const totals = current ? current.totals : results.all
-  const comparedWith = current ? (current.method === "A/B tested" ? "vs old content" : "vs category") : "across all types"
 
   function back() {
     if (window.history.length > 1) router.back()
@@ -87,7 +86,7 @@ export function ContentResults() {
         </div>
       </div>
 
-      <ResultsMetrics totals={totals} comparedWith={comparedWith} />
+      <ResultsMetrics totals={totals} sections={results.sections} current={current} />
 
       {sections.map((s) => (
         <ResultsTable key={s.type} section={s} />

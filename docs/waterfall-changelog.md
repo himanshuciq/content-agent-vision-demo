@@ -76,3 +76,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Rule: Q3 FY26 (Jul–Sep, current) = back to school; August = back to school; Q2 FY26 (Apr–Jun) = Mother's Day; FY25 = 11 shopping events. Halloween is the upcoming event (open work, publish by Oct 8).
 - **Shared data:** August's content story changed from "rewrote 61 product pages ahead of back to school" to "updated 70 SKUs for back to school, improved everyday content on 22, and unblocked 8 for syndication" to match August's results (100 SKUs live).
 - Not changed: the old launchpad home (/, components/landing) still says Prime Day for Q3; it isn't part of the Claire/Mike demo.
+
+## Results page: tables by measurement method (shared page)
+- vs category (seasonal): SKU · Result · SKU impressions · Category impressions (the demand benchmark, event weeks vs the 4 weeks before) · Lead (pts, the only colored column) · Adjusted for (price, ad spend, days out of stock; material ones in amber) · Incremental sales (after normalizing). Caption states the method.
+- A/B tested (foundational, retail readiness): SKU · Result · Lift vs old content (colored) · Confidence · Test length · Incremental sales. Caption: both halves see the same price, ads and stock, so nothing needs adjusting.
+- Units, traffic and conversion lifts removed from the tables and the summary strip. Strip is method-aware: seasonal = your impressions, category impressions, lead; A/B = lift, tests won, average confidence; all = sales lift, seasonal lead, A/B tests won.
+- Back to school (Q3, August) has its own SKUs (dorm jar, teacher gift set…); the $15K stockout row ties to Claire's Q3 story. Q2 keeps Mother's Day SKUs. Foundational Q3 ties to Claire's "38 of 45 won, 4.0%".
+- Result shown as a small status dot plus text, not a pill.
