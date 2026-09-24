@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react"
 import { NudgeRow } from "../claire/nudge-row"
+import { AutopilotDetail } from "./autopilot-detail"
 import { TIER_GRID } from "../claire/nudge-tier"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
@@ -21,6 +22,8 @@ export function StageDetail({ stage }: { stage: WaterfallStage }) {
     nudgeMany(nudgeable.map((r) => r.nudgeKey!) as NudgeKey[])
     stage.rows.filter((r) => r.nudgeKey && NUDGE_TARGETS[r.nudgeKey]).forEach(sendSlack)
   }
+
+  if (stage.id === "autopilot") return <AutopilotDetail stage={stage} />
 
   return (
     <div className="mt-6 overflow-hidden rounded-xl border border-slate-200">

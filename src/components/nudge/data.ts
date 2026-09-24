@@ -533,6 +533,9 @@ export const WATERFALL_STAGES: WaterfallStage[] = [
   { id: "autopilot", label: "On autopilot", effort: AUTOPILOT_TIER.effort, value: 0.9, rows: AUTOPILOT_TIER.rows, canNudgeTeam: false, note: "Runs on its own — no one has to open this screen." },
 ]
 
+/** Share of each workstream's open opportunity that best-in-class brands run on autopilot (%). */
+export const AUTOPILOT_BEST_IN_CLASS: Record<AgentId, number> = { content: 35, media: 60, ops: 30 }
+
 export const WATERFALL_TOTAL = WATERFALL_STAGES.reduce((s, x) => s + x.value, 0)
 
 export function fmtM(v: number): string {

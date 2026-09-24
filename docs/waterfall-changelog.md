@@ -62,3 +62,7 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - /mike input batches: button "Review N SKUs" (245 concepts, 21 retail readiness) opens the first SKU; each field Ally can't fill is a full-width "Your input" box with the live value above it; footer "Send to Ally". List tags show only the deadline or state (no repeated counts).
 - /mike buttons: one shared style (44px, 15px semibold, same border and radius); primary filled, secondary outlined. "Or review all N SKUs one by one" moved under the buttons.
 - Text colors standardized to four shades: slate-950 headings and numbers, slate-700 body, slate-500 secondary, slate-400 hints (900→950, 800→700, 600→500). Applied to Mike and waterfall-only Claire components. **Shared:** ask-ally-answers.tsx is also used by /claire's inline Ask Ally, so its text shades changed there too. Not yet applied: nudge-row, delivered/columns, weekly-banner (shared with /claire).
+
+## Autopilot drill-down: share on autopilot vs best in class
+- /claire-waterfall, On autopilot stage: new table (waterfall/autopilot-detail.tsx). Per workstream: what runs itself, value, % of its open opportunity on autopilot (content 13%, media 24%, ops 6%), best in class (35%, 60%, 30%), and Increase autopilot on hover. Header shows the totals (13% vs 40% weighted) and Increase autopilot for all.
+- New data constant AUTOPILOT_BEST_IN_CLASS in data.ts (benchmarks are mock).
