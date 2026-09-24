@@ -38,3 +38,7 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - **Shared data (affects /claire and /claire-waterfall):** `DEADLINE.expiring` back to $740K. The second approval batch is now "Halloween gift sets" ($240K, 339 SKUs, expires Oct 8) in place of the Foundational refresh. Claire's content row reads "Halloween seasonal updates and gift sets."
 - /claire-waterfall: "Hi Claire" restored in the top line, before the period switcher (same spot as "Hi Mike").
 - /mike: grounding above the action: "$1.5M of content opportunity is open this quarter." plus Value delivered ($520K of $580K projected), SEO share of voice (42%, up 0.8 pts), AI share of voice (34%, up 1.4 pts), Days saved (7.7). Headline now "$740K is one approval from live. All of it expires in 18 days."
+
+## Links and Mike's top shaped like Claire's
+- Every "back to Claire" link and redirect (Mike, Michelle, content results, impact back bar) now goes to /claire-waterfall.
+- /mike top: one line like Claire's ("Hi Mike · Q3 FY26 · $520K of $580K delivered · SEO share of voice 42% ↑0.8 pts · AI share of voice 34% ↑1.4 pts · 7.7 days saved"), then the 40px headline, then "$1.5M open in content · $740K one approval away · $600K needs your input · $200K on autopilot". Metric tiles removed; Reset moved to a faint control below the page.

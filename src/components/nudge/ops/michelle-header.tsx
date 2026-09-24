@@ -21,7 +21,7 @@ export function MichelleHeader() {
       </div>
       <div className="flex items-center gap-3">
         <ResetDemoButton />
-        <Link href="/claire" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700">
+        <Link href="/claire-waterfall" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700">
           <ArrowLeft className="size-3" />
           Claire&apos;s view
         </Link>

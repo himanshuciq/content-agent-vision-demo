@@ -10,29 +10,46 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useNudge } from "../nudge-context"
 import { findBatch } from "../data"
-import { ResetDemoButton } from "../reset-demo-button"
+import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
 
-const TODAY_LABEL = "Saturday, September 20"
+const k = (v: number) => `$${Math.round(v * 1000)}K`
+const Dot = () => <span className="text-slate-300">·</span>
+const Num = ({ children }: { children: React.ReactNode }) => <span className="font-mono font-semibold text-slate-950">{children}</span>
+const Up = ({ children }: { children: React.ReactNode }) => <span className="font-medium text-success-700">↑{children}</span>
 
-/** Mike's header: no exec chrome here either, just the bell that ties back to Claire's nudge. */
+/** Mike's top line, shaped like Claire's: greeting, quarter, how his content is doing. Then the bell that ties back to Claire's nudge. */
 export function MikeHeader() {
   const { mikeNotified, clearNotification } = useNudge()
   const nudgedBatch = findBatch("halloween")
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-8">
-      <div className="flex items-center gap-2.5">
-        <div className="flex size-5.5 items-center justify-center rounded-md bg-brand-500">
-          <div className="size-1.5 rounded-full bg-brand-200" />
-        </div>
-        <span className="text-sm font-semibold tracking-tight text-slate-950">Ally</span>
-        <span className="text-sm text-slate-500">Hi Mike</span>
-        <span className="text-sm text-slate-300">·</span>
-        <span className="text-sm text-slate-500">{TODAY_LABEL}</span>
+    <header className="flex items-start justify-between gap-6 px-10 pt-8">
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-600">
+        <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
+          <span className="size-1.5 rounded-full bg-brand-200" />
+        </span>
+        <span>Hi Mike</span>
+        <Dot />
+        <span className="font-semibold text-slate-950">Q3 FY26</span>
+        <Dot />
+        <span>
+          <Num>{k(CONTENT_BANKED_Q3.delivered)}</Num> of {k(CONTENT_BANKED_Q3.promised)} delivered
+        </span>
+        <Dot />
+        <span>
+          SEO share of voice <Num>42%</Num> <Up>0.8 pts</Up>
+        </span>
+        <Dot />
+        <span>
+          AI share of voice <Num>34%</Num> <Up>1.4 pts</Up>
+        </span>
+        <Dot />
+        <span>
+          <Num>7.7</Num> days saved
+        </span>
       </div>
-      <div className="flex items-center gap-3">
-        <ResetDemoButton />
-        <Link href="/claire" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700">
+      <div className="flex shrink-0 items-center gap-3">
+        <Link href="/claire-waterfall" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700">
           <ArrowLeft className="size-3" />
           Claire&apos;s view
         </Link>

@@ -1,7 +1,7 @@
 "use client"
 
 import { PublishConfetti } from "@/components/home/publish-confetti"
-import { BATCHES, DEADLINE, TOTAL_WAITING_APPROVAL } from "../data"
+import { AUTOPILOT_TIER, BATCHES, DEADLINE, OPEN_BY_AREA, TOTAL_WAITING_APPROVAL } from "../data"
 import { useNudge } from "../nudge-context"
 
 function fmt(v: number) {
@@ -9,6 +9,14 @@ function fmt(v: number) {
 }
 /** "$500K" → 0.5 ($M). */
 const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith("K") ? 1000 : 1)
+
+const CONTENT_OPEN = OPEN_BY_AREA.find((a) => a.agent === "content")!.value
+const tierTotal = (tier: "approval" | "input") => fmt(BATCHES.filter((b) => b.tier === tier).reduce((sum, b) => sum + money(b.value), 0))
+const TIERS = [
+  { label: "one approval away", value: tierTotal("approval") },
+  { label: "needs your input", value: tierTotal("input") },
+  { label: "on autopilot", value: fmt(money(AUTOPILOT_TIER.rows.find((r) => r.agent === "content")!.value)) },
+]
 
 interface Celebrate {
   value: number
@@ -30,17 +38,25 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
 
   return (
     <>
-      <div className="px-10 pt-8 pb-5">
-        <div className="text-[30px] leading-tight font-semibold tracking-tight text-slate-950">
+      <div className="px-10 pt-4 pb-7">
+        <h1 className="text-[40px] leading-tight font-bold tracking-tight text-slate-950">
           {left > 0.005 ? (
             <>
-              <span className="font-mono">{fmt(left)}</span> {doneValue > 0 ? "still" : "is"} one approval from live.
-{" "}
+              <span className="font-mono">{fmt(left)}</span> {doneValue > 0 ? "still" : "is"} one approval from live.{" "}
               <span className="text-warning-600">All of it expires in {DEADLINE.days} days.</span>
             </>
           ) : (
             "Everything one approval away is live."
           )}
+        </h1>
+        <div className="mt-2 text-base text-slate-500">
+          <span className="font-semibold text-slate-700">{CONTENT_OPEN}</span> open in content
+          {TIERS.map((t) => (
+            <span key={t.label}>
+              <span className="text-slate-300"> · </span>
+              <span className="font-semibold text-slate-700">{t.value}</span> {t.label}
+            </span>
+          ))}
         </div>
       </div>
       <div className="relative border-y border-slate-200 bg-brand-25 px-10 py-4">

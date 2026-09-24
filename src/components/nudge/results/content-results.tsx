@@ -63,7 +63,7 @@ export function ContentResults() {
 
   function back() {
     if (window.history.length > 1) router.back()
-    else router.push("/claire")
+    else router.push("/claire-waterfall")
   }
 
   return (

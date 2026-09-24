@@ -13,7 +13,7 @@ export function ExecBackBar() {
 
   function back() {
     if (typeof window !== "undefined" && window.history.length > 1) router.back()
-    else router.push("/claire")
+    else router.push("/claire-waterfall")
   }
 
   return (

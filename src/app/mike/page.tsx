@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
+import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
 import { MikeHeader } from "@/components/nudge/mike/mike-header"
-import { MikeGrounding } from "@/components/nudge/mike/mike-grounding"
 import { MikeProgress } from "@/components/nudge/mike/mike-progress"
 import { BatchList } from "@/components/nudge/mike/batch-list"
 import { BatchDetail } from "@/components/nudge/mike/batch-detail"
@@ -61,7 +61,6 @@ export default function MikePage() {
     <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <MikeHeader />
-        <MikeGrounding />
         <MikeProgress celebrate={celebrate} />
         <div className="grid grid-cols-[340px_minmax(0,1fr)]">
           <BatchList
@@ -85,6 +84,10 @@ export default function MikePage() {
             <BatchDetail batch={selected} onApprove={handleApprove} onReviewAll={handleReviewAll} />
           )}
         </div>
+      </div>
+      {/* Demo-only control, kept out of the product chrome. */}
+      <div className="mx-auto flex max-w-[1280px] justify-end px-4 pb-6 opacity-50 hover:opacity-100">
+        <ResetDemoButton />
       </div>
     </PageShell>
   )
