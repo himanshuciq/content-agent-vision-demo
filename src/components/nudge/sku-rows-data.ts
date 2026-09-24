@@ -99,31 +99,45 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
     },
   ],
 
-  baseline: [
-    {
-      skuId: "sku-2",
-      sections: [
-        text(
-          "Bullet points",
-          ["Hand poured. Six scents.", "Standard soy jar candle."],
-          [
-            { text: "Hand poured in small batches, six colors of wax dye.", ...NEW },
-            { text: "Grapefruit and lemon zest over clean soy, 90-hour burn.", ...NEW },
-          ],
-        ),
-      ],
-    },
+  gifts: [
     {
       skuId: "sku-7",
       sections: [
         text(
+          "Title",
+          ["Bergamot Grove Decorative Scented Pillar Candle Set, Home Décor"],
+          [{ text: "Halloween Gift Bergamot Grove Decorative Scented Pillar Candle Set, Boo Basket Stuffer, Hostess Gift", ...NEW }],
+        ),
+        text(
           "Bullet points",
-          ["Decorative pillar candle set.", "Great for gifting."],
+          ["Bergamot and grove florals in a two-piece pillar set.", "Gift-ready packaging."],
           [
-            { text: "Bergamot and grove florals in a two-piece pillar set.", ...NEW },
-            { text: "Gift-ready packaging, unscented base for an even burn.", ...NEW },
+            { text: "Bergamot and grove florals in a two-piece pillar set." },
+            { text: "Gift-ready packaging, a ready-made boo basket filler.", ...NEW },
+            { text: "Save 20% October 1–31 with the on-page coupon.", ...NEW },
           ],
         ),
+        image("Primary image", "Standard pack shot", "Halloween gift pack shot"),
+      ],
+    },
+    {
+      skuId: "sku-10",
+      sections: [
+        text(
+          "Title",
+          ["Rasa Decorative Scented Candle Duo Gift Set, Home Fragrance"],
+          [{ text: "Halloween Gift Rasa Decorative Scented Candle Duo Gift Set, Spooky Season Hostess Gift", ...NEW }],
+        ),
+        text(
+          "Bullet points",
+          ["Two coordinating scents in one box.", "Gift-ready packaging."],
+          [
+            { text: "Two coordinating scents in one box." },
+            { text: "Gift-ready packaging." },
+            { text: "Save 20% October 1–31 with the on-page coupon.", ...NEW },
+          ],
+        ),
+        image("Primary image", "Standard pack shot", "Halloween gift pack shot"),
       ],
     },
   ],

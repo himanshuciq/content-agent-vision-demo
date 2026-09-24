@@ -33,3 +33,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Batch approve values now equal their listed values (Halloween $500K, Foundational $240K, Retail readiness $180K) so Mike's totals tie to Claire's.
 - /mike: headline only ("$740K is one approval from live. $500K of it expires in 18 days."), inbox grouped One approval away / Needs your input / On autopilot, Approve all on the first group.
 - Sample SKU: side by side, live on Amazon beside Ally's version, with word-level marks (removed struck on the live side, added green on Ally's side). The Halloween pack shot is now styled for Halloween (dusk grade, pumpkins, bats) instead of a grayscale copy.
+
+## All $740K one approval away is seasonal (shared data change)
+- **Shared data (affects /claire and /claire-waterfall):** `DEADLINE.expiring` back to $740K. The second approval batch is now "Halloween gift sets" ($240K, 339 SKUs, expires Oct 8) in place of the Foundational refresh. Claire's content row reads "Halloween seasonal updates and gift sets."
+- /claire-waterfall: "Hi Claire" restored in the top line, before the period switcher (same spot as "Hi Mike").
+- /mike: grounding above the action: "$1.5M of content opportunity is open this quarter." plus Value delivered ($520K of $580K projected), SEO share of voice (42%, up 0.8 pts), AI share of voice (34%, up 1.4 pts), Days saved (7.7). Headline now "$740K is one approval from live. All of it expires in 18 days."

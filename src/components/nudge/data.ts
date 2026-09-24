@@ -9,7 +9,7 @@ import type { AgentId, Batch, ClosedGrain, ClosedPeriodData, InflightData, Nudge
  * replaced with these, one per batch, per the handoff's "defer to the repo's
  * real SKU records" instruction.
  */
-export const DEADLINE = { days: 18, date: "Oct 8", expiring: "$500K" }
+export const DEADLINE = { days: 18, date: "Oct 8", expiring: "$740K" }
 
 /** Open $6.8M split by agent (summed across the three tiers), sorted by value. */
 export const OPEN_BY_AREA: { agent: "content" | "ops" | "media"; value: string }[] = [
@@ -45,28 +45,28 @@ export const BATCHES: Batch[] = [
     skuRows: SKU_ROWS.halloween,
   },
   {
-    id: "baseline",
+    id: "gifts",
     tier: "approval",
-    name: "Foundational content refresh",
-    chip: "No deadline",
-    nudgeSource: "Queued by Ally, 6 days ago",
+    name: "Halloween gift sets",
+    chip: `Expires in ${DEADLINE.days} days`,
+    nudgeSource: "Nudged by Claire, just now",
     skus: 339,
     reviewMinutes: 20,
     value: "$240K",
     approveSkus: 331,
     approveValue: 0.24,
     doneLabel: "331 published · $240K",
-    rationale: "339 SKUs with bullets that haven't been touched against current search terms.",
-    exampleSkuId: "sku-2",
-    before: "Bright Citrus Zest Hand-Poured Soy Jar Candle, 14 oz. Hand poured. Six scents.",
-    after:
-      "Bright Citrus Zest Hand-Poured Soy Jar Candle, 14 oz, grapefruit and lemon zest, 90-hour burn, hand poured in small batches.",
+    rationale: "339 gift sets and multi-packs with no Halloween gifting angle. Publish by Oct 8.",
+    exampleSkuId: "sku-7",
+    before: "Bergamot Grove Decorative Scented Pillar Candle Set",
+    after: "Halloween Gift Bergamot Grove Decorative Scented Pillar Candle Set, Boo Basket Stuffer, Hostess Gift",
     changes: [
-      { text: "Rewrote bullets against the last 90 days of search terms", skus: 331 },
-      { text: "Added trending keywords", detail: "90 hour burn, hand poured, small batch", skus: 318 },
-      { text: "Kept every existing product claim word for word", skus: 339 },
+      { text: 'Added "Halloween gift" to the title', skus: 318 },
+      { text: "Added trending keywords", detail: "boo basket, hostess gift, halloween gift for her", skus: 301 },
+      { text: "Swapped to the customer-approved Halloween gift pack shot", skus: 287 },
+      { text: "Created a deal bullet", detail: "Save 20% October 1–31 with the on-page coupon", skus: 339 },
     ],
-    skuRows: SKU_ROWS.baseline,
+    skuRows: SKU_ROWS.gifts,
   },
   {
     id: "backend",
@@ -140,7 +140,7 @@ export const APPROVAL_TIER = {
     {
       agent: "content",
       analystName: "Mike",
-      description: "Halloween seasonal updates and a foundational refresh.",
+      description: "Halloween seasonal updates and gift sets.",
       value: "$740K",
       nudgeKey: "approval-content",
       deadline: `Expires in ${DEADLINE.days} days`,
@@ -388,7 +388,7 @@ export interface NudgeTarget {
 
 /** Which nudges fire a real Slack DM, to whom, and where "Open in Ally" lands. */
 export const NUDGE_TARGETS: Partial<Record<NudgeKey, NudgeTarget>> = {
-  "approval-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween and a foundational refresh", value: "$740K", skus: 709, deadlineDays: DEADLINE.days },
+  "approval-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween seasonal moments and gift sets", value: "$740K", skus: 709, deadlineDays: DEADLINE.days },
   "team-content": { recipient: "mike", queuePath: "/mike", batchName: "Backend attributes and retail readiness", value: "$600K", skus: 367 },
   "approval-ops": { recipient: "michelle", queuePath: "/michelle", batchName: "Ops store-walk fixes", value: "$2.4M", skus: 28 },
 }

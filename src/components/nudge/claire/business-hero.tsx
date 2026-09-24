@@ -30,6 +30,8 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
         <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
           <span className="size-1.5 rounded-full bg-brand-200" />
         </span>
+        <span>Hi Claire</span>
+        <span className="text-slate-300">·</span>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-md py-0.5 font-semibold text-slate-950 outline-none">
             {INFLIGHT[period].name}

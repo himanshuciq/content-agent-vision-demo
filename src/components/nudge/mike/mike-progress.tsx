@@ -27,7 +27,6 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
   // What's left is the pending batches' value; approving ships a batch's reviewed SKUs (e.g. 378 of 384), so don't subtract.
   const left = approvalBatches.filter((b) => !approved[b.id]).reduce((sum, b) => sum + money(b.value), 0)
   const pct = Math.min(100, ((TOTAL_WAITING_APPROVAL - left) / TOTAL_WAITING_APPROVAL) * 100)
-  const expiringLeft = !approved.halloween
 
   return (
     <>
@@ -36,12 +35,8 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
           {left > 0.005 ? (
             <>
               <span className="font-mono">{fmt(left)}</span> {doneValue > 0 ? "still" : "is"} one approval from live.
-              {expiringLeft && (
-                <>
-                  {" "}
-                  <span className="font-mono text-warning-600">{DEADLINE.expiring}</span> of it expires in {DEADLINE.days} days.
-                </>
-              )}
+{" "}
+              <span className="text-warning-600">All of it expires in {DEADLINE.days} days.</span>
             </>
           ) : (
             "Everything one approval away is live."

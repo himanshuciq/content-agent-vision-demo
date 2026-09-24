@@ -47,7 +47,7 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
               "rounded px-1.5 py-0.5 text-[11px] font-semibold",
               done
                 ? "bg-success-100 text-success-700"
-                : batch.id === "halloween"
+                : batch.chip.startsWith("Expires")
                   ? "bg-warning-100 text-warning-700"
                   : "bg-slate-100 text-slate-600",
             )}
