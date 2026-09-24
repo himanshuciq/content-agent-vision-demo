@@ -241,7 +241,7 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
   delivered: 0.52,
   did: "205 SKUs improved so far",
   bullets: [
-    { tone: "orange", text: "205 of 236 SKUs went live. 28 waited on approval ($35K), 3 need your team's input ($10K), and one stockout cost $15K.", action: "autopilot" },
+    { tone: "orange", text: "205 of 236 SKUs went live. 28 waited on approval ($35K), 3 needed your team's input ($10K), and one stockout cost $15K.", action: "autopilot" },
     { tone: "green", text: "Sales increased 3.2% compared to control (category average, or a 50/50 traffic split where possible), adjusted for ad spend, pricing and unavailability." },
     { tone: "learn", text: "25 of 205 SKUs underperformed. Ally tuned itself on what didn't work to make the next run better." },
   ],
