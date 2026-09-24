@@ -263,6 +263,23 @@ Used in data visualisations (charts, graphs, dashboards).
 
 ---
 
+## Number and Color Rules
+
+How numbers are signed and colored anywhere in the product (exec pages, analyst queues, results tables, bullets).
+
+| Rule | Example | Token |
+| --- | --- | --- |
+| Anything lost or still owed carries a minus sign (a real `−`, not a hyphen) and is red | "28 waited on approval (−$35K)", "vs projected −$60K" | `text-error-600` |
+| In a bullet about what worked, the gain figures are green | "Sales increased **3.2%** compared to control" | `text-success-700` |
+| Verdict columns (lead vs usual, lift vs old content, vs projected) are green when positive, red when negative | "+6.2 pts", "−0.9 pts" | `text-success-700` / `text-error-600` |
+| Dollar gains in tables stay neutral, so a page isn't a wall of green | "+$21K" | `text-slate-950` |
+| A figure never wraps across lines | "−$15K" stays on one line | `whitespace-nowrap` |
+| Amber is for things that need action soon: deadlines, "losing the sale now", waiting items | "Expires in 18 days" | `text-warning-700` on `bg-warning-100` |
+
+Bullets are written with the sign in the text ("(−$35K)"); the bullet renderer colors signed and gain figures automatically (`Figures` in `content-waterfall.tsx`).
+
+---
+
 ## Usage Guide
 
 ### How to use design tokens in components

@@ -4,6 +4,7 @@ export const dynamic = "force-static"
 
 import { Suspense } from "react"
 import { AppHeader } from "@/components/home/app-header"
+import { ExecBackBar } from "@/components/impact/exec-back-bar"
 import { ImpactView } from "@/components/impact/impact-view"
 import { LaunchpadTabs } from "@/components/landing/launchpad-tabs"
 import { PageShell } from "@/components/layout/page-shell"
@@ -20,6 +21,7 @@ export default function ImpactPage() {
   return (
     <PageShell className="bg-slate-100">
       <div className="flex min-h-screen flex-col">
+        <ExecBackBar />
         <AppHeader />
         <LaunchpadTabs className="border-slate-200/70 bg-white/60 backdrop-blur-xl" />
         <main className="flex-1">
