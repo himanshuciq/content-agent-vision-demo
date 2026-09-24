@@ -4,6 +4,7 @@ import { PublishConfetti } from "@/components/home/publish-confetti"
 import { BATCHES, DEADLINE } from "../data"
 import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
 import { useNudge } from "../nudge-context"
+import { SplitBar } from "./split-bar"
 
 function fmt(v: number) {
   return v >= 1 ? `$${+v.toFixed(1)}M` : `$${Math.round(v * 1000)}K`
@@ -34,7 +35,6 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
   // The bar is the quarter's content: banked so far, what Mike just approved, and what's still open.
   const total = BATCHES.reduce((sum, b) => sum + money(b.value), 0)
   const open = total - actedValue
-  const whole = BANKED + total
 
   return (
     <>
@@ -54,32 +54,21 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
         </h1>
       </div>
       <div className="relative border-y border-slate-200 bg-brand-25 px-10 py-4">
-        <div className="flex items-baseline justify-between gap-6">
-          <div className="text-sm text-slate-500 tabular-nums">
-            <span className="font-semibold text-slate-950">{fmt(BANKED)} banked</span>
-            {actedValue > 0 && (
-              <>
-                <span className="text-slate-300"> · </span>
-                <span className="font-semibold text-brand-700">{fmt(actedValue)} unlocked</span>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-3.5">
-            {celebrate && (
+        <SplitBar
+          banked={BANKED}
+          unlocked={actedValue}
+          open={open}
+          aside={
+            celebrate && (
               <div className="relative text-sm font-semibold text-success-700">
                 +{fmt(celebrate.value)} · {celebrate.skus} SKUs live
                 <div className="absolute -top-1 left-0 size-16">
                   <PublishConfetti />
                 </div>
               </div>
-            )}
-            <div className="text-sm text-slate-500 tabular-nums">{fmt(open)} open</div>
-          </div>
-        </div>
-        <div className="mt-2.5 flex h-2 gap-0.5 overflow-hidden rounded-full bg-brand-100">
-          <div className="h-full rounded-l-full bg-brand-600" style={{ width: `${(BANKED / whole) * 100}%` }} />
-          <div className="h-full bg-brand-400 transition-[width] duration-500 ease-out" style={{ width: `${(actedValue / whole) * 100}%` }} />
-        </div>
+            )
+          }
+        />
       </div>
     </>
   )

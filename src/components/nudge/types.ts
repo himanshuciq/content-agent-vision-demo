@@ -49,7 +49,7 @@ export interface Batch {
   inputSkus?: number
   /** What Ally needs (input) or is doing (autopilot), shown in place of the approve button; toast fires when inputs are sent. */
   need?: { text: string; toast: string }
-  /** Heading over the changes list; defaults to "What the agent changed". */
+  /** Heading over the changes list; defaults to "What Ally changed". */
   changesTitle?: string
   name: string
   chip: string

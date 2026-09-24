@@ -116,3 +116,7 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Number rule (now in design-specs.md → "Number and Color Rules"): every lost or owed amount in bullets carries a minus and is red ("(−$35K)"); gain figures in "worked" bullets are green ("3.2%"); figures never wrap. The "vs projected" column and section deltas are red when negative (was amber). **Shared:** the delivered columns and bullet data are also used by /claire, so its negative deltas turn red too.
 - Every percentage now carries its total: "Sales increased $520K (3.2%)", seasonal "$260K (2.9%)", foundational "$180K (4.0%)", Mike Ask Ally answer. Rule added to design-specs.md and the ciq-prototype skill.
 - Results summary: the percentage rides with its dollar figure ("$520K +3.2%" in the first cell); the duplicate "Sales lift" / "Lift vs old content" cells removed, so All and A/B tabs show 3 cells, Seasonal 4.
+
+## Progress bar as labeled pieces (Mike and Michelle)
+- The bar no longer implies a total (banked + open = $2.02M, a number the user never saw). It's split into pieces with a gap between them and a legend in the same colors: ● $520K banked this quarter · ● $X unlocked today (after he acts) · ○ $1.5M open (white, outlined). Nothing sits at the right edge. Shared component mike/split-bar.tsx.
+- "What the agent changed" → "What Ally changed".
