@@ -17,7 +17,18 @@ import { AGENT_LABEL, type TierRow } from "../types"
  * gets its own column; narrower, it stacks under the owner so the description
  * never gets squeezed.
  */
-export function NudgeRow({ row, grid, statusColumn = false }: { row: TierRow; grid: string; statusColumn?: boolean }) {
+/** nudge (waterfall version): "always" shows the button without hover, "none" hides it; "hover" is the tier version's default. */
+export function NudgeRow({
+  row,
+  grid,
+  statusColumn = false,
+  nudge = "hover",
+}: {
+  row: TierRow
+  grid: string
+  statusColumn?: boolean
+  nudge?: "hover" | "always" | "none"
+}) {
   const { nudged } = useNudge()
   const { fire } = useFireNudge()
   const isNudged = row.nudgeKey ? !!nudged[row.nudgeKey] : false
@@ -81,11 +92,14 @@ export function NudgeRow({ row, grid, statusColumn = false }: { row: TierRow; gr
               <Check className="size-4" />
               Nudged today
             </span>
-          ) : (
+          ) : nudge === "none" ? null : (
             <button
               type="button"
               onClick={() => fire(row)}
-              className="whitespace-nowrap rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-800 opacity-0 shadow-xs transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:border-brand-300 hover:text-brand-700"
+              className={cn(
+                "whitespace-nowrap rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-800 shadow-xs transition-opacity hover:border-brand-300 hover:text-brand-700",
+                nudge === "hover" && "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+              )}
             >
               {row.weekly ? "Nudge again" : `Nudge ${row.analystName}`}
             </button>

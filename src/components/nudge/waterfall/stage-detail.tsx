@@ -67,7 +67,8 @@ export function StageDetail({ stage }: { stage: WaterfallStage }) {
       {stage.rows.length > 0 ? (
         <div className="px-6 pb-1.5">
           {stage.rows.map((row, i) => (
-            <NudgeRow key={i} row={row} grid={TIER_GRID} statusColumn />
+            // Content (Mike) is the one owner still to act, so his nudge stays visible; the others have started.
+            <NudgeRow key={i} row={row} grid={TIER_GRID} statusColumn nudge={row.agent === "content" ? "always" : "none"} />
           ))}
         </div>
       ) : (
