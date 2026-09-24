@@ -7,6 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenu
 import { APPROVAL_TIER, BUSINESS, DEADLINE, INFLIGHT, OPEN_BY_AREA, OPEN_TOTAL, fmtBiz } from "../data"
 import type { Period } from "../types"
 
+const PERIOD_WORDS: Record<Period, string> = { week: "this week", month: "this month", quarter: "this quarter", year: "this year" }
+
 const PERIODS: { id: Period; label: string }[] = [
   { id: "week", label: "This week" },
   { id: "month", label: "This month" },
@@ -59,14 +61,18 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
         </DropdownMenu>
       </div>
 
-      {/* Same size and weight as the first line on Mike's and Michelle's pages. */}
+      {/* Fact, then the gap, then what closes it. The fact line is the same size as the first line on Mike's and Michelle's pages. */}
       <div className="mt-5 text-2xl font-semibold tracking-tight text-slate-700">
-        Your current run rate is <span className="font-mono text-slate-950">{fmtBiz(b.pace)}</span> in sales against a plan of{" "}
-        <span className="font-mono text-slate-950">{fmtBiz(b.plan)}</span>.
+        You&apos;re tracking to <span className="font-mono text-slate-950">{fmtBiz(b.pace)}</span> in sales {PERIOD_WORDS[period]}.
       </div>
 
       <h1 className="mt-1 text-[44px] leading-tight font-bold tracking-tight text-slate-950">
-        <span className="font-mono">{fmtBiz(gap)}</span> gap to plan. <span className="font-mono text-brand-600">{OPEN_TOTAL}</span> of opportunity can close it.
+        <span className="block">
+          That&apos;s <span className="font-mono">{fmtBiz(gap)}</span> short of your <span className="font-mono">{fmtBiz(b.plan)}</span> plan.
+        </span>
+        <span className="block">
+          We have <span className="font-mono text-brand-600">{OPEN_TOTAL}</span> in the pipeline to close it.
+        </span>
       </h1>
 
       <div className="mt-2 text-base text-slate-500">
