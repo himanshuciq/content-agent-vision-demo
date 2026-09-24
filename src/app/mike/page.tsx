@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
+import { AskAlly } from "@/components/nudge/claire/ask-ally"
+import { MIKE_QUESTIONS, mikeAnswer } from "@/components/nudge/ask-ally-personas"
 import { MikeHeader } from "@/components/nudge/mike/mike-header"
 import { MikeDelivered } from "@/components/nudge/mike/mike-delivered"
 import { MikeProgress } from "@/components/nudge/mike/mike-progress"
@@ -88,10 +90,11 @@ export default function MikePage() {
         </div>
         <MikeDelivered />
         {/* Demo-only control, kept out of the product chrome, same as Claire's page. */}
-        <div className="flex justify-end px-10 pb-8 opacity-50 hover:opacity-100">
+        <div className="flex justify-end px-10 pb-24 opacity-50 hover:opacity-100">
           <ResetDemoButton />
         </div>
       </div>
+      <AskAlly questions={MIKE_QUESTIONS} renderAnswer={mikeAnswer} placeholder="Ask Ally about your content queue" />
     </PageShell>
   )
 }

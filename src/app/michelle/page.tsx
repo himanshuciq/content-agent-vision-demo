@@ -6,14 +6,18 @@ import { MichelleHeader } from "@/components/nudge/ops/michelle-header"
 import { OpsProgress } from "@/components/nudge/ops/ops-progress"
 import { OpsBatchList } from "@/components/nudge/ops/ops-batch-list"
 import { OpsBatchDetail } from "@/components/nudge/ops/ops-batch-detail"
+import { OpsDelivered } from "@/components/nudge/ops/ops-delivered"
+import { AskAlly } from "@/components/nudge/claire/ask-ally"
+import { MICHELLE_QUESTIONS, michelleAnswer } from "@/components/nudge/ask-ally-personas"
+import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
 import { OPS_BATCHES } from "@/components/nudge/data"
 import { useNudge } from "@/components/nudge/nudge-context"
 import type { OpsBatch } from "@/components/nudge/data"
 
 /**
- * Michelle's ops queue — the landing spot for "Open in Ally →" on an ops nudge.
- * Same shape as Mike's content queue: issues ranked by value on the left, the
- * selected issue's evidence and one sign-off action on the right.
+ * Michelle's ops queue, laid out like Mike's: where ops stands, what's one
+ * approval from live, the inbox grouped by Claire's buckets, the selected batch,
+ * then what ops delivered this quarter.
  */
 export default function MichellePage() {
   const { approve } = useNudge()
@@ -22,10 +26,21 @@ export default function MichellePage() {
 
   const selected = OPS_BATCHES.find((b) => b.id === selectedId) ?? OPS_BATCHES[0]
 
+  function celebrateFor(batches: OpsBatch[]) {
+    const one = batches.length === 1 ? batches[0] : null
+    const label = one?.tier === "input" ? `${one.skus} ${one.inputNoun}` : `${batches.reduce((s, b) => s + b.skus, 0)} SKUs`
+    setCelebrate({ value: batches.reduce((s, b) => s + b.approveValue, 0), label })
+    window.setTimeout(() => setCelebrate(null), 2200)
+  }
+
   function handleAction(batch: OpsBatch) {
     approve(batch.id)
-    setCelebrate({ value: batch.approveValue, label: `${batch.skus} SKUs` })
-    window.setTimeout(() => setCelebrate(null), 2200)
+    celebrateFor([batch])
+  }
+
+  function handleApproveAll(batches: OpsBatch[]) {
+    batches.forEach((b) => approve(b.id))
+    celebrateFor(batches)
   }
 
   return (
@@ -34,10 +49,16 @@ export default function MichellePage() {
         <MichelleHeader />
         <OpsProgress celebrate={celebrate} />
         <div className="grid grid-cols-[340px_minmax(0,1fr)]">
-          <OpsBatchList selectedId={selectedId} onSelect={setSelectedId} />
+          <OpsBatchList selectedId={selectedId} onSelect={setSelectedId} onApproveAll={handleApproveAll} />
           <OpsBatchDetail batch={selected} onAction={handleAction} />
         </div>
+        <OpsDelivered />
+        {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
+        <div className="flex justify-end px-10 pb-24 opacity-50 hover:opacity-100">
+          <ResetDemoButton />
+        </div>
       </div>
+      <AskAlly questions={MICHELLE_QUESTIONS} renderAnswer={michelleAnswer} placeholder="Ask Ally about your ops queue" />
     </PageShell>
   )
 }

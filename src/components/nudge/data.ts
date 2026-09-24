@@ -190,10 +190,10 @@ export const APPROVAL_TIER = {
     {
       agent: "ops",
       analystName: "Michelle",
-      description: "PO email for low-inventory SKUs.",
+      description: "Buy box, promo badge, listing and shipping fixes, one email each.",
       value: "$2.4M",
       nudgeKey: "approval-ops",
-      weekly: { state: "in-progress", progress: "12 of 30 POs sent" },
+      weekly: { state: "in-progress", progress: "Reviewing the fixes" },
     },
     {
       agent: "media",
@@ -311,8 +311,13 @@ export const DELIVERED: Record<ClosedGrain, DeliveredPeriod> = {
  * Powers /michelle, mirroring Mike's content queue but with ops detections/actions.
  * ------------------------------------------------------------------------- */
 export interface OpsBatch {
-  id: "buybox" | "promo-badge" | "deal-page" | "oos" | "shipping"
+  id: "buybox" | "promo-badge" | "deal-page" | "oos" | "shipping" | "chargebacks" | "shorted-pos" | "promotions"
+  /** Which of Claire's buckets it sits in, so Michelle's inbox groups the same way her page does. */
+  tier: "approval" | "input" | "autopilot"
+  /** The kind of ops work. */
+  type: "Buy box" | "Promotions" | "Listings" | "Shipping" | "Profit recovery"
   name: string
+  /** Urgency or deadline tag; empty when there's none. */
   chip: string
   team: string
   skus: number
@@ -327,12 +332,21 @@ export interface OpsBatch {
   exampleSku: string
   exampleName: string
   evidence: string[]
+  /** Needs-your-input items: what Ally drafted, and the one field only Michelle's team can fill. */
+  inputs?: { label: string; detail: string; placeholder: string }[]
+  /** How many items need input (the Review button's count) and what they're called. */
+  inputCount?: number
+  inputNoun?: string
+  /** Autopilot: what Ally fixes on its own. */
+  fixes?: { text: string; count: number }[]
 }
 
 export const OPS_BATCHES: OpsBatch[] = [
   {
     id: "buybox",
-    name: "Lost buy box",
+    tier: "approval",
+    type: "Buy box",
+    name: "Third-party seller below MAP",
     chip: "Losing the sale now",
     team: "Sales",
     skus: 6,
@@ -351,13 +365,15 @@ export const OPS_BATCHES: OpsBatch[] = [
   },
   {
     id: "promo-badge",
+    tier: "approval",
+    type: "Promotions",
     name: "Missing promo badge",
-    chip: "Promo live, badge hidden",
+    chip: "Promo ends Oct 5",
     team: "Marketing",
     skus: 5,
     value: "$580K",
     approveValue: 0.58,
-    detected: "Deal is live (Aug 9–Sep 5) but the Deal badge and strike-through price aren't rendering on 5 SKUs.",
+    detected: "Deal is live (Sep 15–Oct 5) but the Deal badge and strike-through price aren't rendering on 5 SKUs.",
     action: "Email Amazon to restore the Deal badge",
     doneLabel: "Badge fix requested · 5 SKUs",
     exampleSku: "B0PRM001",
@@ -365,13 +381,15 @@ export const OPS_BATCHES: OpsBatch[] = [
     evidence: [
       "Badge visible: no · Original price shown: no · Struck-through: yes",
       "Selling $174 against MRP $194 — discount not surfaced",
-      "Promo window closes Sep 5",
+      "Promo window closes Oct 5",
     ],
   },
   {
     id: "deal-page",
+    tier: "approval",
+    type: "Promotions",
     name: "Deal page visibility",
-    chip: "Not on deals page",
+    chip: "",
     team: "Marketing",
     skus: 8,
     value: "$460K",
@@ -385,8 +403,10 @@ export const OPS_BATCHES: OpsBatch[] = [
   },
   {
     id: "oos",
-    name: "Out of stock (false)",
-    chip: "Listing issue, not inventory",
+    tier: "approval",
+    type: "Listings",
+    name: "Shows out of stock, but isn't",
+    chip: "",
     team: "Operations",
     skus: 5,
     value: "$340K",
@@ -400,8 +420,10 @@ export const OPS_BATCHES: OpsBatch[] = [
   },
   {
     id: "shipping",
+    tier: "approval",
+    type: "Shipping",
     name: "Shipping speed slipped",
-    chip: "Below the Prime bar",
+    chip: "",
     team: "Operations",
     skus: 4,
     value: "$300K",
@@ -413,9 +435,78 @@ export const OPS_BATCHES: OpsBatch[] = [
     exampleName: "PlayMax Fusion Pro Wired",
     evidence: ["Standard 4.5 days vs Prime 1.1 days", "Prime is 3.9 days faster across the 8 ZIPs sampled"],
   },
+  {
+    id: "chargebacks",
+    tier: "input",
+    type: "Profit recovery",
+    name: "Chargeback disputes",
+    chip: "",
+    team: "Finance",
+    skus: 42,
+    value: "$350K",
+    approveValue: 0.35,
+    detected: "Ally found 42 chargebacks and fees it can dispute and drafted every claim. 9 need proof only your team has.",
+    action: "",
+    doneLabel: "Proof sent · Ally files all 42 disputes",
+    exampleSku: "",
+    exampleName: "",
+    evidence: ["33 claims are ready to file", "Disputes must be filed within 90 days of the charge"],
+    inputCount: 9,
+    inputNoun: "claims",
+    inputs: [
+      { label: "PO 4471823 · $18.2K chargeback", detail: "Amazon says: late delivery", placeholder: "Carrier tracking number or proof-of-delivery link" },
+      { label: "PO 4471907 · $12.6K chargeback", detail: "Amazon says: ASN missing", placeholder: "ASN number" },
+      { label: "Invoice 88213 · $9.4K fee", detail: "Amazon says: cost price mismatch", placeholder: "Agreed cost price" },
+    ],
+  },
+  {
+    id: "shorted-pos",
+    tier: "input",
+    type: "Profit recovery",
+    name: "Shorted POs",
+    chip: "",
+    team: "Finance",
+    skus: 14,
+    value: "$250K",
+    approveValue: 0.25,
+    detected: "Amazon received fewer units than you shipped on 14 POs. Ally drafted every claim; 6 need the shipped quantity confirmed.",
+    action: "",
+    doneLabel: "Quantities sent · Ally files all 14 claims",
+    exampleSku: "",
+    exampleName: "",
+    evidence: ["8 claims are ready to file", "Quantities come from your ASNs where they exist"],
+    inputCount: 6,
+    inputNoun: "POs",
+    inputs: [
+      { label: "PO 4480112 · CleanPro Robot Vac R900", detail: "Amazon received 180 of 240 units", placeholder: "Units shipped" },
+      { label: "PO 4480377 · CleanPro Pro Cordless", detail: "Amazon received 96 of 120 units", placeholder: "Units shipped" },
+    ],
+  },
+  {
+    id: "promotions",
+    tier: "autopilot",
+    type: "Promotions",
+    name: "Promotions not live",
+    chip: "Running",
+    team: "Marketing",
+    skus: 51,
+    value: "$200K",
+    approveValue: 0.2,
+    detected: "When a promotion fails to go live, Ally fixes the setup and resubmits it. Nothing for you to do.",
+    action: "",
+    doneLabel: "Running on autopilot",
+    exampleSku: "",
+    exampleName: "",
+    evidence: [],
+    fixes: [
+      { text: "Resubmitted coupons that failed validation", count: 31 },
+      { text: "Fixed deals priced above the deal ceiling", count: 12 },
+      { text: "Re-enabled promotions paused by a feed error", count: 8 },
+    ],
+  },
 ]
 
-/** The five store-walk issues sum to Claire's "one approval away" ops line. */
+/** The five approval batches sum to Claire's ops "one approval away" ($2.4M); input $600K; autopilot $200K; $3.2M open. */
 export const OPS_TOTAL_VALUE = "$2.4M"
 
 export interface NudgeTarget {
@@ -431,7 +522,7 @@ export interface NudgeTarget {
 export const NUDGE_TARGETS: Partial<Record<NudgeKey, NudgeTarget>> = {
   "approval-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween seasonal moments and gift sets", value: "$740K", skus: 709, deadlineDays: DEADLINE.days },
   "team-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween concepts and retail readiness", value: "$600K", skus: 339 },
-  "approval-ops": { recipient: "michelle", queuePath: "/michelle", batchName: "Ops store-walk fixes", value: "$2.4M", skus: 28 },
+  "approval-ops": { recipient: "michelle", queuePath: "/michelle", batchName: "Buy box, promo and listing fixes", value: "$2.4M", skus: 28 },
 }
 
 export const OPEN_TOTAL = "$6.8M"

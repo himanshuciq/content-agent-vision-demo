@@ -2,30 +2,39 @@
 
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { ResetDemoButton } from "../reset-demo-button"
 
-const TODAY_LABEL = "Saturday, September 20"
+const Dot = () => <span className="text-slate-300">·</span>
+const Num = ({ children }: { children: React.ReactNode }) => <span className="font-mono font-semibold text-slate-950">{children}</span>
+const Up = ({ children }: { children: React.ReactNode }) => <span className="font-medium text-success-700">↑{children}</span>
 
-/** Michelle's header — mirrors Mike's, minus the content bell. The real ping is the Slack DM. */
+/** Michelle's top line, shaped like Mike's and Claire's: greeting, quarter, how her ops work is doing. */
 export function MichelleHeader() {
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-8">
-      <div className="flex items-center gap-2.5">
-        <div className="flex size-5.5 items-center justify-center rounded-md bg-brand-500">
-          <div className="size-1.5 rounded-full bg-brand-200" />
-        </div>
-        <span className="text-sm font-semibold tracking-tight text-slate-950">Ally</span>
-        <span className="text-sm text-slate-500">Hi Michelle</span>
-        <span className="text-sm text-slate-300">·</span>
-        <span className="text-sm text-slate-500">Ops · {TODAY_LABEL}</span>
+    <header className="flex items-start justify-between gap-6 px-10 pt-8">
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
+        <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
+          <span className="size-1.5 rounded-full bg-brand-200" />
+        </span>
+        <span>Hi Michelle</span>
+        <Dot />
+        <span className="font-semibold text-slate-950">Q3 FY26</span>
+        <Dot />
+        <span>
+          Buy box win rate <Num>94%</Num> <Up>2 pts</Up>
+        </span>
+        <Dot />
+        <span>
+          Promo badges live <Num>97%</Num> <Up>3 pts</Up>
+        </span>
+        <Dot />
+        <span>
+          <Num>2</Num> days to fix, down from 14
+        </span>
       </div>
-      <div className="flex items-center gap-3">
-        <ResetDemoButton />
-        <Link href="/claire-waterfall" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700">
-          <ArrowLeft className="size-3" />
-          Claire&apos;s view
-        </Link>
-      </div>
+      <Link href="/claire-waterfall" className="flex shrink-0 items-center gap-1.5 pt-0.5 text-xs text-slate-400 hover:text-slate-700">
+        <ArrowLeft className="size-3" />
+        Claire&apos;s view
+      </Link>
     </header>
   )
 }

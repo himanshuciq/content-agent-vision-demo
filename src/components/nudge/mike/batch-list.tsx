@@ -22,7 +22,7 @@ const fmt = (v: number) => (v >= 1 ? `$${+v.toFixed(2)}M` : `$${Math.round(v * 1
 const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith("K") ? 1000 : 1)
 
 /** Same colors as Claire's waterfall: purple is one approval, amber needs the team, blue runs itself. */
-const GROUPS: { tier: Batch["tier"]; label: string; header: string; bar: string }[] = [
+export const GROUPS: { tier: Batch["tier"]; label: string; header: string; bar: string }[] = [
   { tier: "approval", label: "One approval away", header: "bg-brand-100 text-brand-800", bar: "bg-brand-500" },
   { tier: "input", label: "Needs your input", header: "bg-warning-100 text-warning-800", bar: "bg-warning-500" },
   { tier: "autopilot", label: "On autopilot", header: "bg-info-100 text-info-700", bar: "bg-info-500" },

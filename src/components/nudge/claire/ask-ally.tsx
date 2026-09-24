@@ -5,10 +5,9 @@ import { motion } from "framer-motion"
 import { Send, Sparkles, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Answer, QUESTIONS } from "./ask-ally-answers"
-import type { Question } from "./ask-ally-answers"
 
-/** Keyword match so a typed question lands on the same answers as the chips. */
-function match(text: string): Question | null {
+/** Claire's keyword match so a typed question lands on the same answers as the chips. */
+function claireMatch(text: string): string | null {
   const t = text.toLowerCase()
   if (t.includes("invest") || t.includes("$1m")) return QUESTIONS[0]
   if (t.includes("adoption") || t.includes("hasn't acted") || t.includes("by team")) return QUESTIONS[1]
@@ -19,15 +18,38 @@ function match(text: string): Question | null {
   return null
 }
 
+/** Other pages: a typed question lands on the chip that shares the most words with it. */
+function wordMatch(questions: readonly string[], text: string): string | null {
+  const words = text.toLowerCase().split(/\W+/).filter((w) => w.length > 3)
+  let best: string | null = null
+  let score = 0
+  for (const q of questions) {
+    const n = words.filter((w) => q.toLowerCase().includes(w)).length
+    if (n > score) [best, score] = [q, n]
+  }
+  return best
+}
+
+interface AskAllyProps {
+  /** Chips for this page; defaults to Claire's. */
+  questions?: readonly string[]
+  /** Renders the answer for a chip; defaults to Claire's answers. */
+  renderAnswer?: (q: string) => React.ReactNode
+  placeholder?: string
+}
+
 /**
  * Ask Ally as a floating bar: a slim translucent pill that stays out of the way.
  * Focus opens the chips above it; a chip or a typed question opens the answer
  * there, built from the numbers already on the page.
  */
-export function AskAlly() {
+export function AskAlly({ questions = QUESTIONS, renderAnswer, placeholder = "Ask Ally: what can I take from your plate?" }: AskAllyProps = {}) {
+  const isClaire = !renderAnswer
+  const answer = (q: string) => (renderAnswer ? renderAnswer(q) : <Answer q={q as (typeof QUESTIONS)[number]} />)
+  const match = (text: string) => (isClaire ? claireMatch(text) : wordMatch(questions, text))
   const [value, setValue] = useState("")
   const [open, setOpen] = useState(false)
-  const [asked, setAsked] = useState<Question | null>(null)
+  const [asked, setAsked] = useState<string | null>(null)
   const [thinking, setThinking] = useState(false)
   const timer = useRef<number | undefined>(undefined)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -42,7 +64,7 @@ export function AskAlly() {
     return () => document.removeEventListener("mousedown", onDown)
   }, [open])
 
-  function ask(q: Question | null, text?: string) {
+  function ask(q: string | null, text?: string) {
     if (text !== undefined) setValue(text)
     if (!q) return
     window.clearTimeout(timer.current)
@@ -69,7 +91,7 @@ export function AskAlly() {
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="flex flex-wrap gap-2">
-                {QUESTIONS.map((q) => (
+                {questions.map((q) => (
                   <button
                     key={q}
                     type="button"
@@ -108,7 +130,7 @@ export function AskAlly() {
                   </div>
                 ) : (
                   <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-                    <Answer q={asked} />
+                    {answer(asked)}
                   </motion.div>
                 )}
               </div>
@@ -129,7 +151,7 @@ export function AskAlly() {
             onChange={(e) => setValue(e.target.value)}
             onFocus={() => setOpen(true)}
             onClick={() => setOpen(true)}
-            placeholder="Ask Ally: what can I take from your plate?"
+            placeholder={placeholder}
             className="flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
           />
           <button

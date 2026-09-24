@@ -7,7 +7,7 @@ import { useNudge } from "../nudge-context"
 import type { Batch } from "../types"
 
 /** Selected = a soft tint in the group's own color; the group's edge already carries the color line. */
-const ACTIVE: Record<Batch["tier"], string> = {
+export const ACTIVE: Record<Batch["tier"], string> = {
   approval: "bg-brand-50",
   input: "bg-warning-50",
   autopilot: "bg-info-50",

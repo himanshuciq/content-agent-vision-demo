@@ -1,8 +1,10 @@
 "use client"
 
-import { Check, Search } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react"
+import { Check, RefreshCw, Search } from "lucide-react"
+import { toast } from "sonner"
 import { useNudge } from "../nudge-context"
+import { PRIMARY } from "../mike/buttons"
 import type { OpsBatch } from "../data"
 
 interface OpsBatchDetailProps {
@@ -10,69 +12,143 @@ interface OpsBatchDetailProps {
   onAction: (batch: OpsBatch) => void
 }
 
+/** A field only Michelle's team can fill: what Ally drafted, then a full-width box. Same look as Mike's input fields. */
+function InputRow({ item }: { item: NonNullable<OpsBatch["inputs"]>[number] }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-warning-200">
+      <div className="flex items-center justify-between gap-3 border-b border-warning-100 bg-warning-50 px-5 py-2.5">
+        <span className="text-sm font-semibold text-slate-950">{item.label}</span>
+        <span className="font-mono text-[11px] tracking-wide text-warning-700 uppercase">Your input</span>
+      </div>
+      <div className="px-5 py-4">
+        <div className="text-sm text-slate-500">{item.detail}</div>
+        <input
+          placeholder={item.placeholder}
+          className="mt-3 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+        />
+      </div>
+    </div>
+  )
+}
+
 /**
- * Right pane for an ops issue: what Ally caught on the store walk, the evidence
- * behind it, and the one action Michelle signs off — no bulk SKU workbench, since
- * ops fixes are a report to Amazon or the 3PL, not a content rewrite.
+ * Right pane for an ops batch, laid out like Mike's: type and name, value, what
+ * Ally caught (or fixes on its own), then one action. One approval away: a single
+ * sign-off Ally sends for you. Needs your input: review the items only your team
+ * can answer, then send them to Ally. On autopilot: nothing to do.
  */
 export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
   const { approved } = useNudge()
   const done = !!approved[batch.id]
+  const [reviewing, setReviewing] = useState(false)
+  useEffect(() => setReviewing(false), [batch.id])
 
   return (
     <div className="flex min-w-0 flex-col px-10 py-8">
       <div className="flex items-start justify-between gap-8">
         <div className="min-w-0">
-          <div className="text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
-          <div className="mt-1.5 text-sm text-slate-600">{batch.team} · {batch.skus} SKUs affected</div>
+          <div className="text-sm font-medium text-slate-500">{batch.type}</div>
+          <div className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
+          <div className="mt-1.5 text-sm text-slate-500">
+            {batch.team} · {batch.skus} {batch.tier === "input" ? batch.inputNoun : "SKUs"}
+          </div>
         </div>
         <div className="shrink-0 text-right">
           <div className="font-mono text-[28px] font-bold tracking-tight text-slate-950 tabular-nums">{batch.value}</div>
-          <div className="mt-0.5 text-sm text-slate-500">at risk</div>
+          <div className="mt-0.5 text-sm text-slate-500">{batch.tier === "autopilot" ? "this quarter" : "at stake"}</div>
         </div>
       </div>
 
       <div className="mt-8 overflow-hidden rounded-xl border border-slate-200">
         <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-950">
-          <Search className="size-4 text-brand-600" />
-          What Ally caught
+          {batch.tier === "autopilot" ? <RefreshCw className="size-4 text-info-600" /> : <Search className="size-4 text-brand-600" />}
+          {batch.tier === "autopilot" ? "What Ally fixes automatically" : "What Ally caught"}
         </div>
-        <div className="px-5 py-4">
-          <p className="text-sm leading-relaxed text-slate-900">{batch.detected}</p>
-          <div className="mt-4 rounded-lg bg-slate-25 p-4">
-            <div className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-              Lead example · <span className="font-mono normal-case">{batch.exampleSku}</span> {batch.exampleName}
+        {batch.fixes ? (
+          batch.fixes.map((f, i) => (
+            <div key={f.text} className={i > 0 ? "flex items-start gap-3 border-t border-slate-100 px-5 py-3.5" : "flex items-start gap-3 px-5 py-3.5"}>
+              <Check className="mt-0.5 size-4 shrink-0 text-success-600" />
+              <span className="flex-1 text-sm font-medium text-slate-950">{f.text}</span>
+              <span className="font-mono text-sm font-semibold text-slate-950 tabular-nums">{f.count}</span>
+              <span className="-ml-2 text-xs text-slate-500">this quarter</span>
             </div>
-            <ul className="mt-2.5 space-y-1.5">
-              {batch.evidence.map((e, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-slate-400" />
-                  {e}
-                </li>
-              ))}
-            </ul>
+          ))
+        ) : (
+          <div className="px-5 py-4">
+            <p className="text-sm leading-relaxed text-slate-950">{batch.detected}</p>
+            {batch.evidence.length > 0 && (
+              <div className="mt-4 rounded-lg bg-slate-25 p-4">
+                {batch.exampleSku && (
+                  <div className="text-xs font-medium text-slate-500">
+                    Lead example · <span className="font-mono">{batch.exampleSku}</span> {batch.exampleName}
+                  </div>
+                )}
+                <ul className={batch.exampleSku ? "mt-2.5 space-y-1.5" : "space-y-1.5"}>
+                  {batch.evidence.map((e) => (
+                    <li key={e} className="flex items-start gap-2 text-sm text-slate-700">
+                      <span className="mt-1.5 size-1 shrink-0 rounded-full bg-slate-400" />
+                      {e}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="mt-8 flex items-center gap-4">
-        {done ? (
+      <div className="mt-8">
+        {batch.tier === "autopilot" ? (
+          <div className="flex items-start gap-3 rounded-xl border border-info-100 bg-info-50 px-5 py-4 text-sm text-slate-700">
+            <RefreshCw className="mt-0.5 size-4 shrink-0 text-info-600" />
+            Running on autopilot. {batch.detected}
+          </div>
+        ) : done ? (
           <div className="flex items-center gap-2 text-[15px] font-medium text-success-700">
             <Check className="size-4" />
             {batch.doneLabel}
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => onAction(batch)}
-            className={cn(
-              "rounded-md bg-brand-500 px-6 py-3 text-[15px] font-semibold text-white shadow-xs transition-colors hover:bg-brand-600",
+        ) : batch.tier === "input" ? (
+          <div className="flex flex-col gap-4 rounded-xl border border-warning-200 bg-warning-50 px-5 py-4">
+            <div className="text-sm text-slate-700">
+              {batch.inputCount} {batch.inputNoun} need something only your team has. Ally files the rest as soon as you send them.
+            </div>
+            {!reviewing && (
+              <button type="button" onClick={() => setReviewing(true)} className={`${PRIMARY} w-fit`}>
+                Review {batch.inputCount} {batch.inputNoun}
+              </button>
             )}
-          >
+          </div>
+        ) : (
+          <button type="button" onClick={() => onAction(batch)} className={PRIMARY}>
             {batch.action}
           </button>
         )}
       </div>
+
+      {reviewing && !done && batch.inputs && (
+        <div className="mt-6 flex flex-col gap-3">
+          {batch.inputs.map((item) => (
+            <InputRow key={item.label} item={item} />
+          ))}
+          <div className="text-xs text-slate-500">
+            Showing {batch.inputs.length} of {batch.inputCount}
+          </div>
+          <div className="mt-2 flex items-center gap-4 rounded-xl border border-warning-200 bg-warning-50 px-6 py-5">
+            <div className="min-w-0 flex-1 text-sm font-semibold text-slate-950">Filled in? Ally files every claim and tells you when they land.</div>
+            <button
+              type="button"
+              onClick={() => {
+                onAction(batch)
+                toast.success(`Sent to Ally. ${batch.doneLabel}.`, { position: "top-right" })
+              }}
+              className={PRIMARY}
+            >
+              Send to Ally
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
