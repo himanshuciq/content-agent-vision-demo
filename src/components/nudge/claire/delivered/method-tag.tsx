@@ -6,6 +6,7 @@ import { Info } from "lucide-react"
 const EXPLAIN: Record<string, string> = {
   "vs category": "Compared with the category over the same weeks. We don't split event traffic, so every shopper sees your event content.",
   "A/B tested": "Half your shoppers saw the old content and half the new, at the same time.",
+  "Leakage prevented": "Each fix is worth the SKU's normal daily sales times the days sooner it was fixed: 48 hours instead of about 2 weeks.",
 }
 
 /** The row's method in two words; hover or click for the one-sentence explanation. */

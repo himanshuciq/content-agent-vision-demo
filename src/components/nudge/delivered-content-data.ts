@@ -76,10 +76,10 @@ export interface AbTestCard {
 }
 
 export interface WorkType {
-  id: "seasonal" | "foundational" | "retail-readiness"
+  id: "seasonal" | "foundational" | "retail-readiness" | "buy-box" | "promo-badge" | "shipping-speed"
   name: string
-  /** How it's measured, in two words, shown as a tag. */
-  method: "vs category" | "A/B tested"
+  /** How it's measured, in two words, shown as a tag. Ops fixes are measured as revenue leakage prevented. */
+  method: "vs category" | "A/B tested" | "Leakage prevented"
   /** What we did, in one phrase: "200 SKUs". */
   did: string
   promised: number
@@ -269,6 +269,50 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
       bullets: [
         { tone: "green", text: "10 SKUs unblocked for syndication (content last updated 2 quarters ago) by auto-updating 28 backend attributes." },
         { tone: "orange", text: "3 SKUs need your team's input ($10K).", action: "nudge-team" },
+      ],
+    },
+  ],
+}
+
+/**
+ * Ops agent, Q3 FY26 so far: revenue leakage prevented. Each fix is worth the
+ * SKU's normal daily sales times the days sooner it was fixed (48 hours instead
+ * of about 2 weeks). Ties to BANKED_OTHER ops: $310K of $360K projected.
+ */
+export const OPS_BANKED_Q3: ContentDelivered = {
+  promised: 0.36,
+  delivered: 0.31,
+  did: "78 SKUs fixed in 48 hours",
+  summary: [
+    "We caught 78 SKUs losing the buy box, missing a promo badge, or dropping below the shipping speed bar, and fixed them in 48 hours instead of 2 weeks: $310K of leakage prevented of $360K projected.",
+    "$30K is waiting on 2 restocks, the retailer rejected 4 promo badges ($10K), and 2 SKUs still ship too slowly from one warehouse ($10K).",
+  ],
+  bullets: [
+    { tone: "green", text: "Caught 78 SKUs losing the buy box, missing a promo badge, or dropping below the shipping speed bar, and fixed them in 48 hours instead of 2 weeks." },
+    { tone: "green", text: "$310K of revenue leakage prevented: each SKU's normal daily sales × the 12 days sooner it was fixed, adjusted for price and seasonality." },
+    { tone: "orange", text: "$50K short of projected: 2 buy-box fixes are waiting on restocks ($30K), the retailer rejected 4 promo badges ($10K), and 2 SKUs still ship too slowly ($10K).", action: "nudge-team" },
+  ],
+  workTypes: [
+    {
+      id: "buy-box", name: "Buy box", method: "Leakage prevented", did: "38 SKUs won back", promised: 0.18, delivered: 0.15,
+      bullets: [
+        { tone: "green", text: "Won back the buy box on 36 of 38 SKUs within 48 hours, 12 days sooner than a manual fix." },
+        { tone: "orange", text: "2 fixes are waiting on restocks ($30K).", action: "nudge-team" },
+        { tone: "learn", text: "Ally now checks stock before chasing the buy box, so fixes don't stall on restocks." },
+      ],
+    },
+    {
+      id: "promo-badge", name: "Promo badge", method: "Leakage prevented", did: "26 badges restored", promised: 0.11, delivered: 0.1,
+      bullets: [
+        { tone: "green", text: "Promo badges are live again on 22 of 26 SKUs, so shoppers see the deal on the listing." },
+        { tone: "orange", text: "The retailer rejected 4 badges. They need a new coupon setup ($10K).", action: "nudge-team" },
+      ],
+    },
+    {
+      id: "shipping-speed", name: "Shipping speed", method: "Leakage prevented", did: "14 SKUs back above the bar", promised: 0.07, delivered: 0.06,
+      bullets: [
+        { tone: "green", text: "12 of 14 SKUs are back above the shipping speed bar and keep the fast-delivery badge." },
+        { tone: "orange", text: "2 SKUs still ship too slowly from one warehouse ($10K).", action: "nudge-team" },
       ],
     },
   ],

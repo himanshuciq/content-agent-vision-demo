@@ -92,3 +92,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Each type is a card like Claire's tables: title bar with type mark (shades of content purple), method tag, method note, and delivered-vs-projected with progress bar; then column headers and rows with hover.
 - Results page: period is now a dropdown in the top line ("Content results · Q3 FY26 so far ▾"), same control as Claire's top line; type tabs stay as tabs. Segmented buttons no longer keep a focus outline after a click.
 - Q3 content bullet tense fixed: "3 needed your team's input" (shared data).
+
+## Ops row opens like Content (This quarter so far)
+- /claire-waterfall: the Ops row ($310K of $360K) opens to the same waterfall as Content: Buy box $150K · Promo badge $100K · Shipping speed $60K → Ops $310K against projected, ops-blue bars, bullets per bar, Nudge team on hover nudges Michelle.
+- Ops $ = revenue leakage prevented (new method tag "Leakage prevented"): each SKU's normal daily sales × the 12 days sooner it was fixed (48 hours instead of 2 weeks), adjusted for price and seasonality.
+- ContentWaterfall generalized (order, total label, bar color, owner row; results link optional). New data OPS_BANKED_Q3 in delivered-content-data.ts ties to BANKED_OTHER ops.

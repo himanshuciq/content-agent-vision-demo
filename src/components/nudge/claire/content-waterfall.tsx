@@ -10,19 +10,20 @@ import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
 import { MethodTag } from "./delivered/method-tag"
 import type { ContentDelivered, WorkType } from "../delivered-content-data"
+import type { TierRow } from "../types"
 
 const HEIGHT = 190
 const LABEL_HEIGHT = 44
 const PAD_TOP = 28
 const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-500", learn: "" }
-/** Waterfall order: everyday content first, then the event, then unblocking. */
-const ORDER = ["foundational", "seasonal", "retail-readiness"]
+/** Content waterfall order: everyday content first, then the event, then unblocking. */
+const CONTENT_ORDER = ["foundational", "seasonal", "retail-readiness"]
 /**
  * Types are one family (all content), so one purple; the labels name them. The total is a
  * mid-gray neutral (not black) so the default selection reads as the sum. Tried a hue per type: too loud,
  * and teal read as "success green".
  */
-const BAR: Record<string, string> = { foundational: "bg-brand-400", seasonal: "bg-brand-400", "retail-readiness": "bg-brand-400", total: "bg-slate-500" }
+const TOTAL_BAR = "bg-slate-500"
 
 type Bullets = NonNullable<WorkType["bullets"]>
 
@@ -32,10 +33,24 @@ const CONTENT_TEAM_ROW = TEAM_TIER.rows.find((r) => r.agent === "content")!
 const HOVER_BTN =
   "absolute right-0 -bottom-1 rounded-md border border-brand-200 bg-white px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-brand-700 opacity-0 transition-opacity group-hover/b:opacity-100 hover:bg-brand-50 focus-visible:opacity-100"
 
-function BulletCard({ title, method, bullets, className, canNudge = true }: { title: string; method?: string; bullets?: Bullets; className?: string; canNudge?: boolean }) {
+function BulletCard({
+  title,
+  method,
+  bullets,
+  className,
+  canNudge = true,
+  teamRow = CONTENT_TEAM_ROW,
+}: {
+  title: string
+  method?: string
+  bullets?: Bullets
+  className?: string
+  canNudge?: boolean
+  teamRow?: TierRow
+}) {
   const { nudged } = useNudge()
   const { fire } = useFireNudge()
-  const teamNudged = !!(CONTENT_TEAM_ROW.nudgeKey && nudged[CONTENT_TEAM_ROW.nudgeKey])
+  const teamNudged = !!(teamRow.nudgeKey && nudged[teamRow.nudgeKey])
   return (
     <div className={cn("rounded-lg border border-slate-200 bg-white px-4 py-3.5", className)}>
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-950">
@@ -66,7 +81,7 @@ function BulletCard({ title, method, bullets, className, canNudge = true }: { ti
               (teamNudged ? (
                 <span className="absolute right-0 -bottom-1 text-xs font-semibold text-success-700">Team nudged</span>
               ) : (
-                <button type="button" onClick={() => fire(CONTENT_TEAM_ROW)} className={HOVER_BTN}>
+                <button type="button" onClick={() => fire(teamRow)} className={HOVER_BTN}>
                   Nudge team
                 </button>
               ))}
@@ -83,11 +98,30 @@ function BulletCard({ title, method, bullets, className, canNudge = true }: { ti
  * opens on the Content total so the story shows without a click. (Hover and
  * click popovers were tried and dropped: they hide the story until you act.)
  */
-/** canNudge: off on Mike's page, where the team is Mike. */
-export function ContentWaterfall({ data, resultsHref, canNudge = true }: { data: ContentDelivered; resultsHref: string; canNudge?: boolean }) {
+/**
+ * canNudge: off on Mike's page, where the team is Mike. The same chart serves the ops agent:
+ * pass its order, total label, bar color and owner row.
+ */
+export function ContentWaterfall({
+  data,
+  resultsHref,
+  canNudge = true,
+  order = CONTENT_ORDER,
+  totalLabel = "Content",
+  barClass = "bg-brand-400",
+  teamRow = CONTENT_TEAM_ROW,
+}: {
+  data: ContentDelivered
+  resultsHref?: string
+  canNudge?: boolean
+  order?: string[]
+  totalLabel?: string
+  barClass?: string
+  teamRow?: TierRow
+}) {
   const [selected, setSelected] = useState("total")
 
-  const types = ORDER.map((id) => data.workTypes.find((w) => w.id === id)!).filter(Boolean)
+  const types = order.map((id) => data.workTypes.find((w) => w.id === id)!).filter(Boolean)
   const pct = (v: number) => (v / data.promised) * 100
   let acc = 0
   const cols = [
@@ -96,7 +130,7 @@ export function ContentWaterfall({ data, resultsHref, canNudge = true }: { data:
       acc += w.delivered
       return col
     }),
-    { key: "total", label: "Content", method: undefined, bullets: data.bullets, sub: `of ${fmtValue(data.promised)} projected`, value: fmtValue(data.delivered), start: 0, end: data.delivered },
+    { key: "total", label: totalLabel, method: undefined, bullets: data.bullets, sub: `of ${fmtValue(data.promised)} projected`, value: fmtValue(data.delivered), start: 0, end: data.delivered },
   ]
   const panel = cols.find((c) => c.key === selected)!
 
@@ -126,7 +160,7 @@ export function ContentWaterfall({ data, resultsHref, canNudge = true }: { data:
                   )}
                   <div className="absolute inset-x-4 rounded-t-md" style={{ top: `${100 - pct(c.end)}%`, height: `${pct(c.end - c.start)}%` }}>
                     {/* No dimming: faded teal reads as "success green". The selection box carries the selected state. */}
-                    <div className={cn("size-full rounded-t-md", BAR[c.key])} />
+                    <div className={cn("size-full rounded-t-md", c.key === "total" ? TOTAL_BAR : barClass)} />
                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 font-mono text-xs font-bold whitespace-nowrap text-slate-950 tabular-nums">{c.value}</div>
                   </div>
                 </div>
@@ -141,12 +175,14 @@ export function ContentWaterfall({ data, resultsHref, canNudge = true }: { data:
         })}
       </div>
 
-      <BulletCard title={panel.label} method={panel.method} bullets={panel.bullets} canNudge={canNudge} />
+      <BulletCard title={panel.label} method={panel.method} bullets={panel.bullets} canNudge={canNudge} teamRow={teamRow} />
 
-      <Link href={resultsHref} className="inline-flex w-fit items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800">
-        See SKU-level results and method
-        <ArrowRight className="size-3.5" />
-      </Link>
+      {resultsHref && (
+        <Link href={resultsHref} className="inline-flex w-fit items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800">
+          See SKU-level results and method
+          <ArrowRight className="size-3.5" />
+        </Link>
+      )}
     </div>
   )
 }
