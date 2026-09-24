@@ -33,6 +33,13 @@ export default function MikePage() {
     window.setTimeout(() => setCelebrate(null), 2200)
   }
 
+  /** "Approve all" on a group: ship every pending batch in it at once. */
+  function handleApproveAll(batches: Batch[]) {
+    batches.forEach((b) => approve(b.id))
+    setCelebrate({ value: batches.reduce((s, b) => s + b.approveValue, 0), skus: batches.reduce((s, b) => s + b.approveSkus, 0) })
+    window.setTimeout(() => setCelebrate(null), 2200)
+  }
+
   function handleSelectBatch(id: Batch["id"]) {
     setSelectedId(id)
     setSelectedSkuId(null)
@@ -62,6 +69,7 @@ export default function MikePage() {
             onToggleExpand={(id) => setExpandedBatchId((prev) => (prev === id ? null : id))}
             onSelectBatch={handleSelectBatch}
             onSelectSku={handleSelectSku}
+            onApproveAll={handleApproveAll}
           />
           {selectedRow ? (
             <SkuDetailPane

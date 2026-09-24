@@ -9,7 +9,7 @@ import type { AgentId, Batch, ClosedGrain, ClosedPeriodData, InflightData, Nudge
  * replaced with these, one per batch, per the handoff's "defer to the repo's
  * real SKU records" instruction.
  */
-export const DEADLINE = { days: 18, date: "Oct 8", expiring: "$740K" }
+export const DEADLINE = { days: 18, date: "Oct 8", expiring: "$500K" }
 
 /** Open $6.8M split by agent (summed across the three tiers), sorted by value. */
 export const OPEN_BY_AREA: { agent: "content" | "ops" | "media"; value: string }[] = [
@@ -21,15 +21,16 @@ export const OPEN_BY_AREA: { agent: "content" | "ops" | "media"; value: string }
 export const BATCHES: Batch[] = [
   {
     id: "halloween",
+    tier: "approval",
     name: "Halloween seasonal moments",
     chip: `Expires in ${DEADLINE.days} days`,
     nudgeSource: "Nudged by Claire, just now",
     skus: 384,
     reviewMinutes: 25,
-    value: "$1.24M",
+    value: "$500K",
     approveSkus: 378,
-    approveValue: 1.22,
-    doneLabel: "378 published · $1.22M",
+    approveValue: 0.5,
+    doneLabel: "378 published · $500K",
     rationale: "384 SKUs missing event titles, deal framing, and AEO specs. Publish by Oct 8.",
     exampleSkuId: "sku-1",
     before: "Aurelle Candles Noir Cherry Large Scented Jar, 22 oz",
@@ -45,15 +46,16 @@ export const BATCHES: Batch[] = [
   },
   {
     id: "baseline",
+    tier: "approval",
     name: "Foundational content refresh",
     chip: "No deadline",
     nudgeSource: "Queued by Ally, 6 days ago",
     skus: 339,
     reviewMinutes: 20,
-    value: "$1.38M",
+    value: "$240K",
     approveSkus: 331,
-    approveValue: 1.35,
-    doneLabel: "331 published · $1.35M",
+    approveValue: 0.24,
+    doneLabel: "331 published · $240K",
     rationale: "339 SKUs with bullets that haven't been touched against current search terms.",
     exampleSkuId: "sku-2",
     before: "Bright Citrus Zest Hand-Poured Soy Jar Candle, 14 oz. Hand poured. Six scents.",
@@ -68,15 +70,17 @@ export const BATCHES: Batch[] = [
   },
   {
     id: "backend",
+    tier: "input",
+    decisions: 2,
     name: "Backend keyword and attribute gaps",
     chip: "No deadline",
     nudgeSource: "Queued by Ally, 6 days ago",
     skus: 273,
     reviewMinutes: 10,
-    value: "$1.12M",
+    value: "$420K",
     approveSkus: 273,
-    approveValue: 1.12,
-    doneLabel: "273 published · $1.12M",
+    approveValue: 0.42,
+    doneLabel: "273 published · $420K",
     rationale: "273 SKUs with empty backend search terms and structured attributes.",
     exampleSkuId: "sku-3",
     before: "Search terms: candle, jar candle, soy candle · Scent family: — · Burn time: —",
@@ -91,15 +95,17 @@ export const BATCHES: Batch[] = [
   },
   {
     id: "readiness",
+    tier: "input",
+    decisions: 1,
     name: "Retail readiness",
     chip: "No deadline",
     nudgeSource: "Flagged by Vendor Central, 3 days ago",
     skus: 100,
     reviewMinutes: 5,
-    value: "$224K",
+    value: "$180K",
     approveSkus: 94,
-    approveValue: 0.211,
-    doneLabel: "94 published · $211K",
+    approveValue: 0.18,
+    doneLabel: "94 published · $180K",
     rationale: "100 SKUs missing the structured attributes Amazon requires for this category.",
     exampleSkuId: "sku-4",
     before: "Country of origin: — · Item form: — · Age range: —",
@@ -134,7 +140,7 @@ export const APPROVAL_TIER = {
     {
       agent: "content",
       analystName: "Mike",
-      description: "Halloween seasonal updates.",
+      description: "Halloween seasonal updates and a foundational refresh.",
       value: "$740K",
       nudgeKey: "approval-content",
       deadline: `Expires in ${DEADLINE.days} days`,
@@ -382,8 +388,8 @@ export interface NudgeTarget {
 
 /** Which nudges fire a real Slack DM, to whom, and where "Open in Ally" lands. */
 export const NUDGE_TARGETS: Partial<Record<NudgeKey, NudgeTarget>> = {
-  "approval-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween seasonal moments", value: "$1.24M", skus: 384, deadlineDays: DEADLINE.days },
-  "team-content": { recipient: "mike", queuePath: "/mike", batchName: "Backend keyword and attribute gaps", value: "$1.12M", skus: 273 },
+  "approval-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween and a foundational refresh", value: "$740K", skus: 709, deadlineDays: DEADLINE.days },
+  "team-content": { recipient: "mike", queuePath: "/mike", batchName: "Backend attributes and retail readiness", value: "$600K", skus: 367 },
   "approval-ops": { recipient: "michelle", queuePath: "/michelle", batchName: "Ops store-walk fixes", value: "$2.4M", skus: 28 },
 }
 
@@ -414,7 +420,8 @@ export const INFLIGHT: Record<Period, InflightData> = {
   quarter: { name: "Q3 FY26", ptd: "$37M", ptdLabel: "quarter to date", plan: "95%", share: "market share flat at 18.6%" },
   year: { name: "FY26", ptd: "$125M", ptdLabel: "year to date", plan: "99%", share: "market share up 0.2 pts to 18.6%" },
 }
-export const TOTAL_WAITING_APPROVAL = 3.96
+/** Mike's "One approval away" total; ties to Claire's content row in that bucket ($740K). */
+export const TOTAL_WAITING_APPROVAL = 0.74
 export const TOTAL_SKUS_REMAINING = 1096
 
 /** The "{priorName} · {priorValue} driven by Ally" toggle and its agent breakdown. */

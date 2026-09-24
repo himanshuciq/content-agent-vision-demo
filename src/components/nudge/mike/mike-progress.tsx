@@ -1,42 +1,56 @@
 "use client"
 
 import { PublishConfetti } from "@/components/home/publish-confetti"
-import { BATCHES, TOTAL_WAITING_APPROVAL } from "../data"
+import { BATCHES, DEADLINE, TOTAL_WAITING_APPROVAL } from "../data"
 import { useNudge } from "../nudge-context"
 
 function fmt(v: number) {
   return v >= 1 ? `$${v.toFixed(2)}M` : `$${Math.round(v * 1000)}K`
 }
+/** "$500K" → 0.5 ($M). */
+const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith("K") ? 1000 : 1)
 
 interface Celebrate {
   value: number
   skus: number
 }
 
-/** Headline + progress bar. Approving a batch nudges both, plus a confetti burst. */
+/**
+ * Mike's headline in Claire's words, for his slice: what's one approval from
+ * live and what of it expires. The bar fills as he approves.
+ */
 export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
   const { approved } = useNudge()
 
-  const doneValue = BATCHES.reduce((sum, b) => sum + (approved[b.id] ? b.approveValue : 0), 0)
-  const remaining = BATCHES.filter((b) => !approved[b.id])
-  const left = Math.max(0, TOTAL_WAITING_APPROVAL - doneValue)
-  const pct = Math.min(100, (doneValue / TOTAL_WAITING_APPROVAL) * 100)
-
-  const headline =
-    doneValue > 0 ? `${fmt(left)} still waiting for your approval` : `${fmt(TOTAL_WAITING_APPROVAL)} is waiting for your approval`
-  const subhead =
-    remaining.length === 0 ? "All caught up — every batch is published." : "Most of it is one bulk approve away."
-  const approvedLine = doneValue > 0 ? `${fmt(doneValue)} approved` : "Not started"
+  const approvalBatches = BATCHES.filter((b) => b.tier === "approval")
+  const doneValue = approvalBatches.reduce((sum, b) => sum + (approved[b.id] ? b.approveValue : 0), 0)
+  // What's left is the pending batches' value; approving ships a batch's reviewed SKUs (e.g. 378 of 384), so don't subtract.
+  const left = approvalBatches.filter((b) => !approved[b.id]).reduce((sum, b) => sum + money(b.value), 0)
+  const pct = Math.min(100, ((TOTAL_WAITING_APPROVAL - left) / TOTAL_WAITING_APPROVAL) * 100)
+  const expiringLeft = !approved.halloween
 
   return (
     <>
       <div className="px-10 pt-8 pb-5">
-        <div className="text-[30px] leading-tight font-semibold tracking-tight text-slate-950">{headline}</div>
-        <div className="mt-1.5 text-lg text-slate-600">{subhead}</div>
+        <div className="text-[30px] leading-tight font-semibold tracking-tight text-slate-950">
+          {left > 0.005 ? (
+            <>
+              <span className="font-mono">{fmt(left)}</span> {doneValue > 0 ? "still" : "is"} one approval from live.
+              {expiringLeft && (
+                <>
+                  {" "}
+                  <span className="font-mono text-warning-600">{DEADLINE.expiring}</span> of it expires in {DEADLINE.days} days.
+                </>
+              )}
+            </>
+          ) : (
+            "Everything one approval away is live."
+          )}
+        </div>
       </div>
       <div className="relative border-y border-slate-200 bg-brand-25 px-10 py-4">
         <div className="flex items-baseline justify-between gap-6">
-          <div className="text-sm font-semibold text-slate-950 tabular-nums">{approvedLine}</div>
+          <div className="text-sm font-semibold text-slate-950 tabular-nums">{doneValue > 0 ? `${fmt(doneValue)} approved` : "Not started"}</div>
           <div className="flex items-center gap-3.5">
             {celebrate && (
               <div className="relative text-sm font-semibold text-success-700">
@@ -46,14 +60,11 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
                 </div>
               </div>
             )}
-            <div className="text-sm text-slate-600 tabular-nums">{fmt(left)} left</div>
+            <div className="text-sm text-slate-600 tabular-nums">{left > 0.005 ? `${fmt(left)} left` : "Nothing left"}</div>
           </div>
         </div>
         <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-brand-100">
-          <div
-            className="h-full rounded-full bg-brand-500 transition-[width] duration-500 ease-out"
-            style={{ width: `${pct}%` }}
-          />
+          <div className="h-full rounded-full bg-brand-500 transition-[width] duration-500 ease-out" style={{ width: `${pct}%` }} />
         </div>
       </div>
     </>

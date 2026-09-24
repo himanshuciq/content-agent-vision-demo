@@ -29,9 +29,11 @@ function diff<T>(a: T[], b: T[], eq: (x: T, y: T) => boolean): Op<T>[] {
 const norm = (w: string) => w.replace(/[,.;:]+$/, "").toLowerCase()
 const words = (s: string) => s.split(/\s+/).filter(Boolean)
 
-function Words({ ops }: { ops: Op<string>[] }) {
+function Words({ ops, side }: { ops: Op<string>[]; side: "live" | "draft" }) {
+  // Each side shows its own words: live keeps what was removed (struck), the draft keeps what was added (green).
+  const visible = ops.filter((o) => o.t === "same" || (side === "live" ? o.t === "del" : o.t === "add"))
   // Merge runs of the same kind, so "Spooky Party Décor" is one green span, not three pills.
-  const runs = ops.reduce<Op<string>[]>((acc, o) => {
+  const runs = visible.reduce<Op<string>[]>((acc, o) => {
     const last = acc[acc.length - 1]
     if (last && last.t === o.t) last.v += " " + o.v
     else acc.push({ ...o })
@@ -57,13 +59,12 @@ function Words({ ops }: { ops: Op<string>[] }) {
   )
 }
 
-/**
- * One text field as an edit: lines that stayed are black, removed lines are
- * struck, new lines are green; a line that changed shows its word-level edit.
- */
-function TextDiff({ live, draft }: { live: string[]; draft: string[] }) {
+type Row = { kind: "same" | "del" | "add" | "edit"; ops?: Op<string>[]; text?: string }
+
+/** Pair up lines: unchanged, removed, added, or changed (a removed line followed by its replacement). */
+function lineRows(live: string[], draft: string[]): Row[] {
   const lines = diff(live, draft, (x, y) => x === y)
-  const rows: { kind: "same" | "del" | "add" | "edit"; ops?: Op<string>[]; text?: string }[] = []
+  const rows: Row[] = []
   for (let k = 0; k < lines.length; k++) {
     const cur = lines[k]
     const next = lines[k + 1]
@@ -72,61 +73,103 @@ function TextDiff({ live, draft }: { live: string[]; draft: string[] }) {
       k++
     } else rows.push({ kind: cur.t, text: cur.v })
   }
+  return rows
+}
+
+/** One side of a text field: live shows kept (black) and removed (struck); Ally's shows kept and added (green). */
+function TextSide({ rows, side }: { rows: Row[]; side: "live" | "draft" }) {
   return (
     <div className="flex flex-col gap-1.5 text-sm leading-relaxed">
-      {rows.map((r, k) => (
-        <p
-          key={k}
-          className={cn(
-            r.kind === "del" && "text-slate-400 line-through",
-            r.kind === "add" && "w-fit rounded bg-success-50 px-1 font-medium text-success-800",
-            r.kind === "same" && "text-slate-900",
-          )}
-        >
-          {r.kind === "edit" ? <Words ops={r.ops!} /> : r.text}
-        </p>
-      ))}
+      {rows
+        .filter((r) => r.kind === "same" || r.kind === "edit" || (side === "live" ? r.kind === "del" : r.kind === "add"))
+        .map((r, k) => (
+          <p
+            key={k}
+            className={cn(
+              r.kind === "del" && "text-slate-400 line-through",
+              r.kind === "add" && "w-fit rounded bg-success-50 px-1 font-medium text-success-800",
+              r.kind === "same" && "text-slate-900",
+            )}
+          >
+            {r.kind === "edit" ? <Words ops={r.ops!} side={side} /> : r.text}
+          </p>
+        ))}
     </div>
   )
 }
 
-/** Every changed field for one SKU. Text fields show a single inline edit; images show before and after. */
+/** Bat silhouette for the Halloween pack shot. */
+function Bat({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 28" className={className} fill="currentColor" aria-hidden>
+      <path d="M32 8c1.5-3 2.5-4 3-6 .5 2 1 3 1.5 4 4-4 12-5 19-2 3 1 6 3 8.5 6-3-1-6-1-8 1 0 3-3 5-6 5-1-3-4-4-7-3-2 1-4 3-6 5-2-2-4-4-6-5-3-1-6 0-7 3-3 0-6-2-6-5-2-2-5-2-8-1C2.5 7 5.5 5 8.5 4c7-3 15-2 19 2 .5-1 1-2 1.5-4 .5 2 1.5 3 3 6z" />
+    </svg>
+  )
+}
+
+/** Pumpkin for the Halloween pack shot. */
+function Pumpkin({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 36" className={className} aria-hidden>
+      <path d="M19 6c0-3 1-5 4-6-2 2-2 4-2 6z" fill="#3f6212" />
+      <ellipse cx="11" cy="21" rx="9" ry="13" fill="#ea580c" />
+      <ellipse cx="29" cy="21" rx="9" ry="13" fill="#ea580c" />
+      <ellipse cx="20" cy="21" rx="9" ry="14" fill="#f97316" />
+      <path d="M13 17l4 3h-5zM27 17l-4 3h5zM13 26q7 5 14 0l-2 2-2-1-2 2-2-2-2 1z" fill="#1c1917" />
+    </svg>
+  )
+}
+
+/** The seasonal pack shot: the same product styled for Halloween (dusk grade, orange and black, pumpkins and bats). */
+function HalloweenShot({ src, label }: { src?: string; label: string }) {
+  return (
+    <div className="relative h-40 overflow-hidden rounded-md bg-stone-900 ring-2 ring-success-300">
+      <img src={src} alt={label} className="size-full object-cover brightness-[0.7] contrast-110 hue-rotate-[-20deg] saturate-150 sepia-[0.35]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-violet-950/60 via-transparent to-orange-600/50" />
+      <Bat className="absolute top-3 right-3 w-9 text-stone-950" />
+      <Bat className="absolute top-10 right-12 w-6 rotate-12 text-stone-950" />
+      <Bat className="absolute top-12 left-4 w-5 -rotate-12 text-stone-950" />
+      <Pumpkin className="absolute bottom-1.5 left-2 w-11" />
+      <Pumpkin className="absolute bottom-1.5 left-12 w-7" />
+      <Pumpkin className="absolute right-2 bottom-1.5 w-9" />
+      <span className="absolute top-1.5 left-1.5 rounded bg-success-600 px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-white shadow-xs">{label}</span>
+    </div>
+  )
+}
+
+/** Every changed field for one SKU, live on Amazon beside Ally's version. */
 export function SkuSections({ sections, thumbnailUrl }: { sections: SkuSection[]; thumbnailUrl?: string }) {
   return (
     <div className="flex flex-col gap-3">
-      {sections.map((section, i) => (
-        <div key={i} className="overflow-hidden rounded-xl border border-slate-200">
-          <div className="border-b border-slate-100 bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-950">{section.label}</div>
-          {section.kind === "text" ? (
-            <div className="px-5 py-4">
-              <TextDiff live={section.live} draft={section.draft.map((d) => d.text)} />
+      {sections.map((section, i) => {
+        const rows = section.kind === "text" ? lineRows(section.live, section.draft.map((d) => d.text)) : []
+        return (
+          <div key={i} className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="border-b border-slate-100 bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-950">{section.label}</div>
+            <div className="grid grid-cols-2 divide-x divide-slate-100">
+              <div className="px-5 py-4">
+                <div className="mb-2.5 font-mono text-[11px] tracking-wide text-slate-400 uppercase">Live on Amazon</div>
+                {section.kind === "text" ? (
+                  <TextSide rows={rows} side="live" />
+                ) : (
+                  <div className="relative h-40 overflow-hidden rounded-md bg-slate-100">
+                    <img src={thumbnailUrl} alt={section.liveLabel} className="size-full object-cover" />
+                    <span className="absolute bottom-1.5 left-1.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-medium text-slate-600 shadow-xs">
+                      {section.liveLabel}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="bg-brand-25/40 px-5 py-4">
+                <div className="mb-2.5 font-mono text-[11px] tracking-wide text-brand-600 uppercase">Ally wrote</div>
+                {section.kind === "text" ? <TextSide rows={rows} side="draft" /> : <HalloweenShot src={thumbnailUrl} label={section.draftLabel} />}
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 px-5 py-4">
-              {[
-                { label: section.liveLabel, live: true },
-                { label: section.draftLabel, live: false },
-              ].map((img) => (
-                <div key={img.label} className={cn("relative h-32 overflow-hidden rounded-md", img.live ? "bg-slate-100" : "ring-2 ring-success-300")}>
-                  <img src={thumbnailUrl} alt={img.label} className={cn("size-full object-cover", img.live && "opacity-60 grayscale")} />
-                  <span
-                    className={cn(
-                      "absolute bottom-1.5 left-1.5 rounded px-1.5 py-0.5 text-[11px] font-semibold shadow-xs",
-                      img.live ? "bg-white/90 text-slate-500 line-through" : "bg-success-600 text-white",
-                    )}
-                  >
-                    {img.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+          </div>
+        )
+      })}
       <div className="flex gap-4 px-1 text-xs text-slate-500">
-        <span>
-          <span className="text-slate-400 line-through">Removed</span>
-        </span>
+        <span className="text-slate-400 line-through">Removed</span>
         <span className="text-slate-900">Kept</span>
         <span className="rounded bg-success-50 px-1 font-medium text-success-800">Added</span>
       </div>

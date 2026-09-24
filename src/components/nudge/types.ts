@@ -41,6 +41,10 @@ export interface BatchChange {
 
 export interface Batch {
   id: "halloween" | "baseline" | "backend" | "readiness"
+  /** Which of Claire's buckets it sits in, so Mike's inbox groups the same way her page does. */
+  tier: "approval" | "input"
+  /** For "Needs your input" batches: how many decisions block them. */
+  decisions?: number
   name: string
   chip: string
   nudgeSource: string

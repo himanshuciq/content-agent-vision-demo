@@ -64,7 +64,7 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
         </div>
         <div className="shrink-0 text-right">
           <div className="font-mono text-[28px] font-bold tracking-tight text-slate-950 tabular-nums">
-            {done ? `$${batch.approveValue.toFixed(2)}M` : batch.value}
+            {done ? (batch.approveValue >= 1 ? `$${batch.approveValue.toFixed(2)}M` : `$${Math.round(batch.approveValue * 1000)}K`) : batch.value}
           </div>
           <div className="mt-0.5 text-sm text-slate-500">{done ? batch.approveSkus : batch.skus} SKUs</div>
         </div>

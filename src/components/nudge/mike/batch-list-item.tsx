@@ -35,7 +35,7 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
         <div className="flex items-center justify-between gap-3">
           <span className="text-[15px] font-semibold text-slate-950">{batch.name}</span>
           <span className={cn("font-mono text-[15px] font-bold tabular-nums", done ? "text-slate-500" : "text-slate-950")}>
-            {done ? `$${batch.approveValue.toFixed(2)}M` : batch.value}
+            {done ? (batch.approveValue >= 1 ? `$${batch.approveValue.toFixed(2)}M` : `$${Math.round(batch.approveValue * 1000)}K`) : batch.value}
           </span>
         </div>
         <div className="mt-1 flex items-center gap-2">
@@ -52,7 +52,7 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
                   : "bg-slate-100 text-slate-600",
             )}
           >
-            {done ? "Published" : batch.chip}
+            {done ? "Published" : batch.tier === "input" ? `${batch.decisions} decision${batch.decisions === 1 ? "" : "s"} needed` : batch.chip}
           </span>
         </div>
         <div
