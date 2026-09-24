@@ -66,3 +66,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 ## Autopilot drill-down: share on autopilot vs best in class
 - /claire-waterfall, On autopilot stage: new table (waterfall/autopilot-detail.tsx). Per workstream: what runs itself, value, % of its open opportunity on autopilot (content 13%, media 24%, ops 6%), best in class (35%, 60%, 30%), and Increase autopilot on hover. Header shows the totals (13% vs 40% weighted) and Increase autopilot for all.
 - New data constant AUTOPILOT_BEST_IN_CLASS in data.ts (benchmarks are mock).
+
+## Autopilot table redo + one column-header standard
+- Autopilot drill-down redesigned: header states the claim ("13% of your open opportunity runs itself. Best-in-class brands run 40%.") with value and Increase autopilot; each row shows share on autopilot as a filled track with a best-in-class tick on the same track (the gap reads without math). Action column sized so the button never touches the value; descriptions stack under the workstream below lg.
+- Column-header standard for every table: one row under the table's title bar, 12px medium slate-500, sentence case, number columns right-aligned (same as "This quarter so far"). Added to the One approval away / Needs your team stage tables (Owner · What's waiting · This week · Value) and autopilot (Workstream · What runs itself · On autopilot vs best in class · Value).
+- Value columns line up at the same x across all three stage tables.

@@ -51,8 +51,21 @@ export function StageDetail({ stage }: { stage: WaterfallStage }) {
         <div />
       </div>
 
+      {stage.rows.length > 0 && (
+        // Column headers in the same style as every other table on the page (see DeliveredHeader).
+        <div className={`${TIER_GRID} px-6 pt-3 pb-1 text-xs font-medium text-slate-500`}>
+          <div className="grid grid-cols-[168px_minmax(0,1fr)] gap-4 lg:grid-cols-[168px_minmax(0,1fr)_200px]">
+            <span>Owner</span>
+            <span>What&apos;s waiting</span>
+            <span className="hidden lg:block">This week</span>
+          </div>
+          <span className="text-right">Value</span>
+          <span />
+          <span />
+        </div>
+      )}
       {stage.rows.length > 0 ? (
-        <div className="px-6 py-1.5">
+        <div className="px-6 pb-1.5">
           {stage.rows.map((row, i) => (
             <NudgeRow key={i} row={row} grid={TIER_GRID} statusColumn />
           ))}
