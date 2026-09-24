@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { fmtValue } from "../data"
 import { ResultsMetrics } from "./results-metrics"
 import { ResultsTable } from "./results-table"
 import { RESULTS_BY_PERIOD } from "../content-results-data"
@@ -75,9 +76,12 @@ export function ContentResults() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">Content results · {results.name}</div>
-            <h1 className="mt-1 text-[28px] font-semibold tracking-tight text-slate-950">
-              {totals.live.toLocaleString()} of {totals.promisedSkus.toLocaleString()} SKUs live
+            <h1 className="mt-1 text-[32px] leading-tight font-bold tracking-tight text-slate-950">
+              <span className="font-mono text-brand-600">{fmtValue(totals.incremental)}</span> delivered of <span className="font-mono">{fmtValue(totals.promised)}</span> projected
             </h1>
+            <div className="mt-1 text-base text-slate-500">
+              {totals.live.toLocaleString()} of {totals.promisedSkus.toLocaleString()} SKUs live
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Segmented items={PERIODS} value={period} onChange={setPeriod} />

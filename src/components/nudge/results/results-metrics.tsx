@@ -44,15 +44,31 @@ export function ResultsMetrics({ totals, sections, current }: { totals: ResultTo
     ]
   }
 
+  const progress = Math.min(100, (totals.incremental / totals.promised) * 100)
   return (
-    <div className="grid grid-cols-4 divide-x divide-slate-100 rounded-xl border border-slate-200 bg-white">
-      {cells.map((c, i) => (
-        <div key={c.label} className="px-5 py-4">
-          <div className="text-xs font-medium text-slate-500">{c.label}</div>
-          <div className={`mt-1 font-mono font-bold tracking-tight text-slate-950 tabular-nums ${i === 0 ? "text-[26px]" : "text-[22px]"}`}>{c.value}</div>
-          <div className="mt-0.5 text-xs text-slate-500">{c.sub}</div>
-        </div>
-      ))}
+    <div className="grid grid-cols-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      {cells.map((c, i) => {
+        const first = i === 0
+        const signedValue = c.value.startsWith("+") || c.value.startsWith("−")
+        return (
+          <div key={c.label} className={first ? "bg-brand-25 px-5 py-4" : "border-l border-slate-100 px-5 py-4"}>
+            <div className={first ? "text-xs font-medium text-brand-700" : "text-xs font-medium text-slate-500"}>{c.label}</div>
+            <div
+              className={`mt-1 font-mono font-bold tracking-tight tabular-nums ${first ? "text-[26px] text-brand-600" : "text-[22px]"} ${
+                !first && signedValue ? (c.value.startsWith("−") ? "text-error-600" : "text-success-700") : !first ? "text-slate-950" : ""
+              }`}
+            >
+              {c.value}
+            </div>
+            {first && (
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-100">
+                <div className="h-full rounded-full bg-brand-500" style={{ width: `${progress}%` }} />
+              </div>
+            )}
+            <div className="mt-1.5 text-xs text-slate-500">{c.sub}</div>
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -83,3 +83,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Units, traffic and conversion lifts removed from the tables and the summary strip. Strip is method-aware: seasonal = your impressions, category impressions, lead; A/B = lift, tests won, average confidence; all = sales lift, seasonal lead, A/B tests won.
 - Back to school (Q3, August) has its own SKUs (dorm jar, teacher gift set…); the $15K stockout row ties to Claire's Q3 story. Q2 keeps Mother's Day SKUs. Foundational Q3 ties to Claire's "38 of 45 won, 4.0%".
 - Result shown as a small status dot plus text, not a pill.
+
+## Results page design pass (shared page)
+- Result column is an outcome ("Outgrew the category", "Grew slower than the category", "Out of stock 11 days", "Not approved in time"); A/B keeps "Won A/B test" / "Lost, back to old content".
+- vs category: SKU growth and category demand growth (category impressions as the demand signal) drawn as two bars on one scale (SKU purple, category gray, negative red); "Lead vs usual" judged against the SKU's lead in the previous period ("usually +1.0 pts"), so pre-existing outperformance gets no credit.
+- Money lost is red everywhere; gains stay neutral; verdict columns green/red.
+- Headline leads with "$520K delivered of $580K projected" ($ in brand purple); summary strip's first cell tinted with a progress bar; positive/negative evidence colored.
+- Each type is a card like Claire's tables: title bar with type mark (shades of content purple), method tag, method note, and delivered-vs-projected with progress bar; then column headers and rows with hover.
