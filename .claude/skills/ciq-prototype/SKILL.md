@@ -1,0 +1,113 @@
+---
+name: ciq-prototype
+description: Build and iterate CommerceIQ product prototypes (exec pages, analyst queues, results pages) in a Next.js + Tailwind demo app, to the design, copy, number and workflow standards set on the Ally exec demo. Use whenever Himanshu asks to prototype, mock up in code, redesign, restyle or QA a screen, add a persona page, or change copy or numbers in a demo. Also use when he asks "how would you design this", for a design or copy review, or to make pages consistent.
+---
+
+# CommerceIQ prototyping
+
+Standards learned building the Ally agentic-commerce demo (`content-agent-vision-demo`: Claire the VP exec, Mike the content analyst, Michelle the ops analyst, plus a results page). Apply them to any new prototype.
+
+Himanshu is Head of Product and not a coder. Explain decisions in plain language, and act as a world-class UI and UX designer: catch the small things before he does.
+
+Page and component patterns: `references/patterns.md`. How value is measured and shown: `references/measurement.md`.
+
+---
+
+## 1. Working loop (every change)
+
+1. **Understand, then act.** If a request is ambiguous and the answer changes what you build, ask one question. Otherwise build the obvious reading and say what you assumed.
+2. **Build the smallest change that does it.** Match the surrounding code. Extend shared components with an optional prop rather than forking them.
+3. **Verify in the browser.** Take a screenshot and read the text with JS. Check every state you touched: default, hover, selected, done, empty, and after the demo reset.
+   - Wait ~2.5s after load before clicking (6.5s if a banner overlays the page).
+   - Stale hot-reload errors can be phantom: reload before debugging them.
+   - Scrolled screenshots sometimes come back blank. Scroll 1px and retake, or read the DOM.
+   - If JSX drops a space after `}` or `</span>`, add an explicit `{" "}`.
+4. **Audit as a designer before reporting** (checklist in §6). Fix what you find.
+5. **Commit each change** on the working branch with a clear message. Never push unless asked.
+6. **Log shared-data changes** when one version of a page is frozen, for example in `docs/waterfall-changelog.md`. Say which other pages a change reaches.
+7. **Report in plain language:** what changed, what you caught and fixed, and anything that still needs his call. Give a recommendation, not a menu.
+
+Don't just agree with him. If a request would contradict numbers elsewhere or hurt the design, say so and propose the fix. Example: calling a $46.8M bar "Total opportunity" when the headline says $6.8M.
+
+---
+
+## 2. Numbers must tie everywhere
+
+- One number, one source. Derive totals from their parts. Never hand-type the same figure in two places, because they drift (we once had $490K vs $500K).
+- Every persona page ties to the exec page. Mike's buckets ($740K + $600K + $200K) = Claire's content row ($1.5M). Michelle's ($2.4M + $600K + $200K) = Claire's ops row ($3.2M).
+- A tag on a total makes a claim about every part of it. "Expires in 18 days" on a $740K row means all $740K expires, so the parts have to agree.
+- Counts shown to the user must match. Don't show "384 SKUs" next to "See all 378 SKUs"; show one number.
+- Check that dates are consistent with the demo's "today". A promo that ended before the demo date can't be "urgent", and an event in Q4 isn't "this quarter".
+- Keep one event per period and use it everywhere. In the Ally demo: Q3 = back to school, Q2 = Mother's Day, upcoming = Halloween.
+- After a data change, click through the flow (approve all, send, reset) and confirm the remaining total equals the sum of what's left.
+
+## 3. Number and color rules
+
+Full table in the project's `design-specs.md` under "Number and Color Rules".
+
+- **Losses** carry a real minus (`−`, not `-`) and are red (`text-error-600`): "(−$35K)", "−$60K vs projected".
+- **Gains** in a bullet about what worked are green (`text-success-700`). Verdict columns (lead, lift, vs projected) are green or red. Dollar gains in tables stay neutral (`text-slate-950`).
+- **Amber** (`warning`) is only for things that need action soon: deadlines, "losing the sale now", waiting items.
+- **Figures never wrap** (`whitespace-nowrap`).
+- **Money:** K below $1M, M above, with one consistent decimal rule. Numbers use JetBrains Mono, right-aligned, `tabular-nums`.
+- Color follows meaning, and the same meaning gets the same color on every page. The Ally bucket colors are purple = one approval away, amber = needs your team, blue = autopilot. Don't reuse a state color for something else, such as an agent identity.
+
+## 4. Visual system
+
+- **Tokens:** brand purple `#875BF7` (`brand-500`, used sparingly for primary actions and the one number that matters), `slate` neutrals, Inter for text and JetBrains Mono for numbers. Headings are sentence case.
+- **Four text shades only:** `slate-950` headings and numbers, `slate-700` body, `slate-500` secondary, `slate-400` hints. Not 900, 800 or 600.
+- **Hierarchy comes from type size and weight**, not boxes: a 24px fact line, a 40–44px bold headline, a 16px supporting line.
+- **Buttons share one box:** 44px high, 15px semibold, same border and radius. Only the fill differs between primary (filled purple) and secondary (outlined). Rarer paths become a quiet text link underneath ("Or review all 378 SKUs one by one →"). Keep one primary per area.
+- **Tables:**
+  - a header row under the title bar: 12px, medium weight, `slate-500`, sentence case
+  - numbers right-aligned
+  - no vertical rules or zebra striping; hairline dividers between rows
+  - status shown as a small dot plus text, not a pill
+  - values line up at the same x across sibling tables
+- **Selection:** a soft tint in the group's own color. No focus outline after a mouse click (`focus-visible` only), and no double borders.
+- **Charts:**
+  - earn their place; execs dislike new visualization types, so prefer a headline number
+  - a bridge or waterfall has a plan line and gray totals
+  - comparisons use a filled track with a benchmark tick, so the gap reads without math
+- **Floating Ask Ally bar** on every page, with page-specific questions answered from that page's numbers. It collapses on outside click. Leave bottom padding so it doesn't cover content.
+- **Responsive:** check at ~1300px and at a narrow ~760px pane. On narrow widths, descriptions stack under names instead of squeezing columns.
+
+## 5. Copy voice
+
+- **Product copy only.** Every line carries a number, a label, a status or an action. No subtitles that describe what a section does ("Where we beat the plan and where we missed…" was rejected as AI fluff).
+- **A person speaking, not a dashboard.** Exec hero order: fact, then the gap (the fear), then the reassurance.
+  - "You're tracking to $40M in sales this quarter."
+  - "That's $5M short of your $45M plan."
+  - "We have $6.8M in the pipeline to close it."
+- **Words:**
+  - "projected", not "promised"
+  - "delivered", not "captured"
+  - "current run rate", not "on pace"
+  - "Ally", not "the agent"
+  - "customers", not "clients"
+  - never "opportunity identified"
+- **Results are outcomes,** not actions. "Outgrew the category" is a result; "New title live" is not.
+- **Tense matches the time.** Past events are past tense ("3 needed your team's input"). Open asks are present tense ("3 SKUs need your team's input").
+- Active voice, contractions welcome, no em dashes, and never disparage competitors.
+- Say the same thing the same way everywhere, for example "Review N SKUs", "Approve N SKUs" and "Send to Ally".
+
+## 6. Design audit checklist (run before every report)
+
+- [ ] Does any number disagree with another page or with the sum of its parts?
+- [ ] Is any label repeated right next to itself (type = name, count chip + "See all N")?
+- [ ] Do buttons in one row share height, weight and style? Is there one primary?
+- [ ] Do selected, hover, done and empty states all look right? Any stray focus ring, double line or missing highlight?
+- [ ] Is there any text shade or color outside the rules? Does any color mean two things?
+- [ ] Do headers exist for every table, in the same style?
+- [ ] Is anything wrapping badly (headline mid-thought, figure split, top line on a 13" laptop)?
+- [ ] Is there filler copy, AI-sounding phrasing, or the wrong tense?
+- [ ] Is there a dead end? A count or link that promises more than it shows, or a button that does nothing?
+- [ ] Does the story loop close? When an analyst acts, can the exec see it?
+
+## 7. When asked for a QA or review only
+
+Don't change anything. Report findings ranked as must fix, consistency, and polish. Each finding names the problem, where it is, and the recommended change, then give a suggested order. Write from a founder's point of view: would this survive a sharp exec in the room?
+
+## 8. System Thinking callouts
+
+At real checkpoints (a platform choice, integration pattern, data model decision, explicit trade-off or finished phase), add a short 🧠 System Thinking callout in chat, and append the full entry to `~/.claude/MY_LEARNINGS.md`. Routine fixes and styling don't count.
