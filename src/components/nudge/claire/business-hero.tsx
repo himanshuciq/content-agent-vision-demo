@@ -57,15 +57,15 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <span className="text-slate-300">·</span>
-        <span>
-          <span className="font-mono font-semibold text-slate-950">{fmtBiz(b.soFar)}</span> so far · on pace for{" "}
-          <span className="font-mono font-semibold text-slate-950">{fmtBiz(b.pace)}</span> against a{" "}
-          <span className="font-mono font-semibold text-slate-950">{fmtBiz(b.plan)}</span> plan
-        </span>
       </div>
 
-      <h1 className="mt-4 text-[44px] leading-tight font-bold tracking-tight text-slate-950">
+      {/* Same size and weight as the first line on Mike's and Michelle's pages. */}
+      <div className="mt-5 text-2xl font-semibold tracking-tight text-slate-700">
+        You&apos;re on pace to hit <span className="font-mono text-slate-950">{fmtBiz(b.pace)}</span> in sales against a plan of{" "}
+        <span className="font-mono text-slate-950">{fmtBiz(b.plan)}</span>.
+      </div>
+
+      <h1 className="mt-1 text-[44px] leading-tight font-bold tracking-tight text-slate-950">
         <span className="font-mono">{fmtBiz(gap)}</span> gap to plan. <span className="font-mono text-brand-600">{OPEN_TOTAL}</span> of opportunity can close it.
       </h1>
 
