@@ -4,6 +4,7 @@ import { useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
 import { MikeHeader } from "@/components/nudge/mike/mike-header"
+import { MikeDelivered } from "@/components/nudge/mike/mike-delivered"
 import { MikeProgress } from "@/components/nudge/mike/mike-progress"
 import { BatchList } from "@/components/nudge/mike/batch-list"
 import { BatchDetail } from "@/components/nudge/mike/batch-detail"
@@ -84,6 +85,7 @@ export default function MikePage() {
             <BatchDetail batch={selected} onApprove={handleApprove} onReviewAll={handleReviewAll} />
           )}
         </div>
+        <MikeDelivered />
       </div>
       {/* Demo-only control, kept out of the product chrome. */}
       <div className="mx-auto flex max-w-[1280px] justify-end px-4 pb-6 opacity-50 hover:opacity-100">

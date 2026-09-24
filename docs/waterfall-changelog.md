@@ -42,3 +42,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 ## Links and Mike's top shaped like Claire's
 - Every "back to Claire" link and redirect (Mike, Michelle, content results, impact back bar) now goes to /claire-waterfall.
 - /mike top: one line like Claire's ("Hi Mike · Q3 FY26 · $520K of $580K delivered · SEO share of voice 42% ↑0.8 pts · AI share of voice 34% ↑1.4 pts · 7.7 days saved"), then the 40px headline, then "$1.5M open in content · $740K one approval away · $600K needs your input · $200K on autopilot". Metric tiles removed; Reset moved to a faint control below the page.
+
+## Mike: two-line headline, banked bar, work types, delivered section
+- /mike headline: "$1.5M of content opportunity is open this quarter." (24px) over "$740K is one approval from live. All of it expires in 18 days." (40px). Breakdown line removed.
+- Progress bar is the quarter's content: $520K banked (dark), what Mike approves (lighter), $1.5M open.
+- Left rail names each batch by work type with a subscript: Seasonal (Halloween moments / Halloween gift sets), Foundational (Backend keywords and attributes), Retail readiness (Attributes Amazon requires; PIM → PDP fixes on autopilot). SKU counts now equal what gets approved (378, 331, 273, 94); the separate "N SKUs" line is gone, only "See all N SKUs".
+- New "This quarter so far" section on /mike, content only: Claire's content waterfall, without the Nudge team button (on Mike's page the team is Mike).
+- **Shared data:** the approval batch counts changed (Halloween 384→378, gift sets 339→331, readiness 100→94); the team-content nudge now reads "Foundational and retail readiness".

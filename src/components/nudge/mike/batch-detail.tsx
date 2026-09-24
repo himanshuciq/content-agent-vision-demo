@@ -59,14 +59,15 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
     <div className="flex min-w-0 flex-col px-10 py-8">
       <div className="flex items-start justify-between gap-8">
         <div className="min-w-0">
-          <div className="text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
+          <div className="text-sm font-medium text-slate-500">{batch.type}</div>
+          <div className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
           <div className="mt-1.5 text-sm text-slate-600">{batch.nudgeSource}</div>
         </div>
         <div className="shrink-0 text-right">
           <div className="font-mono text-[28px] font-bold tracking-tight text-slate-950 tabular-nums">
             {done ? (batch.approveValue >= 1 ? `$${batch.approveValue.toFixed(2)}M` : `$${Math.round(batch.approveValue * 1000)}K`) : batch.value}
           </div>
-          <div className="mt-0.5 text-sm text-slate-500">{done ? batch.approveSkus : batch.skus} SKUs</div>
+          <div className="mt-0.5 text-sm text-slate-500">{batch.approveSkus} SKUs</div>
         </div>
       </div>
 

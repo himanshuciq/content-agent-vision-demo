@@ -32,7 +32,7 @@ const CONTENT_TEAM_ROW = TEAM_TIER.rows.find((r) => r.agent === "content")!
 const HOVER_BTN =
   "absolute right-0 -bottom-1 rounded-md border border-brand-200 bg-white px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-brand-700 opacity-0 transition-opacity group-hover/b:opacity-100 hover:bg-brand-50 focus-visible:opacity-100"
 
-function BulletCard({ title, method, bullets, className }: { title: string; method?: string; bullets?: Bullets; className?: string }) {
+function BulletCard({ title, method, bullets, className, canNudge = true }: { title: string; method?: string; bullets?: Bullets; className?: string; canNudge?: boolean }) {
   const { nudged } = useNudge()
   const { fire } = useFireNudge()
   const teamNudged = !!(CONTENT_TEAM_ROW.nudgeKey && nudged[CONTENT_TEAM_ROW.nudgeKey])
@@ -62,6 +62,7 @@ function BulletCard({ title, method, bullets, className }: { title: string; meth
               </button>
             )}
             {b.action === "nudge-team" &&
+              canNudge &&
               (teamNudged ? (
                 <span className="absolute right-0 -bottom-1 text-xs font-semibold text-success-700">Team nudged</span>
               ) : (
@@ -82,7 +83,8 @@ function BulletCard({ title, method, bullets, className }: { title: string; meth
  * opens on the Content total so the story shows without a click. (Hover and
  * click popovers were tried and dropped: they hide the story until you act.)
  */
-export function ContentWaterfall({ data, resultsHref }: { data: ContentDelivered; resultsHref: string }) {
+/** canNudge: off on Mike's page, where the team is Mike. */
+export function ContentWaterfall({ data, resultsHref, canNudge = true }: { data: ContentDelivered; resultsHref: string; canNudge?: boolean }) {
   const [selected, setSelected] = useState("total")
 
   const types = ORDER.map((id) => data.workTypes.find((w) => w.id === id)!).filter(Boolean)
@@ -139,7 +141,7 @@ export function ContentWaterfall({ data, resultsHref }: { data: ContentDelivered
         })}
       </div>
 
-      <BulletCard title={panel.label} method={panel.method} bullets={panel.bullets} />
+      <BulletCard title={panel.label} method={panel.method} bullets={panel.bullets} canNudge={canNudge} />
 
       <Link href={resultsHref} className="inline-flex w-fit items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800">
         See SKU-level results and method

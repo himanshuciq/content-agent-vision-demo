@@ -86,8 +86,8 @@ export function BatchList({ selectedId, selectedSkuId, expandedBatchId, onToggle
       })}
       <GroupHeader label="On autopilot" value={fmt(money(AUTOPILOT_CONTENT.value))} />
       <div className="px-5.5 py-4">
-        <div className="text-[15px] font-semibold text-slate-950">PIM → PDP fixes</div>
-        <div className="mt-1 text-xs text-slate-500">Running · nothing to do</div>
+        <div className="text-[15px] font-semibold text-slate-950">Retail readiness</div>
+        <div className="text-xs text-slate-500">PIM → PDP fixes · running, nothing to do</div>
       </div>
     </div>
   )

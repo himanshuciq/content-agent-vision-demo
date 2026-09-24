@@ -43,6 +43,8 @@ export interface Batch {
   id: "halloween" | "gifts" | "backend" | "readiness"
   /** Which of Claire's buckets it sits in, so Mike's inbox groups the same way her page does. */
   tier: "approval" | "input"
+  /** The kind of content work, as Claire's page names it. */
+  type: "Seasonal" | "Foundational" | "Retail readiness"
   /** For "Needs your input" batches: how many decisions block them. */
   decisions?: number
   name: string
