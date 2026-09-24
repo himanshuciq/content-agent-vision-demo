@@ -124,7 +124,7 @@ export const RESULTS_BY_PERIOD: Record<ResultPeriod, PeriodResults> = {
   /** This quarter so far (Q3 FY26): ties to CONTENT_BANKED_Q3, $520K of $580K projected. */
   qtd: {
     name: "Q3 FY26 so far",
-    all: { incremental: 0.52, promised: 0.58, sales: 3.4, units: 3.5, traffic: 2.3, conversion: 1.1, live: 207, promisedSkus: 237 },
+    all: { incremental: 0.52, promised: 0.58, sales: 3.2, units: 3.3, traffic: 2.2, conversion: 1.0, live: 207, promisedSkus: 237 },
     sections: [
       rescale(SEASONAL_Q, { name: "Seasonal · Back to school", incremental: 0.26, promised: 0.3, live: 150, promisedSkus: 168 }),
       rescale(FOUNDATIONAL_Q, { name: "Foundational", incremental: 0.18, promised: 0.19, live: 45, promisedSkus: 55 }),
