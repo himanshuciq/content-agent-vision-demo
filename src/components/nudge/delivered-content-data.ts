@@ -87,7 +87,14 @@ export interface WorkType {
   event?: EventCard
   abTest?: AbTestCard
   /** Waterfall version: the 2–3 bullets shown when this type's bar is selected. */
-  bullets?: { tone: "orange" | "red" | "green"; text: string }[]
+  bullets?: Bullet[]
+}
+
+export interface Bullet {
+  tone: "orange" | "red" | "green" | "learn"
+  text: string
+  /** Shows an Increase autopilot button on hover. */
+  action?: "autopilot"
 }
 
 export interface ContentDelivered {
@@ -97,8 +104,8 @@ export interface ContentDelivered {
   did: string
   /** The exec summary: the result, then where the gap came from and what the agent learned. Ties: promised − window − stock + live = delivered. */
   summary: [string, string]
-  /** Dot bullets for the Claire page: orange = waiting, red = lost, green = worked. */
-  bullets?: { tone: "orange" | "red" | "green"; text: string }[]
+  /** Dot bullets for the Claire page: orange = waiting, red = lost, green = worked, learn = fed back to the agent. */
+  bullets?: Bullet[]
   workTypes: WorkType[]
 }
 
@@ -234,9 +241,9 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
   delivered: 0.52,
   did: "207 SKUs improved so far",
   bullets: [
-    { tone: "orange", text: "$45K waiting on 30 SKUs still in approval" },
-    { tone: "red", text: "$15K lost to one stockout during back to school" },
-    { tone: "green", text: "Changes that went live are on plan; 2 fixes added to agent context" },
+    { tone: "orange", text: "207 of 237 SKUs went live. 30 waited on approval, leaving $45K on the table, and one stockout cost $15K.", action: "autopilot" },
+    { tone: "green", text: "Sales grew 3.4% more than the control (a 50/50 A/B split, or the category for seasonal), adjusted for ad spend, price and availability." },
+    { tone: "learn", text: "25 of 207 SKUs underperformed. Ally tuned itself on what didn't work, so the next run starts from there." },
   ],
   summary: [
     "We updated 150 SKUs for back to school, improved everyday content on 45 and unblocked 12 for syndication: $520K banked of $580K promised so far.",

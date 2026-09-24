@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Sparkles } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { fmtValue } from "../data"
 import { MethodTag } from "./delivered/method-tag"
@@ -11,7 +12,7 @@ import type { ContentDelivered, WorkType } from "../delivered-content-data"
 const HEIGHT = 190
 const LABEL_HEIGHT = 44
 const PAD_TOP = 28
-const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-500" }
+const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-500", learn: "" }
 /** Waterfall order: everyday content first, then the event, then unblocking. */
 const ORDER = ["foundational", "seasonal", "retail-readiness"]
 /**
@@ -32,9 +33,23 @@ function BulletCard({ title, method, bullets, className }: { title: string; meth
       </div>
       <ul className="flex flex-col gap-2">
         {bullets?.map((b) => (
-          <li key={b.text} className="flex items-start gap-2.5 text-left text-sm font-normal text-slate-800">
-            <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", DOT[b.tone])} />
-            {b.text}
+          <li key={b.text} className="group/b relative flex items-start gap-2.5 text-left text-sm font-normal text-slate-800">
+            {b.tone === "learn" ? (
+              <Sparkles className="mt-0.5 size-3.5 shrink-0 text-brand-600" />
+            ) : (
+              <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", DOT[b.tone])} />
+            )}
+            <span className="flex-1">{b.text}</span>
+            {/* Pinned over the empty end of the bullet's last line, so hiding it costs no width. */}
+            {b.action === "autopilot" && (
+              <button
+                type="button"
+                onClick={() => toast.success("Autopilot on for foundational content approvals", { position: "top-right" })}
+                className="absolute right-0 -bottom-1 rounded-md border border-brand-200 bg-white px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-brand-700 opacity-0 transition-opacity group-hover/b:opacity-100 hover:bg-brand-50 focus-visible:opacity-100"
+              >
+                Increase autopilot
+              </button>
+            )}
           </li>
         ))}
       </ul>

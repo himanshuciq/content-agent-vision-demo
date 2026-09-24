@@ -41,7 +41,7 @@ function WorkTypeRow({ wt, projectedFirst }: { wt: WorkType; projectedFirst?: bo
 }
 
 /** Content for a period: one line; opens to its summary and three types of work on a light band. */
-const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-500" }
+const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-500", learn: "bg-brand-500" }
 
 /**
  * bullets: the waterfall version shows dot bullets (orange waiting, red lost,
