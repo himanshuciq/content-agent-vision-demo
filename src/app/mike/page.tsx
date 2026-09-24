@@ -43,10 +43,6 @@ export default function MikePage() {
     setSelectedSkuId(skuId)
   }
 
-  function handleReviewSample(batch: Batch) {
-    setSelectedSkuId(batch.skuRows[0]?.skuId ?? null)
-  }
-
   function handleReviewAll(batch: Batch) {
     setSelectedId(batch.id)
     setSelectedSkuId(null)
@@ -76,7 +72,7 @@ export default function MikePage() {
               onReviewAll={handleReviewAll}
             />
           ) : (
-            <BatchDetail batch={selected} onApprove={handleApprove} onReviewSample={handleReviewSample} />
+            <BatchDetail batch={selected} onApprove={handleApprove} onReviewAll={handleReviewAll} />
           )}
         </div>
       </div>

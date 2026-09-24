@@ -22,7 +22,7 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
       sections: [
         text(
           "Title",
-          ["Aurelle Candles Noir Cherry Large Scented Jar, 22 oz"],
+          ["Aurelle Candles Noir Cherry Large Scented Jar Candle, 22 oz, Home Fragrance Gift"],
           [{ text: "Halloween Aurelle Candles Noir Cherry Large Scented Jar, 22 oz, Spooky Party Décor, 150-Hr Burn", ...NEW }],
         ),
         text(
@@ -42,7 +42,7 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
       sections: [
         text(
           "Title",
-          ["Bright Citrus Zest Hand-Poured Soy Jar Candle, 14 oz"],
+          ["Bright Citrus Zest Hand-Poured Soy Jar Candle, 14 oz, Scented Candles for Home"],
           [{ text: "Halloween Bright Citrus Zest Hand-Poured Soy Jar Candle, 14 oz, Fall Hosting Décor, 90-Hr Burn", ...NEW }],
         ),
         text(
@@ -62,7 +62,7 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
       sections: [
         text(
           "Title",
-          ["Warm Amber Floral Soy Jar Candle, 16 oz"],
+          ["Warm Amber Floral Soy Jar Candle, 16 oz, Best Seller"],
           [{ text: "Halloween Warm Amber Floral Soy Jar Candle, 16 oz, Autumn Mantel Décor, 110-Hr Burn", ...NEW }],
         ),
         text(
@@ -82,7 +82,7 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
       sections: [
         text(
           "Title",
-          ["Room-Filling Spiced Cedar Three-Wick Soy Candle, 21 oz"],
+          ["Room-Filling Spiced Cedar Three-Wick Soy Candle, 21 oz, Large Candle"],
           [{ text: "Halloween Room-Filling Spiced Cedar Three-Wick Soy Candle, 21 oz, Fall Centerpiece Décor, 120-Hr Burn", ...NEW }],
         ),
         text(
