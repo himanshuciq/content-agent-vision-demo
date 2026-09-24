@@ -14,7 +14,12 @@ const PAD_TOP = 28
 const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-500" }
 /** Waterfall order: everyday content first, then the event, then unblocking. */
 const ORDER = ["foundational", "seasonal", "retail-readiness"]
-const BAR: Record<string, string> = { foundational: "bg-brand-500", seasonal: "bg-brand-500", "retail-readiness": "bg-brand-500", total: "bg-slate-400" }
+/**
+ * Types are one family (all content), so one purple; the labels name them. The total is a
+ * mid-gray neutral (not black) so the default selection reads as the sum. Tried a hue per type: too loud,
+ * and teal read as "success green".
+ */
+const BAR: Record<string, string> = { foundational: "bg-brand-400", seasonal: "bg-brand-400", "retail-readiness": "bg-brand-400", total: "bg-slate-500" }
 
 type Bullets = NonNullable<WorkType["bullets"]>
 
@@ -75,7 +80,7 @@ export function ContentWaterfall({ data, resultsHref }: { data: ContentDelivered
                 onClick={() => setSelected(c.key)}
                 className={cn(
                   "group flex w-full flex-col items-center rounded-xl px-1 pb-2 transition-colors",
-                  highlighted ? "bg-brand-50 ring-1 ring-brand-200" : "hover:bg-slate-50",
+                  highlighted ? "bg-slate-100 ring-1 ring-slate-300" : "hover:bg-slate-50",
                 )}
                 style={{ paddingTop: PAD_TOP }}
               >
@@ -84,12 +89,13 @@ export function ContentWaterfall({ data, resultsHref }: { data: ContentDelivered
                     <div className="absolute right-0 left-1/2 border-t border-dashed border-slate-300" style={{ top: `${100 - pct(c.end)}%` }} />
                   )}
                   <div className="absolute inset-x-4 rounded-t-md" style={{ top: `${100 - pct(c.end)}%`, height: `${pct(c.end - c.start)}%` }}>
-                    <div className={cn("size-full rounded-t-md", BAR[c.key], !highlighted && "opacity-60 group-hover:opacity-90")} />
+                    {/* No dimming: faded teal reads as "success green". The selection box carries the selected state. */}
+                    <div className={cn("size-full rounded-t-md", BAR[c.key])} />
                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 font-mono text-xs font-bold whitespace-nowrap text-slate-950 tabular-nums">{c.value}</div>
                   </div>
                 </div>
                 <div className="mt-2 flex flex-col items-center gap-0.5 text-center" style={{ height: LABEL_HEIGHT }}>
-                  <span className={cn("text-[13px] leading-tight", highlighted ? "font-semibold text-brand-700" : "text-slate-600")}>{c.label}</span>
+                  <span className={cn("text-[13px] leading-tight", highlighted ? "font-semibold text-slate-950" : "text-slate-600")}>{c.label}</span>
                   <span className="text-[11px] text-slate-400">{c.sub}</span>
                 </div>
               </button>
