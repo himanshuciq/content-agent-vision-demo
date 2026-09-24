@@ -45,7 +45,7 @@ function buildColumns(): Column[] {
     return col
   })
   return [
-    { key: "pace", label: "Current run rate", sub: "if nothing changes", valueLabel: fmtBiz(pace), start: AXIS_MIN, end: pace, selectable: false },
+    { key: "pace", label: "Current run rate", sub: "", valueLabel: fmtBiz(pace), start: AXIS_MIN, end: pace, selectable: false },
     ...steps,
     { key: "total", label: "With Ally", sub: "by area", valueLabel: `$${acc.toFixed(1)}M`, start: AXIS_MIN, end: acc, selectable: true },
   ]
