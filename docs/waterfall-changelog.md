@@ -107,3 +107,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - /claire-waterfall: "$37M so far · on pace for $40M against a $45M plan" moved out of the top line into its own sentence above the headline, 24px like Mike's and Michelle's first line: "You're on pace to hit $40M in sales against a plan of $45M." The top line is now just "Hi Claire · Q3 FY26 ▾". "$37M so far" dropped.
 - "On pace" renamed "current run rate": sentence now "Your current run rate is $40M in sales against a plan of $45M."; first chart bar "Current run rate · if nothing changes".
 - First chart bar caption removed: just "Current run rate".
+- Bridge order: Current run rate → On autopilot → One approval away → Needs your team → With Ally (zero effort first, then rising effort).

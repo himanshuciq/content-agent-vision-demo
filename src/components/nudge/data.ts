@@ -619,9 +619,9 @@ export interface WaterfallStage {
 }
 
 export const WATERFALL_STAGES: WaterfallStage[] = [
+  { id: "autopilot", label: "On autopilot", effort: AUTOPILOT_TIER.effort, value: 0.9, rows: AUTOPILOT_TIER.rows, canNudgeTeam: false, note: "Runs on its own — no one has to open this screen." },
   { id: "approval", label: "One approval away", effort: APPROVAL_TIER.effort, value: 3.7, rows: APPROVAL_TIER.rows, canNudgeTeam: true },
   { id: "team", label: "Needs your team", effort: TEAM_TIER.effort, value: 2.2, rows: TEAM_TIER.rows, canNudgeTeam: true },
-  { id: "autopilot", label: "On autopilot", effort: AUTOPILOT_TIER.effort, value: 0.9, rows: AUTOPILOT_TIER.rows, canNudgeTeam: false, note: "Runs on its own — no one has to open this screen." },
 ]
 
 /** Share of each workstream's open opportunity that best-in-class brands run on autopilot (%). */
