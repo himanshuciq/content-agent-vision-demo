@@ -242,7 +242,7 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
   did: "205 SKUs improved so far",
   bullets: [
     { tone: "orange", text: "205 of 236 SKUs went live. 28 waited on approval (−$35K), 3 needed your team's input (−$10K), and one ran out of stock (−$15K).", action: "autopilot" },
-    { tone: "green", text: "Sales increased 3.2% compared to control (category average, or a 50/50 traffic split where possible), adjusted for ad spend, pricing and unavailability." },
+    { tone: "green", text: "Sales increased $520K (3.2%) compared to control (category average, or a 50/50 traffic split where possible), adjusted for ad spend, pricing and unavailability." },
     { tone: "learn", text: "25 of 205 SKUs underperformed. Ally tuned itself on what didn't work to make the next run better." },
   ],
   summary: [
@@ -253,14 +253,14 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
     {
       id: "seasonal", name: "Seasonal", method: "vs category", did: "150 SKUs for back to school", promised: 0.3, delivered: 0.26,
       bullets: [
-        { tone: "green", text: "150 of 168 SKUs went live for back to school and drove a 2.9% sales lift over the category average, adjusted for pricing, ad spend and availability." },
+        { tone: "green", text: "150 of 168 SKUs went live for back to school and drove a $260K (2.9%) sales lift over the category average, adjusted for pricing, ad spend and availability." },
         { tone: "orange", text: "−$40K vs projected: 18 SKUs weren't approved in time (−$25K) and one top seller ran out of stock (−$15K).", action: "autopilot" },
       ],
     },
     {
       id: "foundational", name: "Foundational", method: "A/B tested", did: "Keywords, titles and images on 45 SKUs", promised: 0.19, delivered: 0.18,
       bullets: [
-        { tone: "green", text: "New content beat the old on 38 of 45 SKUs in A/B tests, a 4.0% sales lift." },
+        { tone: "green", text: "New content beat the old on 38 of 45 SKUs in A/B tests, a $180K (4.0%) sales lift." },
         { tone: "learn", text: "The 7 that lost went back to old content; what didn't work is now in the agent's context." },
       ],
     },

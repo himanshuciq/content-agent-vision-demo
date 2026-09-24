@@ -35,7 +35,7 @@ export function mikeAnswer(q: string) {
     return (
       <div>
         <p>
-          <N>$520K</N> delivered of <N>$580K</N> projected. <N>205</N> of <N>236</N> SKUs went live, and sales rose <N>3.2%</N> against control.
+          <N>$520K</N> delivered of <N>$580K</N> projected. <N>205</N> of <N>236</N> SKUs went live, and sales rose <N>$520K</N> (<N>3.2%</N>) against control.
         </p>
         <Results />
       </div>

@@ -273,6 +273,7 @@ How numbers are signed and colored anywhere in the product (exec pages, analyst 
 | In a bullet about what worked, the gain figures are green | "Sales increased **3.2%** compared to control" | `text-success-700` |
 | Verdict columns (lead vs usual, lift vs old content, vs projected) are green when positive, red when negative | "+6.2 pts", "−0.9 pts" | `text-success-700` / `text-error-600` |
 | Dollar gains in tables stay neutral, so a page isn't a wall of green | "+$21K" | `text-slate-950` |
+| A percentage always comes with its total: the dollar figure first, the percentage in parentheses | "Sales increased $520K (3.2%)" | same color as the figure |
 | A figure never wraps across lines | "−$15K" stays on one line | `whitespace-nowrap` |
 | Amber is for things that need action soon: deadlines, "losing the sale now", waiting items | "Expires in 18 days" | `text-warning-700` on `bg-warning-100` |
 

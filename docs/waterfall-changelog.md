@@ -114,3 +114,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Last chart bar renamed "With Ally" → "Total opportunity".
 - Stage rows: Mike (content) shows "Nudge again" without hover; Michelle and James rows have no nudge button (they have started). NudgeRow got a `nudge` prop ("hover" default keeps /claire unchanged).
 - Number rule (now in design-specs.md → "Number and Color Rules"): every lost or owed amount in bullets carries a minus and is red ("(−$35K)"); gain figures in "worked" bullets are green ("3.2%"); figures never wrap. The "vs projected" column and section deltas are red when negative (was amber). **Shared:** the delivered columns and bullet data are also used by /claire, so its negative deltas turn red too.
+- Every percentage now carries its total: "Sales increased $520K (3.2%)", seasonal "$260K (2.9%)", foundational "$180K (4.0%)", Mike Ask Ally answer. Rule added to design-specs.md and the ciq-prototype skill.
