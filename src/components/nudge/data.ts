@@ -110,10 +110,10 @@ export const BATCHES: Batch[] = [
     nudgeSource: "Flagged by Vendor Central, 3 days ago",
     skus: 94,
     reviewMinutes: 5,
-    value: "$180K",
+    value: "$140K",
     approveSkus: 94,
-    approveValue: 0.18,
-    doneLabel: "94 unblocked · $180K",
+    approveValue: 0.14,
+    doneLabel: "94 unblocked · $140K",
     rationale: "94 SKUs that can't syndicate until their required attributes are filled.",
     exampleSkuId: "sku-4",
     before: "Country of origin: — · Item form: — · Age range: —",
@@ -215,7 +215,7 @@ export const TEAM_TIER = {
       agent: "content",
       analystName: "Mike",
       description: "Halloween concepts and attributes blocking syndication.",
-      value: "$0.6M",
+      value: "$560K",
       nudgeKey: "team-content",
       weekly: { state: "not-started" },
     },
@@ -521,7 +521,7 @@ export interface NudgeTarget {
 /** Which nudges fire a real Slack DM, to whom, and where "Open in Ally" lands. */
 export const NUDGE_TARGETS: Partial<Record<NudgeKey, NudgeTarget>> = {
   "approval-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween seasonal moments and gift sets", value: "$740K", skus: 709, deadlineDays: DEADLINE.days },
-  "team-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween concepts and retail readiness", value: "$600K", skus: 339 },
+  "team-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween concepts and retail readiness", value: "$560K", skus: 339 },
   "approval-ops": { recipient: "michelle", queuePath: "/michelle", batchName: "Buy box, promo and listing fixes", value: "$2.4M", skus: 28 },
 }
 

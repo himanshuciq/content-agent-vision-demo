@@ -28,7 +28,7 @@ export function mikeAnswer(q: string) {
   if (q === MIKE_QUESTIONS[1])
     return (
       <p>
-        Your Halloween concepts for <N>245</N> SKUs (<N>$420K</N>), and <N>58</N> attributes on <N>21</N> SKUs that are blocked from syndication (<N>$180K</N>).
+        Your Halloween concepts for <N>245</N> SKUs (<N>$420K</N>), and <N>58</N> attributes on <N>21</N> SKUs that are blocked from syndication (<N>$140K</N>).
       </p>
     )
   if (q === MIKE_QUESTIONS[2])

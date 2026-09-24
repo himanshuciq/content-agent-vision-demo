@@ -120,3 +120,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 ## Progress bar as labeled pieces (Mike and Michelle)
 - The bar no longer implies a total (banked + open = $2.02M, a number the user never saw). It's split into pieces with a gap between them and a legend in the same colors: ● $520K banked this quarter · ● $X unlocked today (after he acts) · ○ $1.5M open (white, outlined). Nothing sits at the right edge. Shared component mike/split-bar.tsx.
 - "What the agent changed" → "What Ally changed".
+- Progress bar shows the total at the right ("$2.02M this quarter") alongside the pieces ($520K banked · $1.5M open). **Shared data:** content now totals exactly $1.5M — retail readiness batch $180K → $140K; Claire team-tier content row $0.6M → $560K (team tier still rounds to $2.2M).

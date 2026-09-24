@@ -1,15 +1,16 @@
 import { cn } from "@/lib/utils"
 
-const fmt = (v: number) => (v >= 1 ? `$${+v.toFixed(1)}M` : `$${Math.round(v * 1000)}K`)
+const fmt = (v: number) => (v >= 1 ? `$${+v.toFixed(2)}M` : `$${Math.round(v * 1000)}K`)
 
 /**
- * Banked, unlocked and open as separate pieces, each with its own label, so the
- * bar never implies a total the user hasn't seen (banked + open). The open piece
- * keeps the number from the headline. `aside` sits on the right (the celebration).
+ * Banked, unlocked and open as separate pieces, each with its own label, and the
+ * total at the right end. The open piece keeps the number from the headline, so
+ * the total reads as that number plus what's banked. `aside` (the celebration)
+ * sits before the total.
  */
 export function SplitBar({ banked, unlocked, open, aside }: { banked: number; unlocked: number; open: number; aside?: React.ReactNode }) {
   const parts = [
-    { key: "banked", value: banked, label: "banked this quarter", dot: "bg-brand-600", bar: "bg-brand-600" },
+    { key: "banked", value: banked, label: "banked", dot: "bg-brand-600", bar: "bg-brand-600" },
     { key: "unlocked", value: unlocked, label: "unlocked today", dot: "bg-brand-400", bar: "bg-brand-400" },
     { key: "open", value: open, label: "open", dot: "border-2 border-brand-300 bg-white", bar: "bg-white ring-1 ring-inset ring-brand-300" },
   ].filter((p) => p.value > 0.0005)
@@ -26,7 +27,12 @@ export function SplitBar({ banked, unlocked, open, aside }: { banked: number; un
             </span>
           ))}
         </div>
-        {aside}
+        <div className="flex items-center gap-3.5">
+          {aside}
+          <span className="text-sm text-slate-500 tabular-nums">
+            <span className="font-mono font-semibold text-slate-950">{fmt(banked + unlocked + open)}</span> this quarter
+          </span>
+        </div>
       </div>
       <div className="mt-2.5 flex h-2 gap-1">
         {parts.map((p) => (
