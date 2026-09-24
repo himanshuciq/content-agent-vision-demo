@@ -93,8 +93,8 @@ export interface WorkType {
 export interface Bullet {
   tone: "orange" | "red" | "green" | "learn"
   text: string
-  /** Shows an Increase autopilot button on hover. */
-  action?: "autopilot"
+  /** Shows an action on hover: Increase autopilot, or Nudge team (the content owner). */
+  action?: "autopilot" | "nudge-team"
 }
 
 export interface ContentDelivered {
@@ -239,38 +239,36 @@ export const CONTENT_DELIVERED_Q2: ContentDelivered = {
 export const CONTENT_BANKED_Q3: ContentDelivered = {
   promised: 0.58,
   delivered: 0.52,
-  did: "207 SKUs improved so far",
+  did: "205 SKUs improved so far",
   bullets: [
-    { tone: "orange", text: "207 of 237 SKUs went live. 30 waited on approval, leaving $45K on the table, and one stockout cost $15K.", action: "autopilot" },
+    { tone: "orange", text: "205 of 236 SKUs went live. 28 waited on approval ($35K), 3 need your team's input ($10K), and one stockout cost $15K.", action: "autopilot" },
     { tone: "green", text: "Sales increased 3.2% compared to control (category average, or a 50/50 traffic split where possible), adjusted for ad spend, pricing and unavailability." },
-    { tone: "learn", text: "25 of 207 SKUs underperformed. Ally tuned itself on what didn't work to make the next run better." },
+    { tone: "learn", text: "25 of 205 SKUs underperformed. Ally tuned itself on what didn't work to make the next run better." },
   ],
   summary: [
-    "We updated 150 SKUs for back to school, improved everyday content on 45 and unblocked 12 for syndication: $520K banked of $580K promised so far.",
-    "$45K is waiting on 30 SKUs still in approval, and $15K was lost to one stockout during back to school. The changes that went live are on plan.",
+    "We updated 150 SKUs for back to school, improved everyday content on 45 and unblocked 10 for syndication: $520K banked of $580K projected so far.",
+    "$35K is waiting on 28 SKUs still in approval, $10K on 3 SKUs that need your team, and $15K was lost to one stockout during back to school.",
   ],
   workTypes: [
     {
       id: "seasonal", name: "Seasonal", method: "vs category", did: "150 SKUs for back to school", promised: 0.3, delivered: 0.26,
       bullets: [
-        { tone: "green", text: "New titles live on 150 of 168 SKUs grew 5.4% faster than the category, vs 2.5% before back to school" },
-        { tone: "orange", text: "$40K short: 18 SKUs weren't approved in time and 1 top seller ran out of stock" },
-        { tone: "green", text: "Price and ad spend held steady, so the lift is from content" },
+        { tone: "green", text: "150 of 168 SKUs went live for back to school and drove a 2.9% sales lift over the category average, adjusted for pricing, ad spend and availability." },
+        { tone: "orange", text: "$40K short of projected: 18 SKUs weren't approved in time ($25K) and one top seller ran out of stock ($15K).", action: "autopilot" },
       ],
     },
     {
       id: "foundational", name: "Foundational", method: "A/B tested", did: "Keywords, titles and images on 45 SKUs", promised: 0.19, delivered: 0.18,
       bullets: [
-        { tone: "green", text: "New content beat the old on 38 of 45 SKUs in A/B tests: +4.0% sales, same shoppers, same weeks" },
-        { tone: "orange", text: "$10K short: 10 SKUs still waiting for approval" },
-        { tone: "green", text: "The 7 that lost went back to old content; what didn't work is now in the agent's context" },
+        { tone: "green", text: "New content beat the old on 38 of 45 SKUs in A/B tests, a 4.0% sales lift." },
+        { tone: "learn", text: "The 7 that lost went back to old content; what didn't work is now in the agent's context." },
       ],
     },
     {
-      id: "retail-readiness", name: "Retail readiness", method: "A/B tested", did: "12 SKUs unblocked", promised: 0.09, delivered: 0.08,
+      id: "retail-readiness", name: "Retail readiness", method: "A/B tested", did: "10 SKUs unblocked", promised: 0.09, delivered: 0.08,
       bullets: [
-        { tone: "green", text: "Unblocked 12 of 14 SKUs for syndication; new content then won A/B tests on 10 of 12: +3.8% sales" },
-        { tone: "orange", text: "$10K short: 2 SKUs still waiting for approval" },
+        { tone: "green", text: "10 SKUs unblocked for syndication (content last updated 2 quarters ago) by auto-updating 28 backend attributes." },
+        { tone: "orange", text: "3 SKUs need your team's input ($10K).", action: "nudge-team" },
       ],
     },
   ],

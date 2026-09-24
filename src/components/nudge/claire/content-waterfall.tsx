@@ -5,7 +5,9 @@ import Link from "next/link"
 import { ArrowRight, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { fmtValue } from "../data"
+import { TEAM_TIER, fmtValue } from "../data"
+import { useNudge } from "../nudge-context"
+import { useFireNudge } from "../use-fire-nudge"
 import { MethodTag } from "./delivered/method-tag"
 import type { ContentDelivered, WorkType } from "../delivered-content-data"
 
@@ -24,7 +26,16 @@ const BAR: Record<string, string> = { foundational: "bg-brand-400", seasonal: "b
 
 type Bullets = NonNullable<WorkType["bullets"]>
 
+/** The content owner's "needs your team" row: Nudge team on a bullet nudges it (real Slack DM to Mike). */
+const CONTENT_TEAM_ROW = TEAM_TIER.rows.find((r) => r.agent === "content")!
+
+const HOVER_BTN =
+  "absolute right-0 -bottom-1 rounded-md border border-brand-200 bg-white px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-brand-700 opacity-0 transition-opacity group-hover/b:opacity-100 hover:bg-brand-50 focus-visible:opacity-100"
+
 function BulletCard({ title, method, bullets, className }: { title: string; method?: string; bullets?: Bullets; className?: string }) {
+  const { nudged } = useNudge()
+  const { fire } = useFireNudge()
+  const teamNudged = !!(CONTENT_TEAM_ROW.nudgeKey && nudged[CONTENT_TEAM_ROW.nudgeKey])
   return (
     <div className={cn("rounded-lg border border-slate-200 bg-white px-4 py-3.5", className)}>
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900">
@@ -44,12 +55,20 @@ function BulletCard({ title, method, bullets, className }: { title: string; meth
             {b.action === "autopilot" && (
               <button
                 type="button"
-                onClick={() => toast.success("Autopilot on for foundational content approvals", { position: "top-right" })}
-                className="absolute right-0 -bottom-1 rounded-md border border-brand-200 bg-white px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-brand-700 opacity-0 transition-opacity group-hover/b:opacity-100 hover:bg-brand-50 focus-visible:opacity-100"
+                onClick={() => toast.success("Autopilot on for content approvals", { position: "top-right" })}
+                className={HOVER_BTN}
               >
                 Increase autopilot
               </button>
             )}
+            {b.action === "nudge-team" &&
+              (teamNudged ? (
+                <span className="absolute right-0 -bottom-1 text-xs font-semibold text-success-700">Team nudged</span>
+              ) : (
+                <button type="button" onClick={() => fire(CONTENT_TEAM_ROW)} className={HOVER_BTN}>
+                  Nudge team
+                </button>
+              ))}
           </li>
         ))}
       </ul>
