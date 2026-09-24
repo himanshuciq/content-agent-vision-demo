@@ -12,3 +12,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 | Sep 23 2026 | Removed How you compare (autopilot) | page only | Open |
 | Sep 23 2026 | Floating translucent Ask Ally bar; chip "Why is content $60K behind projection?" (Q3) | `claire/ask-ally.tsx`, `ask-ally-answers.tsx` | Open (/claire uses `ask-ally-inline.tsx`) |
 | Sep 23 2026 | Results page: "This quarter" period (default), "projected" wording | `results/*`, `content-results-data.ts` | Shared (Q2 cards link with period=quarter) |
+| Sep 23 2026 | "This quarter so far": paired bars replaced by the table; columns Projected · Delivered · vs projected (Delivered stays bold); Content opens to dot bullets, type rows, then "See SKU-level results and method" | `claire/this-quarter-section.tsx`, `delivered/columns.tsx` (projectedFirst), `delivered/content-delivered-row.tsx` (bullets, resultsHref), `delivered/delivered-summary-row.tsx` | Open: /claire still uses Delivered · Promised · vs promise |
