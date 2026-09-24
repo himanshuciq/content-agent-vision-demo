@@ -71,3 +71,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Autopilot drill-down redesigned: header states the claim ("13% of your open opportunity runs itself. Best-in-class brands run 40%.") with value and Increase autopilot; each row shows share on autopilot as a filled track with a best-in-class tick on the same track (the gap reads without math). Action column sized so the button never touches the value; descriptions stack under the workstream below lg.
 - Column-header standard for every table: one row under the table's title bar, 12px medium slate-500, sentence case, number columns right-aligned (same as "This quarter so far"). Added to the One approval away / Needs your team stage tables (Owner · What's waiting · This week · Value) and autopilot (Workstream · What runs itself · On autopilot vs best in class · Value).
 - Value columns line up at the same x across all three stage tables.
+
+## Seasonal events by period (shared data)
+- Rule: Q3 FY26 (Jul–Sep, current) = back to school; August = back to school; Q2 FY26 (Apr–Jun) = Mother's Day; FY25 = 11 shopping events. Halloween is the upcoming event (open work, publish by Oct 8).
+- **Shared data:** August's content story changed from "rewrote 61 product pages ahead of back to school" to "updated 70 SKUs for back to school, improved everyday content on 22, and unblocked 8 for syndication" to match August's results (100 SKUs live).
+- Not changed: the old launchpad home (/, components/landing) still says Prime Day for Q3; it isn't part of the Claire/Mike demo.

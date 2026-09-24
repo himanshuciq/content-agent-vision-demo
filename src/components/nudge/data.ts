@@ -474,7 +474,7 @@ export const CLOSED: Record<ClosedGrain, ClosedPeriodData> = {
     content: "$238K",
     ops: "$31K",
     mediaStory: "took 24,000 bid and budget actions across 1,400 keywords, at $2.94 incremental return on ad spend.",
-    contentStory: "rewrote 61 product pages ahead of back to school.",
+    contentStory: "updated 70 SKUs for back to school, improved everyday content on 22, and unblocked 8 for syndication.",
     opsStory: "caught 26 SKUs losing the buy box or missing a promo badge, and fixed them in 48 hours.",
   },
   quarter: {
