@@ -25,8 +25,11 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
   const gap = b.plan - b.pace
 
   return (
-    <section className="px-12 pt-6 pb-7">
+    <section className="px-12 pt-9 pb-7">
       <div className="flex flex-wrap items-center gap-x-2 text-sm text-slate-600">
+        <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
+          <span className="size-1.5 rounded-full bg-brand-200" />
+        </span>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-md py-0.5 font-semibold text-slate-950 outline-none">
             {INFLIGHT[period].name}

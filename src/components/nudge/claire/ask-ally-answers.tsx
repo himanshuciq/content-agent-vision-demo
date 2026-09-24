@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { ArrowRight, Check } from "lucide-react"
+import { downloadExecSummary } from "../exec-pdf"
 import { APPROVAL_TIER, COMPARE } from "../data"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
@@ -15,6 +17,7 @@ export const QUESTIONS = [
   "Why is content $60K behind projection?",
   "What can go on autopilot next?",
   "Will I make plan?",
+  "Email this summary to my team",
 ] as const
 /** Tier version (/claire): the proof section is last quarter, and "How you compare" is on the page. */
 export const QUESTIONS_Q2 = [QUESTIONS[0], QUESTIONS[1], "Why did content miss by $190K?", QUESTIONS[3], QUESTIONS[4]] as const
@@ -156,6 +159,15 @@ function AutopilotNextAnswer({ withCompare }: { withCompare: boolean }) {
   )
 }
 
+/** Builds the one-page PDF the Monday email carries, for an extra send. */
+function EmailAnswer() {
+  const [done, setDone] = useState(false)
+  useEffect(() => {
+    downloadExecSummary("quarter").then(() => setDone(true))
+  }, [])
+  return <p>{done ? "Summary PDF downloaded. Attach it to your email, or forward Monday's." : "Building the summary PDF…"}</p>
+}
+
 function PlanAnswer() {
   return (
     <p>
@@ -172,5 +184,6 @@ export function Answer({ q, lastQuarter = false }: { q: Question; lastQuarter?: 
   if (q === QUESTIONS[1]) return <AdoptionAnswer />
   if (q === QUESTIONS[2] || q === QUESTIONS_Q2[2]) return <ContentMissAnswer lastQuarter={lastQuarter} />
   if (q === QUESTIONS[3]) return <AutopilotNextAnswer withCompare={lastQuarter} />
+  if (q === QUESTIONS[5]) return <EmailAnswer />
   return <PlanAnswer />
 }

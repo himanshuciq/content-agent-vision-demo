@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Send, Sparkles, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -14,6 +14,7 @@ function match(text: string): Question | null {
   if (t.includes("adoption") || t.includes("hasn't acted") || t.includes("by team")) return QUESTIONS[1]
   if (t.includes("behind") || t.includes("miss") || t.includes("60")) return QUESTIONS[2]
   if (t.includes("autopilot")) return QUESTIONS[3]
+  if (t.includes("email") || t.includes("send")) return QUESTIONS[5]
   if (t.includes("plan")) return QUESTIONS[4]
   return null
 }
@@ -29,6 +30,17 @@ export function AskAlly() {
   const [asked, setAsked] = useState<Question | null>(null)
   const [thinking, setThinking] = useState(false)
   const timer = useRef<number | undefined>(undefined)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // Clicking anywhere outside collapses the drawer back to the pill; the last answer stays for next time.
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", onDown)
+    return () => document.removeEventListener("mousedown", onDown)
+  }, [open])
 
   function ask(q: Question | null, text?: string) {
     if (text !== undefined) setValue(text)
@@ -48,7 +60,7 @@ export function AskAlly() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
-      <div className="pointer-events-auto flex w-full max-w-[760px] flex-col gap-2">
+      <div ref={rootRef} className="pointer-events-auto flex w-full max-w-[760px] flex-col gap-2">
         {open && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -116,6 +128,7 @@ export function AskAlly() {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onFocus={() => setOpen(true)}
+            onClick={() => setOpen(true)}
             placeholder="Ask Ally: what can I take from your plate?"
             className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
           />

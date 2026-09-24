@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
-import { ClaireHeader } from "@/components/nudge/claire/claire-header"
+import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
 import { WeeklyBanner } from "@/components/nudge/claire/weekly-banner"
 import { BusinessHero } from "@/components/nudge/claire/business-hero"
 import { WaterfallChart } from "@/components/nudge/waterfall/waterfall-chart"
@@ -30,8 +30,7 @@ export default function ClaireWaterfallPage() {
   return (
     <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
-        <ClaireHeader period={period} />
-        <WeeklyBanner />
+        <WeeklyBanner overlay />
         <BusinessHero period={period} onPeriodChange={setPeriod} />
 
         <div className="px-12 pt-1 pb-3">
@@ -54,8 +53,10 @@ export default function ClaireWaterfallPage() {
           )}
         </div>
 
-        <div className="pb-24">
-          <ThisQuarterSection />
+        <ThisQuarterSection />
+        {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
+        <div className="flex justify-end px-12 pt-6 pb-24 opacity-50 hover:opacity-100">
+          <ResetDemoButton />
         </div>
         <AskAlly />
       </div>

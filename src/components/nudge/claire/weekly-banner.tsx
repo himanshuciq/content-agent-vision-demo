@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, Mail, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { APPROVAL_TIER } from "../data"
@@ -11,14 +11,24 @@ import { useFireNudge } from "../use-fire-nudge"
  * Monday's automatic email, reported back to Claire: who's already on it and
  * who hasn't started, with one click to nudge again. Auto-send is on by default;
  * "review first" holds the email until Claire sends it.
+ * overlay (waterfall version): a floating card at the top that hides itself
+ * after 5 seconds, and stays while hovered so she can click Nudge.
  */
-export function WeeklyBanner() {
+export function WeeklyBanner({ overlay = false }: { overlay?: boolean }) {
   const { nudged } = useNudge()
   const { fire } = useFireNudge()
   const [autoSend, setAutoSend] = useState(true)
   const [sentManually, setSentManually] = useState(false)
   const [showSetting, setShowSetting] = useState(false)
   const [dismissed, setDismissed] = useState(false)
+  const [hovered, setHovered] = useState(false)
+
+  useEffect(() => {
+    if (!overlay || hovered || showSetting || dismissed) return
+    const t = window.setTimeout(() => setDismissed(true), 5000)
+    return () => window.clearTimeout(t)
+  }, [overlay, hovered, showSetting, dismissed])
+
   if (dismissed) return null
 
   const sent = autoSend || sentManually
@@ -28,7 +38,16 @@ export function WeeklyBanner() {
   const names = (list: typeof rows) => list.map((r) => r.analystName).join(" and ")
 
   return (
-    <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-brand-25 px-12 py-3 text-sm">
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={cn(
+        "flex flex-wrap items-center gap-x-4 gap-y-2 text-sm",
+        overlay
+          ? "fixed top-4 left-1/2 z-50 w-[min(880px,calc(100%-32px))] -translate-x-1/2 animate-in rounded-xl border border-brand-200 bg-white/95 px-5 py-3 shadow-pane-lg backdrop-blur fade-in slide-in-from-top-2"
+          : "relative border-b border-slate-200 bg-brand-25 px-12 py-3",
+      )}
+    >
       <Mail className="size-4 shrink-0 text-brand-600" />
       {sent ? (
         <>
