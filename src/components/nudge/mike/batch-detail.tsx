@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Check, ChevronDown, Sparkles } from "lucide-react"
+import { Check, ChevronDown, RefreshCw, Sparkles } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { skuById } from "../data"
 import { useNudge } from "../nudge-context"
@@ -74,7 +75,7 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
       <div className="mt-8 overflow-hidden rounded-xl border border-slate-200">
         <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-950">
           <Sparkles className="size-4 text-brand-600" />
-          What the agent changed
+          {batch.changesTitle ?? "What the agent changed"}
         </div>
         <div>
           {batch.changes.map((change, i) => (
@@ -94,10 +95,29 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
       </div>
 
       <div className="mt-8">
-        {done ? (
+        {batch.tier === "autopilot" ? (
+          <div className="flex items-start gap-3 rounded-xl border border-info-100 bg-info-50 px-5 py-4 text-sm text-slate-800">
+            <RefreshCw className="mt-0.5 size-4 shrink-0 text-info-600" />
+            {batch.need?.text}
+          </div>
+        ) : done ? (
           <div className="flex items-center gap-2 text-[15px] font-medium text-success-700">
             <Check className="size-4" />
             {batch.doneLabel}
+          </div>
+        ) : batch.tier === "input" && batch.need ? (
+          <div className="flex flex-col gap-4 rounded-xl border border-warning-200 bg-warning-50 px-5 py-4">
+            <div className="text-sm text-slate-800">{batch.need.text}</div>
+            <button
+              type="button"
+              onClick={() => {
+                onApprove(batch)
+                toast.success(batch.need!.toast, { position: "top-right" })
+              }}
+              className="w-fit rounded-md bg-brand-500 px-6 py-3 text-[15px] font-semibold text-white shadow-xs transition-colors hover:bg-brand-600"
+            >
+              {batch.need.cta}
+            </button>
           </div>
         ) : (
           <Actions batch={batch} onApprove={onApprove} onReviewAll={onReviewAll}>

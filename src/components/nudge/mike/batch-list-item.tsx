@@ -47,21 +47,25 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
               "rounded px-1.5 py-0.5 text-[11px] font-semibold",
               done
                 ? "bg-success-100 text-success-700"
-                : batch.chip.startsWith("Expires")
-                  ? "bg-warning-100 text-warning-700"
-                  : "bg-slate-100 text-slate-600",
+                : batch.tier === "autopilot"
+                  ? "bg-info-100 text-info-700"
+                  : batch.chip.startsWith("Expires") || batch.tier === "input"
+                    ? "bg-warning-100 text-warning-700"
+                    : "bg-slate-100 text-slate-600",
             )}
           >
-            {done ? "Published" : batch.tier === "input" ? `${batch.decisions} decision${batch.decisions === 1 ? "" : "s"} needed` : batch.chip}
+            {done ? (batch.tier === "input" ? "Sent to Ally" : "Published") : batch.tier === "input" ? batch.ask : batch.chip}
           </span>
         </div>
+        {batch.skuRows.length > 0 && (
         <div
           onClick={(e) => { e.stopPropagation(); onToggleExpand() }}
           className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-brand-700"
         >
-          {expanded ? "Hide the SKUs" : `See all ${batch.approveSkus} SKUs`}
+          {expanded ? "Hide the SKUs" : `See all ${batch.skus} SKUs`}
           <ChevronDown className={cn("size-3.5 transition-transform", expanded && "rotate-180")} />
         </div>
+        )}
       </button>
       {expanded && (
         <div className="border-t border-slate-100 bg-white">

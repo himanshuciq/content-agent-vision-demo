@@ -10,9 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useNudge } from "../nudge-context"
 import { findBatch } from "../data"
-import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
 
-const k = (v: number) => `$${Math.round(v * 1000)}K`
 const Dot = () => <span className="text-slate-300">·</span>
 const Num = ({ children }: { children: React.ReactNode }) => <span className="font-mono font-semibold text-slate-950">{children}</span>
 const Up = ({ children }: { children: React.ReactNode }) => <span className="font-medium text-success-700">↑{children}</span>
@@ -31,10 +29,6 @@ export function MikeHeader() {
         <span>Hi Mike</span>
         <Dot />
         <span className="font-semibold text-slate-950">Q3 FY26</span>
-        <Dot />
-        <span>
-          <Num>{k(CONTENT_BANKED_Q3.delivered)}</Num> of {k(CONTENT_BANKED_Q3.promised)} delivered
-        </span>
         <Dot />
         <span>
           SEO share of voice <Num>42%</Num> <Up>0.8 pts</Up>

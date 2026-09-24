@@ -86,10 +86,10 @@ export default function MikePage() {
           )}
         </div>
         <MikeDelivered />
-      </div>
-      {/* Demo-only control, kept out of the product chrome. */}
-      <div className="mx-auto flex max-w-[1280px] justify-end px-4 pb-6 opacity-50 hover:opacity-100">
-        <ResetDemoButton />
+        {/* Demo-only control, kept out of the product chrome, same as Claire's page. */}
+        <div className="flex justify-end px-10 pb-8 opacity-50 hover:opacity-100">
+          <ResetDemoButton />
+        </div>
       </div>
     </PageShell>
   )

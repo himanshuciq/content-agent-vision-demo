@@ -142,23 +142,6 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
     },
   ],
 
-  backend: [
-    {
-      skuId: "sku-3",
-      sections: [
-        text("Backend search terms", ["candle, jar candle, soy candle"], [{ text: "amber floral candle, long burn soy candle, jar candle gift", ...NEW }]),
-        text("Structured attributes", ["Scent family: — · Burn time: —"], [{ text: "Scent family: amber floral · Burn time: 110 hours", ...NEW }]),
-      ],
-    },
-    {
-      skuId: "sku-8",
-      sections: [
-        text("Backend search terms", ["candle, jar candle, linen candle"], [{ text: "coastal linen candle, fresh linen jar candle, gift candle", ...NEW }]),
-        text("Structured attributes", ["Scent family: — · Burn time: —"], [{ text: "Scent family: fresh linen · Burn time: 130 hours", ...NEW }]),
-      ],
-    },
-  ],
-
   readiness: [
     {
       skuId: "sku-4",
@@ -179,6 +162,19 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
       sections: [
         text("Required attributes", ["Country of origin: —"], [{ text: "Country of origin: Vietnam", ...NEW }]),
         text("Required attributes", ["Item form: — · Age range: —"], [{ text: "Item form: solid · Age range: adult", ...NEW }]),
+      ],
+    },
+  ],
+  pim: [
+    {
+      skuId: "sku-5",
+      sections: [
+        text("Images", ["3 images"], [{ text: "5 images, 2 added from PIM", ...NEW }]),
+        text(
+          "Description",
+          [],
+          [{ text: "Three cotton wicks and 21 oz of soy wax fill a room in minutes with cedar, clove and warm spice.", ...NEW }],
+        ),
       ],
     },
   ],

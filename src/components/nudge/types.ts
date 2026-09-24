@@ -40,13 +40,17 @@ export interface BatchChange {
 }
 
 export interface Batch {
-  id: "halloween" | "gifts" | "backend" | "readiness"
+  id: "halloween" | "gifts" | "concepts" | "readiness" | "pim"
   /** Which of Claire's buckets it sits in, so Mike's inbox groups the same way her page does. */
-  tier: "approval" | "input"
+  tier: "approval" | "input" | "autopilot"
   /** The kind of content work, as Claire's page names it. */
   type: "Seasonal" | "Foundational" | "Retail readiness"
-  /** For "Needs your input" batches: how many decisions block them. */
-  decisions?: number
+  /** For "Needs your input" batches: the chip saying what's blocking, e.g. "58 attributes needed". */
+  ask?: string
+  /** What Ally needs (input) or is doing (autopilot), shown in place of the approve button. */
+  need?: { text: string; cta: string; toast: string }
+  /** Heading over the changes list; defaults to "What the agent changed". */
+  changesTitle?: string
   name: string
   chip: string
   nudgeSource: string

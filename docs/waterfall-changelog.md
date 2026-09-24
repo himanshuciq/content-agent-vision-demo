@@ -49,3 +49,11 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Left rail names each batch by work type with a subscript: Seasonal (Halloween moments / Halloween gift sets), Foundational (Backend keywords and attributes), Retail readiness (Attributes Amazon requires; PIM → PDP fixes on autopilot). SKU counts now equal what gets approved (378, 331, 273, 94); the separate "N SKUs" line is gone, only "See all N SKUs".
 - New "This quarter so far" section on /mike, content only: Claire's content waterfall, without the Nudge team button (on Mike's page the team is Mike).
 - **Shared data:** the approval batch counts changed (Halloween 384→378, gift sets 339→331, readiness 100→94); the team-content nudge now reads "Foundational and retail readiness".
+
+## Mike: colored buckets, input and autopilot batches, bar moves on every action
+- Left rail groups use Claire's waterfall colors: purple One approval away, amber Needs your input, blue On autopilot (tinted header + colored edge).
+- Needs your input: "Add Halloween concepts" (Seasonal, $420K, 245 SKUs; Ally localizes concepts per retailer and customizes per SKU) replaces Backend keywords and attributes. Retail readiness renamed "Listings blocked from syndication" with the callout "We added 412 of 470 attributes on 94 SKUs automatically. The other 58, on 21 SKUs, need your team's input…" and a Fill 58 attributes button.
+- On autopilot: PIM → PDP fixes is Foundational and clickable (fills blank images, descriptions, bullets, attributes from PIM).
+- Progress bar moves on every action (approve, add concepts, fill attributes); open = sum of batches not yet acted on.
+- Top line no longer shows delivered (it's in the section below). Reset moved inside the page bottom, like Claire's.
+- **Shared data:** Claire's team-tier content row now reads "Halloween concepts and attributes blocking syndication."
