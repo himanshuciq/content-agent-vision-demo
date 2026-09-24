@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -15,14 +15,6 @@ const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-
 /** Waterfall order: everyday content first, then the event, then unblocking. */
 const ORDER = ["foundational", "seasonal", "retail-readiness"]
 const BAR: Record<string, string> = { foundational: "bg-brand-500", seasonal: "bg-brand-500", "retail-readiness": "bg-brand-500", total: "bg-brand-700" }
-
-/** Temporary: lets us feel the three interactions in the product before picking one. */
-type Mode = "hover" | "click" | "panel"
-const MODES: { id: Mode; label: string }[] = [
-  { id: "hover", label: "Hover" },
-  { id: "click", label: "Click" },
-  { id: "panel", label: "Panel" },
-]
 
 type Bullets = NonNullable<WorkType["bullets"]>
 
@@ -47,23 +39,12 @@ function BulletCard({ title, method, bullets, className }: { title: string; meth
 
 /**
  * Content, opened: delivered by type stacked into the total, against the
- * projected line. Each bar's 2–3 bullets show on hover, on click as a
- * popover, or in a panel below, depending on the mode being tried.
+ * projected line. The panel below shows the selected bar's 2–3 bullets; it
+ * opens on the Content total so the story shows without a click. (Hover and
+ * click popovers were tried and dropped: they hide the story until you act.)
  */
 export function ContentWaterfall({ data, resultsHref }: { data: ContentDelivered; resultsHref: string }) {
-  const [mode, setMode] = useState<Mode>("hover")
   const [selected, setSelected] = useState("total")
-  const [active, setActive] = useState<string | null>(null)
-  const chartRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (mode !== "click" || !active) return
-    const close = (e: MouseEvent) => {
-      if (chartRef.current && !chartRef.current.contains(e.target as Node)) setActive(null)
-    }
-    document.addEventListener("mousedown", close)
-    return () => document.removeEventListener("mousedown", close)
-  }, [mode, active])
 
   const types = ORDER.map((id) => data.workTypes.find((w) => w.id === id)!).filter(Boolean)
   const pct = (v: number) => (v / data.promised) * 100
@@ -80,45 +61,18 @@ export function ContentWaterfall({ data, resultsHref }: { data: ContentDelivered
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-end gap-2 text-[11px] text-slate-400">
-        Try
-        <div className="flex rounded-md border border-slate-200 bg-white p-0.5">
-          {MODES.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => {
-                setMode(m.id)
-                setActive(null)
-              }}
-              className={cn("rounded px-2 py-0.5 font-medium", mode === m.id ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-800")}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div ref={chartRef} className="relative flex items-end gap-3">
+      <div className="relative flex items-end gap-3">
         <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-slate-400" style={{ top: PAD_TOP }}>
           <span className="absolute -top-5 right-0 bg-slate-25 px-1 font-mono text-[11px] font-semibold text-slate-500">Projected {fmtValue(data.promised)}</span>
         </div>
         {cols.map((c, i) => {
-          const highlighted = mode === "panel" ? c.key === selected : c.key === active
+          const highlighted = c.key === selected
           const next = cols[i + 1]
-          const align = i === 0 ? "left-0" : i === cols.length - 1 ? "right-0" : "left-1/2 -translate-x-1/2"
-          // Hover opens beside the bar (toward the middle of the chart) so it never covers the table above.
-          const side = i < cols.length / 2 ? "left-full ml-2" : "right-full mr-2"
           return (
-            <div
-              key={c.key}
-              className="relative flex-1"
-              onMouseEnter={() => mode === "hover" && setActive(c.key)}
-              onMouseLeave={() => mode === "hover" && setActive(null)}
-            >
+            <div key={c.key} className="relative flex-1">
               <button
                 type="button"
-                onClick={() => (mode === "panel" ? setSelected(c.key) : mode === "click" && setActive(active === c.key ? null : c.key))}
+                onClick={() => setSelected(c.key)}
                 className={cn(
                   "group flex w-full flex-col items-center rounded-xl px-1 pb-2 transition-colors",
                   highlighted ? "bg-brand-50 ring-1 ring-brand-200" : "hover:bg-slate-50",
@@ -140,20 +94,12 @@ export function ContentWaterfall({ data, resultsHref }: { data: ContentDelivered
                 </div>
               </button>
 
-              {mode !== "panel" && active === c.key && (
-                <BulletCard
-                  title={c.label}
-                  method={c.method}
-                  bullets={c.bullets}
-                  className={cn("absolute z-30 w-80 shadow-lg", mode === "hover" ? cn(side, "top-6") : cn(align, "top-full mt-2"))}
-                />
-              )}
             </div>
           )
         })}
       </div>
 
-      {mode === "panel" && <BulletCard title={panel.label} method={panel.method} bullets={panel.bullets} />}
+      <BulletCard title={panel.label} method={panel.method} bullets={panel.bullets} />
 
       <Link href={resultsHref} className="inline-flex w-fit items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800">
         See SKU-level results and method
