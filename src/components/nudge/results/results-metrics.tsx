@@ -23,9 +23,9 @@ export function ResultsMetrics({ totals, sections, current }: { totals: ResultTo
     const t = current.totals
     cells = [
       dollars,
-      { label: "Your impressions", value: pct(t.skuImpr), sub: "event weeks vs the 4 weeks before" },
-      { label: "Category impressions", value: pct(t.catImpr), sub: "same weeks, the benchmark" },
-      { label: "Lead over category", value: pts((t.skuImpr ?? 0) - (t.catImpr ?? 0)), sub: "after price, ad spend and stockouts" },
+      { label: "SKU growth", value: pct(t.skuImpr), sub: "event weeks vs the 4 weeks before" },
+      { label: "Category demand growth", value: pct(t.catImpr), sub: "same weeks, the benchmark" },
+      { label: "Lead over category", value: pts((t.skuImpr ?? 0) - (t.catImpr ?? 0)), sub: `usually ${pts(t.leadBefore)} · after price, ads and stock` },
     ]
   } else if (current) {
     const t = current.totals
@@ -39,7 +39,7 @@ export function ResultsMetrics({ totals, sections, current }: { totals: ResultTo
     cells = [
       dollars,
       { label: "Sales lift", value: pct(totals.sales), sub: "each type vs its own comparison" },
-      { label: "Seasonal lead over category", value: pts((seasonal?.skuImpr ?? 0) - (seasonal?.catImpr ?? 0)), sub: "impressions, after adjustments" },
+      { label: "Seasonal lead over category", value: pts((seasonal?.skuImpr ?? 0) - (seasonal?.catImpr ?? 0)), sub: `usually ${pts(seasonal?.leadBefore)} before the change` },
       { label: "A/B tests won", value: `${won} of ${tested}`, sub: "foundational and retail readiness" },
     ]
   }

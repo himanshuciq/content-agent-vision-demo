@@ -17,14 +17,16 @@ const MARK: Record<SkuLiftRow["tone"], string> = {
 
 const CAPTION: Record<ResultSection["method"], string> = {
   "vs category":
-    "Impressions compared with the category's over the same weeks, event weeks vs the 4 weeks before. Incremental sales are after adjusting for price, ad spend and stockouts.",
+    "SKU growth against category demand growth over the same weeks (event weeks vs the 4 weeks before; impressions as the demand signal), compared with the lead each SKU usually has. Incremental sales are after adjusting for price, ad spend and stockouts.",
   "A/B tested": "New content vs old on a 50/50 traffic split. Both halves see the same price, ads and stock, so nothing needs adjusting.",
 }
 
 const TH = "px-4 py-2.5 align-bottom font-medium"
 const TD_NUM = "px-4 py-3 text-right font-mono tabular-nums text-slate-950"
-/** Only the verdict column is colored: green when content won, red when it lost. */
+/** The verdict column is green when content won, red when it lost. */
 const verdict = (v?: number) => (v === undefined ? "text-slate-300" : v >= 0 ? "text-success-700" : "text-error-600")
+/** Money lost is red; gains stay neutral so the page isn't a wall of green. */
+const moneyTone = (v?: number) => (v === undefined ? "text-slate-300" : v < 0 ? "text-error-600" : "text-slate-950")
 
 function Result({ r }: { r: SkuLiftRow }) {
   return (
@@ -88,9 +90,9 @@ export function ResultsTable({ section }: { section: ResultSection }) {
               <th className={cn(TH, "w-[20%]")}>Result</th>
               {byCategory ? (
                 <>
-                  <th className={cn(TH, "text-right")}>SKU impressions</th>
-                  <th className={cn(TH, "text-right")}>Category impressions</th>
-                  <th className={cn(TH, "text-right")}>Lead</th>
+                  <th className={cn(TH, "text-right")}>SKU growth</th>
+                  <th className={cn(TH, "text-right")}>Category demand growth</th>
+                  <th className={cn(TH, "text-right")}>Lead vs usual</th>
                   <th className={cn(TH, "w-[17%]")}>Adjusted for</th>
                 </>
               ) : (
@@ -117,7 +119,11 @@ export function ResultsTable({ section }: { section: ResultSection }) {
                     <>
                       <td className={TD_NUM}>{pct(r.skuImpr)}</td>
                       <td className={cn(TD_NUM, "text-slate-500")}>{pct(r.catImpr)}</td>
-                      <td className={cn(TD_NUM, "font-semibold", verdict(lead))}>{pts(lead)}</td>
+                      <td className={TD_NUM}>
+                        {/* Judged against the SKU's usual lead before the change, so a SKU already outgrowing the category gets no credit for it. */}
+                        <div className={cn("font-semibold", verdict(lead === undefined ? undefined : lead - (r.leadBefore ?? 0)))}>{pts(lead)}</div>
+                        {r.leadBefore !== undefined && <div className="mt-0.5 font-sans text-[11px] text-slate-400">usually {pts(r.leadBefore)}</div>}
+                      </td>
                       <Adjusted r={r} />
                     </>
                   ) : (
@@ -127,7 +133,7 @@ export function ResultsTable({ section }: { section: ResultSection }) {
                       <td className={cn(TD_NUM, "text-slate-500", r.days === undefined && "text-slate-300")}>{r.days === undefined ? "—" : `${r.days} days`}</td>
                     </>
                   )}
-                  <td className={cn(TD_NUM, "font-semibold", r.incremental === undefined && "text-slate-300")}>{money(r.incremental)}</td>
+                  <td className={cn(TD_NUM, "font-semibold", moneyTone(r.incremental))}>{money(r.incremental)}</td>
                 </tr>
               )
             })}
