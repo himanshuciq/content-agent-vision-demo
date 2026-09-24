@@ -6,6 +6,13 @@ import { skuById } from "../data"
 import { useNudge } from "../nudge-context"
 import type { Batch } from "../types"
 
+/** Selected = a soft tint in the group's own color; the group's edge already carries the color line. */
+const ACTIVE: Record<Batch["tier"], string> = {
+  approval: "bg-brand-50",
+  input: "bg-warning-50",
+  autopilot: "bg-info-50",
+}
+
 interface BatchListItemProps {
   batch: Batch
   active: boolean
@@ -27,9 +34,8 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
         type="button"
         onClick={onSelectBatch}
         className={cn(
-          "block w-full px-5.5 py-4 text-left",
-          active && "bg-brand-50 shadow-[inset_2px_0_0_var(--color-brand-600)]",
-          done && "bg-slate-25",
+          "block w-full px-5.5 py-4 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-inset",
+          active ? ACTIVE[batch.tier] : "hover:bg-slate-50",
         )}
       >
         <div className="flex items-center justify-between gap-3">
