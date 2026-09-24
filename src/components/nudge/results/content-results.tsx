@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ChevronDown } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { fmtValue } from "../data"
 import { ResultsMetrics } from "./results-metrics"
@@ -35,7 +36,7 @@ function Segmented<T extends string>({ items, value, onChange }: { items: { id: 
           type="button"
           onClick={() => onChange(t.id)}
           className={cn(
-            "rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors",
+            "rounded-md px-3.5 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-300",
             value === t.id ? "bg-white text-slate-950 shadow-xs ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-800",
           )}
         >
@@ -56,6 +57,7 @@ export function ContentResults() {
     (PERIODS.find((p) => p.id === params.get("period"))?.id ?? "qtd") as ResultPeriod,
   )
 
+  const [periodOpen, setPeriodOpen] = useState(false)
   const results = RESULTS_BY_PERIOD[period]
   const sections = view === "all" ? results.sections : results.sections.filter((s) => s.type === view)
   const current = view === "all" ? null : sections[0]
@@ -75,7 +77,36 @@ export function ContentResults() {
         </button>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">Content results · {results.name}</div>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <span>Content results</span>
+              <span className="text-slate-300">·</span>
+              {/* Same period control as Claire's top line: the period name is the dropdown. */}
+              <DropdownMenu open={periodOpen} onOpenChange={setPeriodOpen}>
+                <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-md py-0.5 font-semibold text-slate-950 outline-none">
+                  {results.name}
+                  <ChevronDown className={cn("size-3.5 text-slate-400 transition-transform", periodOpen && "rotate-180")} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={6} className="min-w-60 rounded-xl p-1.5 shadow-md ring-1 ring-slate-200/80">
+                  <DropdownMenuRadioGroup
+                    value={period}
+                    onValueChange={(v) => {
+                      setPeriod(v as ResultPeriod)
+                      setPeriodOpen(false)
+                    }}
+                  >
+                    {PERIODS.map((p) => (
+                      <DropdownMenuRadioItem
+                        key={p.id}
+                        value={p.id}
+                        className="cursor-pointer rounded-lg px-2.5 py-1.5 text-sm whitespace-nowrap outline-hidden select-none focus:bg-brand-50 data-checked:bg-brand-100 data-checked:text-slate-950 **:data-[slot=dropdown-menu-radio-item-indicator]:hidden"
+                      >
+                        {p.label} · {RESULTS_BY_PERIOD[p.id].name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <h1 className="mt-1 text-[32px] leading-tight font-bold tracking-tight text-slate-950">
               <span className="font-mono text-brand-600">{fmtValue(totals.incremental)}</span> delivered of <span className="font-mono">{fmtValue(totals.promised)}</span> projected
             </h1>
@@ -84,7 +115,6 @@ export function ContentResults() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Segmented items={PERIODS} value={period} onChange={setPeriod} />
             <Segmented items={TABS} value={view} onChange={setView} />
           </div>
         </div>

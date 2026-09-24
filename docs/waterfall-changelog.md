@@ -90,3 +90,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Money lost is red everywhere; gains stay neutral; verdict columns green/red.
 - Headline leads with "$520K delivered of $580K projected" ($ in brand purple); summary strip's first cell tinted with a progress bar; positive/negative evidence colored.
 - Each type is a card like Claire's tables: title bar with type mark (shades of content purple), method tag, method note, and delivered-vs-projected with progress bar; then column headers and rows with hover.
+- Results page: period is now a dropdown in the top line ("Content results · Q3 FY26 so far ▾"), same control as Claire's top line; type tabs stay as tabs. Segmented buttons no longer keep a focus outline after a click.
