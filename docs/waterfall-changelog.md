@@ -109,3 +109,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - First chart bar caption removed: just "Current run rate".
 - Bridge order: Current run rate → On autopilot → One approval away → Needs your team → With Ally (zero effort first, then rising effort).
 - "With Ally" bar caption "by area" removed.
+- On autopilot bar caption: "Already scheduled, no action required" (was "0 min"); chart label area 60→72px so the two-line caption plus Select/Viewing fits.

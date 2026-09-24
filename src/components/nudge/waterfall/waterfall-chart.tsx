@@ -6,7 +6,7 @@ import type { WaterfallStage } from "../data"
 
 const CHART_HEIGHT = 300
 /** Fixed so every column is the same total height — otherwise items-end floats the bars to different baselines. */
-const LABEL_HEIGHT = 60
+const LABEL_HEIGHT = 72
 /** Column top padding, above the chart band; the plan line is positioned against it. */
 const PAD_TOP = 32
 /** The axis starts above zero so the +$0.9M step is still visible next to a $40M base. Said on the chart. */
@@ -40,7 +40,9 @@ function buildColumns(): Column[] {
   const { pace } = BUSINESS.quarter
   let acc = pace
   const steps = WATERFALL_STAGES.map((s) => {
-    const col = { key: s.id, label: s.label, sub: s.effort, valueLabel: `+${fmtM(s.value)}`, start: acc, end: acc + s.value, selectable: true }
+    // Autopilot's effort is none, so say what that means instead of "0 min".
+    const sub = s.id === "autopilot" ? "Already scheduled, no action required" : s.effort
+    const col = { key: s.id, label: s.label, sub, valueLabel: `+${fmtM(s.value)}`, start: acc, end: acc + s.value, selectable: true }
     acc += s.value
     return col
   })
