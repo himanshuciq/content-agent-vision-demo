@@ -54,8 +54,10 @@ export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
           </div>
         </div>
         <div className="shrink-0 text-right">
-          <div className="font-mono text-[28px] font-bold tracking-tight text-slate-950 tabular-nums">{batch.value}</div>
-          <div className="mt-0.5 text-sm text-slate-500">{batch.tier === "autopilot" ? "this quarter" : "at stake"}</div>
+          <div className={`font-mono text-[28px] font-bold tracking-tight tabular-nums ${done ? "text-success-700" : "text-slate-950"}`}>+{batch.value}</div>
+          <div className="mt-0.5 text-sm text-slate-500">
+            {batch.tier === "autopilot" ? "leakage prevented this quarter" : done ? "sent" : "projected leakage prevented"}
+          </div>
         </div>
       </div>
 

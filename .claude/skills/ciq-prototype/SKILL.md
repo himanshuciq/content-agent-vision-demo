@@ -49,6 +49,7 @@ Full table in the project's `design-specs.md` under "Number and Color Rules".
 - **Gains** in a bullet about what worked are green (`text-success-700`). Verdict columns (lead, lift, vs projected) are green or red. Dollar gains in tables stay neutral (`text-slate-950`).
 - **Amber** (`warning`) is only for things that need action soon: deadlines, "losing the sale now", waiting items.
 - **Figures never wrap** (`whitespace-nowrap`).
+- **Projected value is signed, not green.** Show it as "+$500K" in black, labeled "projected incremental sales" so nobody reads it as revenue. It turns green only once it's approved or delivered.
 - **Never make the user add up a new total.** A bar made of banked plus open shows labeled pieces (a legend with matching dots, gaps between the pieces), never an implied whole. Keep the number the user already knows ("$1.5M open") as its own piece.
 - **A percentage always comes with its total.** Write "Sales increased $520K (3.2%)", never "3.2%" on its own. The dollar figure leads and the percentage follows in parentheses. This applies to bullets, Ask Ally answers and summaries.
 - **Money:** K below $1M, M above, with one consistent decimal rule. Numbers use JetBrains Mono, right-aligned, `tabular-nums`.

@@ -33,7 +33,7 @@ export function OpsBatchList({ selectedId, onSelect, onApproveAll }: OpsBatchLis
             <span className={cn("absolute inset-y-0 left-0 w-1", g.bar)} aria-hidden />
             <div className={cn("flex items-center justify-between gap-3 py-3 pr-5.5 pl-6.5", g.header)}>
               <span className="text-[13px] font-semibold">
-                {g.label} <span className="font-mono font-medium opacity-80">· {fmt(batches.reduce((s, b) => s + money(b.value), 0))}</span>
+                {g.label} <span className="font-mono font-medium opacity-80">· +{fmt(batches.reduce((s, b) => s + money(b.value), 0))}</span>
               </span>
               {g.tier === "approval" &&
                 (pending.length === 0 ? (
@@ -71,7 +71,7 @@ export function OpsBatchList({ selectedId, onSelect, onApproveAll }: OpsBatchLis
                         <span className="block text-[15px] font-semibold text-slate-950">{b.type}</span>
                         <span className="block text-xs text-slate-500">{b.name}</span>
                       </span>
-                      <span className={cn("font-mono text-[15px] font-bold tabular-nums", done ? "text-slate-500" : "text-slate-950")}>{b.value}</span>
+                      <span className={cn("font-mono text-[15px] font-bold tabular-nums", done ? "text-success-700" : "text-slate-950")}>+{b.value}</span>
                     </div>
                     {tag && (
                       <div className="mt-2">

@@ -43,8 +43,9 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
             <span className="block text-[15px] font-semibold text-slate-950">{batch.type}</span>
             <span className="block text-xs text-slate-500">{batch.name}</span>
           </span>
-          <span className={cn("font-mono text-[15px] font-bold tabular-nums", done ? "text-slate-500" : "text-slate-950")}>
-            {done ? (batch.approveValue >= 1 ? `$${batch.approveValue.toFixed(2)}M` : `$${Math.round(batch.approveValue * 1000)}K`) : batch.value}
+          {/* Signed: it's the extra sales Ally projects, not the SKUs' revenue. Green only once approved. */}
+          <span className={cn("font-mono text-[15px] font-bold tabular-nums", done ? "text-success-700" : "text-slate-950")}>
+            +{done ? (batch.approveValue >= 1 ? `$${batch.approveValue.toFixed(2)}M` : `$${Math.round(batch.approveValue * 1000)}K`) : batch.value}
           </span>
         </div>
         {/* One tag, one job: the deadline, or the batch's state once it's done or running. "No deadline" says nothing, so it's left off. */}
