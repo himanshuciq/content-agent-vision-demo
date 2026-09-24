@@ -66,7 +66,8 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
       </div>
 
       <h1 className="mt-1 text-[44px] leading-tight font-bold tracking-tight text-slate-950">
-        <span className="font-mono">{fmtBiz(gap)}</span> gap to plan. <span className="font-mono text-brand-600">{OPEN_TOTAL}</span> of opportunity can close it.
+        You&apos;re <span className="font-mono">{fmtBiz(gap)}</span> short of plan, with <span className="font-mono text-brand-600">{OPEN_TOTAL}</span> on the table
+        to close it.
       </h1>
 
       <div className="mt-2 text-base text-slate-500">
