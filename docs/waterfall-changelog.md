@@ -22,3 +22,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 | Sep 24 2026 | Ask Ally drawer collapses on click outside; clicking the pill reopens it with the last answer | `claire/ask-ally.tsx` | Open |
 | Sep 24 2026 | Stage rows: weekly status gets its own column (lg and up), with the "Expires in N days" chip under it; owner column is just the name. Below lg both stack under the owner | `claire/nudge-row.tsx` (statusColumn prop), `waterfall/stage-detail.tsx` | Open (By area rows in area-view still stack) |
 | Sep 24 2026 | Stage panel header uses the row grid: total aligns over row values, Nudge team over the Nudge again buttons | `waterfall/stage-detail.tsx` | n/a (waterfall panel) |
+| Sep 24 2026 | Content waterfall total bar gray (slate-400), matching the bridge chart: steps colored, totals neutral; type bars stay one content purple | `claire/content-waterfall.tsx` | Open (with the content waterfall) |

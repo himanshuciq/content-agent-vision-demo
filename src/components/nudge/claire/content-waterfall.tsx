@@ -14,7 +14,7 @@ const PAD_TOP = 28
 const DOT = { orange: "bg-warning-500", red: "bg-error-500", green: "bg-success-500" }
 /** Waterfall order: everyday content first, then the event, then unblocking. */
 const ORDER = ["foundational", "seasonal", "retail-readiness"]
-const BAR: Record<string, string> = { foundational: "bg-brand-500", seasonal: "bg-brand-500", "retail-readiness": "bg-brand-500", total: "bg-brand-700" }
+const BAR: Record<string, string> = { foundational: "bg-brand-500", seasonal: "bg-brand-500", "retail-readiness": "bg-brand-500", total: "bg-slate-400" }
 
 type Bullets = NonNullable<WorkType["bullets"]>
 
