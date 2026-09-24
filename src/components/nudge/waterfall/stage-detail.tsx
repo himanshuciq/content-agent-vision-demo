@@ -49,7 +49,7 @@ export function StageDetail({ stage }: { stage: WaterfallStage }) {
       {stage.rows.length > 0 ? (
         <div className="px-6 py-1.5">
           {stage.rows.map((row, i) => (
-            <NudgeRow key={i} row={row} grid={TIER_GRID} />
+            <NudgeRow key={i} row={row} grid={TIER_GRID} statusColumn />
           ))}
         </div>
       ) : (

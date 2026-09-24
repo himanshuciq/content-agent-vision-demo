@@ -12,14 +12,19 @@ import { AGENT_LABEL, type TierRow } from "../types"
  * nudge appears in the shared action column — aligned under the tier's
  * "Nudge team". Once nudged (individually or via team) it stays marked.
  */
-export function NudgeRow({ row, grid }: { row: TierRow; grid: string }) {
+/**
+ * statusColumn (waterfall version): on laptop widths and up the weekly status
+ * gets its own column; narrower, it stacks under the owner so the description
+ * never gets squeezed.
+ */
+export function NudgeRow({ row, grid, statusColumn = false }: { row: TierRow; grid: string; statusColumn?: boolean }) {
   const { nudged } = useNudge()
   const { fire } = useFireNudge()
   const isNudged = row.nudgeKey ? !!nudged[row.nudgeKey] : false
 
   return (
     <div className={cn(grid, "group border-t border-slate-100 py-3.5 first:border-t-0")}>
-      <div className="grid grid-cols-[168px_minmax(0,1fr)] items-start gap-4">
+      <div className={cn("grid items-start gap-4", statusColumn ? "grid-cols-[168px_minmax(0,1fr)] lg:grid-cols-[168px_minmax(0,1fr)_200px]" : "grid-cols-[168px_minmax(0,1fr)]")}>
         <div>
           <div className="flex items-center gap-2.5">
             <span className={`size-2 rounded-sm ${AGENT_DOT[row.agent]}`} />
@@ -33,7 +38,7 @@ export function NudgeRow({ row, grid }: { row: TierRow; grid: string }) {
             )}
           </div>
           {row.weekly && (
-            <div className="mt-1 ml-4.5 text-xs">
+            <div className={cn("mt-1 ml-4.5 text-xs", statusColumn && "lg:hidden")}>
               {row.weekly.state === "in-progress" ? (
                 <span className="font-medium text-info-700">In progress · {row.weekly.progress}</span>
               ) : (
@@ -42,12 +47,29 @@ export function NudgeRow({ row, grid }: { row: TierRow; grid: string }) {
             </div>
           )}
           {row.deadline && (
-            <span className="mt-1.5 ml-4.5 inline-block rounded bg-warning-100 px-1.5 py-0.5 text-[11px] font-semibold text-warning-700">
+            <span
+              className={cn(
+                "mt-1.5 ml-4.5 inline-block rounded bg-warning-100 px-1.5 py-0.5 text-[11px] font-semibold text-warning-700",
+                statusColumn && "lg:hidden",
+              )}
+            >
               {row.deadline}
             </span>
           )}
         </div>
         <p className="text-sm leading-relaxed text-slate-600">{row.description}</p>
+        {statusColumn && (
+          <div className="hidden pt-0.5 text-sm lg:block">
+            {row.weekly?.state === "in-progress" ? (
+              <span className="font-medium text-info-700">In progress · {row.weekly.progress}</span>
+            ) : row.weekly ? (
+              <span className="text-slate-500">Emailed Mon · not started</span>
+            ) : null}
+            {row.deadline && (
+              <span className="mt-1.5 block w-fit rounded bg-warning-100 px-1.5 py-0.5 text-[11px] font-semibold text-warning-700">{row.deadline}</span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="text-right font-mono text-[15px] font-semibold text-slate-950 tabular-nums">{row.value}</div>
