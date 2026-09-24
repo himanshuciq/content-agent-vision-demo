@@ -54,7 +54,8 @@ export default function MikePage() {
 
   function handleReviewAll(batch: Batch) {
     setSelectedId(batch.id)
-    setSelectedSkuId(null)
+    // Input batches open straight on the first SKU, where Mike types what Ally needs.
+    setSelectedSkuId(batch.tier === "input" ? (batch.skuRows[0]?.skuId ?? null) : null)
     setExpandedBatchId(batch.id)
   }
 

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import type { SkuSection } from "../types"
+import type { SkuInputSection, SkuSection } from "../types"
 
 type Op<T> = { t: "same" | "del" | "add"; v: T }
 
@@ -48,7 +48,7 @@ function Words({ ops, side }: { ops: Op<string>[]; side: "live" | "draft" }) {
             className={cn(
               o.t === "del" && "text-slate-400 line-through",
               o.t === "add" && "rounded bg-success-50 px-0.5 font-medium text-success-800",
-              o.t === "same" && "text-slate-900",
+              o.t === "same" && "text-slate-950",
             )}
           >
             {o.v}
@@ -88,7 +88,7 @@ function TextSide({ rows, side }: { rows: Row[]; side: "live" | "draft" }) {
             className={cn(
               r.kind === "del" && "text-slate-400 line-through",
               r.kind === "add" && "w-fit rounded bg-success-50 px-1 font-medium text-success-800",
-              r.kind === "same" && "text-slate-900",
+              r.kind === "same" && "text-slate-950",
             )}
           >
             {r.kind === "edit" ? <Words ops={r.ops!} side={side} /> : r.text}
@@ -137,11 +137,34 @@ function HalloweenShot({ src, label }: { src?: string; label: string }) {
   )
 }
 
+/** A field only Mike can fill: what's live today, then a full-width box for his input. */
+function InputField({ section }: { section: SkuInputSection }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-warning-200">
+      <div className="flex items-center justify-between gap-3 border-b border-warning-100 bg-warning-50 px-5 py-2.5">
+        <span className="text-sm font-semibold text-slate-950">{section.label}</span>
+        <span className="font-mono text-[11px] tracking-wide text-warning-700 uppercase">Your input</span>
+      </div>
+      <div className="px-5 py-4">
+        <div className="text-sm text-slate-500">
+          Live on Amazon: <span className={section.live === "—" ? "text-slate-400" : "text-slate-700"}>{section.live}</span>
+        </div>
+        <textarea
+          rows={2}
+          placeholder={section.placeholder}
+          className="mt-3 w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+        />
+      </div>
+    </div>
+  )
+}
+
 /** Every changed field for one SKU, live on Amazon beside Ally's version. */
 export function SkuSections({ sections, thumbnailUrl }: { sections: SkuSection[]; thumbnailUrl?: string }) {
   return (
     <div className="flex flex-col gap-3">
       {sections.map((section, i) => {
+        if (section.kind === "input") return <InputField key={i} section={section} />
         const rows = section.kind === "text" ? lineRows(section.live, section.draft.map((d) => d.text)) : []
         return (
           <div key={i} className="overflow-hidden rounded-xl border border-slate-200">
@@ -154,7 +177,7 @@ export function SkuSections({ sections, thumbnailUrl }: { sections: SkuSection[]
                 ) : (
                   <div className="relative h-40 overflow-hidden rounded-md bg-slate-100">
                     <img src={thumbnailUrl} alt={section.liveLabel} className="size-full object-cover" />
-                    <span className="absolute bottom-1.5 left-1.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-medium text-slate-600 shadow-xs">
+                    <span className="absolute bottom-1.5 left-1.5 rounded bg-white/90 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 shadow-xs">
                       {section.liveLabel}
                     </span>
                   </div>
@@ -168,11 +191,13 @@ export function SkuSections({ sections, thumbnailUrl }: { sections: SkuSection[]
           </div>
         )
       })}
+      {sections.some((sec) => sec.kind !== "input") && (
       <div className="flex gap-4 px-1 text-xs text-slate-500">
         <span className="text-slate-400 line-through">Removed</span>
-        <span className="text-slate-900">Kept</span>
+        <span className="text-slate-950">Kept</span>
         <span className="rounded bg-success-50 px-1 font-medium text-success-800">Added</span>
       </div>
+      )}
     </div>
   )
 }

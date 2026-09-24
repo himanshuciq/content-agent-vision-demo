@@ -45,10 +45,10 @@ export interface Batch {
   tier: "approval" | "input" | "autopilot"
   /** The kind of content work, as Claire's page names it. */
   type: "Seasonal" | "Foundational" | "Retail readiness"
-  /** For "Needs your input" batches: the chip saying what's blocking, e.g. "58 attributes needed". */
-  ask?: string
-  /** What Ally needs (input) or is doing (autopilot), shown in place of the approve button. */
-  need?: { text: string; cta: string; toast: string }
+  /** For "Needs your input" batches: how many SKUs need Mike's input (the Review button's count). */
+  inputSkus?: number
+  /** What Ally needs (input) or is doing (autopilot), shown in place of the approve button; toast fires when inputs are sent. */
+  need?: { text: string; toast: string }
   /** Heading over the changes list; defaults to "What the agent changed". */
   changesTitle?: string
   name: string
@@ -84,7 +84,15 @@ export interface SkuImageSection {
   draftLabel: string
 }
 
-export type SkuSection = SkuTextSection | SkuImageSection
+/** A field Ally can't fill on its own: what's live today, and a box for Mike's input. */
+export interface SkuInputSection {
+  kind: "input"
+  label: string
+  live: string
+  placeholder: string
+}
+
+export type SkuSection = SkuTextSection | SkuImageSection | SkuInputSection
 
 export interface SkuRow {
   skuId: string

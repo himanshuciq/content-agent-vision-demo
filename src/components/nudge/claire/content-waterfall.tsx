@@ -38,13 +38,13 @@ function BulletCard({ title, method, bullets, className, canNudge = true }: { ti
   const teamNudged = !!(CONTENT_TEAM_ROW.nudgeKey && nudged[CONTENT_TEAM_ROW.nudgeKey])
   return (
     <div className={cn("rounded-lg border border-slate-200 bg-white px-4 py-3.5", className)}>
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-950">
         {title}
         {method && <MethodTag method={method} />}
       </div>
       <ul className="flex flex-col gap-2">
         {bullets?.map((b) => (
-          <li key={b.text} className="group/b relative flex items-start gap-2.5 text-left text-sm font-normal text-slate-800">
+          <li key={b.text} className="group/b relative flex items-start gap-2.5 text-left text-sm font-normal text-slate-700">
             {b.tone === "learn" ? (
               <Sparkles className="mt-0.5 size-3.5 shrink-0 text-brand-600" />
             ) : (
@@ -131,7 +131,7 @@ export function ContentWaterfall({ data, resultsHref, canNudge = true }: { data:
                   </div>
                 </div>
                 <div className="mt-2 flex flex-col items-center gap-0.5 text-center" style={{ height: LABEL_HEIGHT }}>
-                  <span className={cn("text-[13px] leading-tight", highlighted ? "font-semibold text-slate-950" : "text-slate-600")}>{c.label}</span>
+                  <span className={cn("text-[13px] leading-tight", highlighted ? "font-semibold text-slate-950" : "text-slate-500")}>{c.label}</span>
                   <span className="text-[11px] text-slate-400">{c.sub}</span>
                 </div>
               </button>

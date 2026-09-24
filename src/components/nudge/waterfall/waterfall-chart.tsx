@@ -70,7 +70,7 @@ export function WaterfallChart({ selectedId, onSelect }: WaterfallChartProps) {
     <div>
       <div className="relative flex items-end gap-3">
         <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-slate-900/60" style={{ top: planTop }}>
-          <span className="absolute -top-6 right-0 rounded bg-white px-1.5 font-mono text-xs font-semibold text-slate-900">Plan {fmtBiz(plan)}</span>
+          <span className="absolute -top-6 right-0 rounded bg-white px-1.5 font-mono text-xs font-semibold text-slate-950">Plan {fmtBiz(plan)}</span>
         </div>
         {columns.map((col, i) => {
           const topPct = (1 - frac(col.end)) * 100

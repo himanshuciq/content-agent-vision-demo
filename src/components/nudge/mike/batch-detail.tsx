@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Check, ChevronDown, RefreshCw, Sparkles } from "lucide-react"
-import { toast } from "sonner"
+import { ArrowRight, Check, ChevronDown, RefreshCw, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { skuById } from "../data"
 import { useNudge } from "../nudge-context"
+import { PRIMARY, SECONDARY } from "./buttons"
 import { SkuSections } from "./sku-diff"
 import type { Batch } from "../types"
 
@@ -15,24 +15,26 @@ interface BatchDetailProps {
   onReviewAll: (batch: Batch) => void
 }
 
-/** Bulk approve leads; reviewing every SKU is a small chip, because the batch is meant to be approved in one go. */
+/**
+ * Approve leads, a sample sits beside it as the quick check, and reviewing
+ * every SKU is the rarer path, so it's a quiet line underneath.
+ */
 function Actions({ batch, onApprove, onReviewAll, children }: BatchDetailProps & { children?: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-4">
-      <button
-        type="button"
-        onClick={() => onApprove(batch)}
-        className="rounded-md bg-brand-500 px-6 py-3 text-[15px] font-semibold text-white shadow-xs transition-colors hover:bg-brand-600"
-      >
-        Approve {batch.approveSkus} SKUs
-      </button>
-      {children}
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={() => onApprove(batch)} className={PRIMARY}>
+          Approve {batch.approveSkus} SKUs
+        </button>
+        {children}
+      </div>
       <button
         type="button"
         onClick={() => onReviewAll(batch)}
-        className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-700"
+        className="inline-flex w-fit items-center gap-1 text-sm text-slate-500 transition-colors hover:text-brand-700"
       >
-        Review all SKUs
+        Or review all {batch.approveSkus} SKUs one by one
+        <ArrowRight className="size-3.5" />
       </button>
     </div>
   )
@@ -62,7 +64,7 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
         <div className="min-w-0">
           <div className="text-sm font-medium text-slate-500">{batch.type}</div>
           <div className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
-          <div className="mt-1.5 text-sm text-slate-600">{batch.nudgeSource}</div>
+          <div className="mt-1.5 text-sm text-slate-500">{batch.nudgeSource}</div>
         </div>
         <div className="shrink-0 text-right">
           <div className="font-mono text-[28px] font-bold tracking-tight text-slate-950 tabular-nums">
@@ -82,7 +84,7 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
             <div key={i} className={cn("flex items-start gap-3 px-5 py-3.5", i > 0 && "border-t border-slate-100")}>
               <Check className="mt-0.5 size-4 shrink-0 text-success-600" />
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-slate-900">{change.text}</div>
+                <div className="text-sm font-medium text-slate-950">{change.text}</div>
                 {change.detail && <div className="mt-0.5 text-sm text-slate-500">{change.detail}</div>}
               </div>
               <div className="shrink-0 text-right">
@@ -96,7 +98,7 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
 
       <div className="mt-8">
         {batch.tier === "autopilot" ? (
-          <div className="flex items-start gap-3 rounded-xl border border-info-100 bg-info-50 px-5 py-4 text-sm text-slate-800">
+          <div className="flex items-start gap-3 rounded-xl border border-info-100 bg-info-50 px-5 py-4 text-sm text-slate-700">
             <RefreshCw className="mt-0.5 size-4 shrink-0 text-info-600" />
             {batch.need?.text}
           </div>
@@ -107,28 +109,21 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
           </div>
         ) : batch.tier === "input" && batch.need ? (
           <div className="flex flex-col gap-4 rounded-xl border border-warning-200 bg-warning-50 px-5 py-4">
-            <div className="text-sm text-slate-800">{batch.need.text}</div>
+            <div className="text-sm text-slate-700">{batch.need.text}</div>
             <button
               type="button"
-              onClick={() => {
-                onApprove(batch)
-                toast.success(batch.need!.toast, { position: "top-right" })
-              }}
-              className="w-fit rounded-md bg-brand-500 px-6 py-3 text-[15px] font-semibold text-white shadow-xs transition-colors hover:bg-brand-600"
+              onClick={() => onReviewAll(batch)}
+              className={cn(PRIMARY, "w-fit")}
             >
-              {batch.need.cta}
+              Review {batch.inputSkus} SKUs
             </button>
           </div>
         ) : (
           <Actions batch={batch} onApprove={onApprove} onReviewAll={onReviewAll}>
             {sku && (
-              <button
-                type="button"
-                onClick={() => setShowSample((v) => !v)}
-                className="inline-flex items-center gap-1 text-[15px] font-medium text-brand-700 hover:text-brand-800"
-              >
-                {showSample ? "Hide the sample SKU" : "Review a sample SKU"}
-                <ChevronDown className={cn("size-4 transition-transform", showSample && "rotate-180")} />
+              <button type="button" onClick={() => setShowSample((v) => !v)} className={SECONDARY}>
+                {showSample ? "Hide sample" : "Preview a sample"}
+                <ChevronDown className={cn("size-4 text-slate-400 transition-transform", showSample && "rotate-180")} />
               </button>
             )}
           </Actions>

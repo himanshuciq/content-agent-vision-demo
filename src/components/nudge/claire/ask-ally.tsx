@@ -130,7 +130,7 @@ export function AskAlly() {
             onFocus={() => setOpen(true)}
             onClick={() => setOpen(true)}
             placeholder="Ask Ally: what can I take from your plate?"
-            className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            className="flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
           />
           <button
             type="submit"

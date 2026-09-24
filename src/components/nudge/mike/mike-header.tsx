@@ -22,7 +22,7 @@ export function MikeHeader() {
 
   return (
     <header className="flex items-start justify-between gap-6 px-10 pt-8">
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-600">
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
         <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
           <span className="size-1.5 rounded-full bg-brand-200" />
         </span>
@@ -49,7 +49,7 @@ export function MikeHeader() {
         </Link>
         <DropdownMenu onOpenChange={(open) => { if (!open) clearNotification() }}>
           <DropdownMenuTrigger className="relative flex size-9 items-center justify-center rounded-md border border-slate-200 hover:bg-slate-50">
-            <Bell className="size-4 text-slate-600" />
+            <Bell className="size-4 text-slate-500" />
             {mikeNotified && (
               <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-white bg-error-600" />
             )}
@@ -62,7 +62,7 @@ export function MikeHeader() {
                 </span>
                 <span>
                   <span className="block text-sm font-semibold text-slate-950">Claire nudged you</span>
-                  <span className="mt-0.5 block text-sm text-slate-600">
+                  <span className="mt-0.5 block text-sm text-slate-500">
                     {nudgedBatch.name} · {nudgedBatch.value}, {nudgedBatch.skus} SKUs
                   </span>
                 </span>

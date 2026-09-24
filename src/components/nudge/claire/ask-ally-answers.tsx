@@ -38,13 +38,13 @@ function InvestAnswer() {
           {rows.map((r) => (
             <tr key={r.amount} className="border-t border-slate-100 first:border-t-0">
               <td className={`${cell} w-20 font-mono font-bold text-slate-950`}>{r.amount}</td>
-              <td className={`${cell} text-slate-800`}>{r.where}</td>
-              <td className={`${cell} text-right text-slate-600`}>{r.result}</td>
+              <td className={`${cell} text-slate-700`}>{r.where}</td>
+              <td className={`${cell} text-right text-slate-500`}>{r.result}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="text-slate-600">
+      <p className="text-slate-500">
         Total <span className="font-mono font-semibold text-slate-950">≈ $3.1M</span> in sales. Hold off on the ops SKUs losing the buy box: spend there
         goes to other sellers until Michelle&apos;s fix lands.
       </p>
@@ -80,14 +80,14 @@ function AdoptionAnswer() {
           {ADOPTION.map((a) => (
             <tr key={a.agent} className="border-t border-slate-100">
               <td className={cell}>
-                <span className="font-medium text-slate-900">{AGENT_LABEL[a.agent]}</span> <span className="text-slate-500">· {a.owner}</span>
+                <span className="font-medium text-slate-950">{AGENT_LABEL[a.agent]}</span> <span className="text-slate-500">· {a.owner}</span>
               </td>
               <td className={cell}>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
                     <div className="h-full rounded-full bg-brand-500" style={{ width: `${a.pct}%` }} />
                   </div>
-                  <span className="font-mono text-slate-900 tabular-nums">{a.pct}%</span>
+                  <span className="font-mono text-slate-950 tabular-nums">{a.pct}%</span>
                 </div>
               </td>
               <td className={`${cell} text-right font-mono font-semibold text-warning-700 tabular-nums`}>{a.expired}</td>
@@ -101,7 +101,7 @@ function AdoptionAnswer() {
           const done = r.nudgeKey && nudged[r.nudgeKey]
           return (
             <div key={r.nudgeKey} className="flex items-center gap-3 border-t border-slate-100 py-2.5 text-sm first:border-t-0">
-              <span className="w-16 shrink-0 font-medium text-slate-900">{r.analystName}</span>
+              <span className="w-16 shrink-0 font-medium text-slate-950">{r.analystName}</span>
               <span className="min-w-0 flex-1 truncate text-slate-700">{r.description}</span>
               <span className="font-mono font-semibold text-slate-950 tabular-nums">{r.value}</span>
               <span className="w-36 text-right text-xs text-slate-500">{done ? "Nudged today" : r.weekly?.state === "in-progress" ? r.weekly.progress : "Emailed Mon · not started"}</span>
@@ -128,7 +128,7 @@ function ContentMissAnswer({ lastQuarter }: { lastQuarter: boolean }) {
   const [what, why] = (lastQuarter ? CONTENT_DELIVERED_Q2 : CONTENT_BANKED_Q3).summary
   return (
     <div className="flex flex-col gap-2">
-      <p className="font-medium text-slate-900">{what}</p>
+      <p className="font-medium text-slate-950">{what}</p>
       <p>{why}</p>
       <Link href={`/content-results?period=${lastQuarter ? "quarter" : "qtd"}`} className="mt-1 inline-flex w-fit items-center gap-1 font-medium text-brand-700 hover:text-brand-800">
         See content results
@@ -142,7 +142,7 @@ function AutopilotNextAnswer({ withCompare }: { withCompare: boolean }) {
   return (
     <div className="flex flex-col gap-2">
       <p>
-        <span className="font-medium text-slate-900">Foundational content.</span> 51 of 60 changes won their A/B tests last quarter, and the 18 SKUs stuck in
+        <span className="font-medium text-slate-950">Foundational content.</span> 51 of 60 changes won their A/B tests last quarter, and the 18 SKUs stuck in
         approval cost <span className="font-mono font-semibold text-slate-950">$75K</span>. On autopilot, those ship the day they&apos;re ready.
       </p>
       {withCompare && (

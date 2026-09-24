@@ -47,28 +47,25 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
             {done ? (batch.approveValue >= 1 ? `$${batch.approveValue.toFixed(2)}M` : `$${Math.round(batch.approveValue * 1000)}K`) : batch.value}
           </span>
         </div>
-        <div className="mt-2 flex items-center gap-2">
-          <span
-            className={cn(
-              "rounded px-1.5 py-0.5 text-[11px] font-semibold",
-              done
-                ? "bg-success-100 text-success-700"
-                : batch.tier === "autopilot"
-                  ? "bg-info-100 text-info-700"
-                  : batch.chip.startsWith("Expires") || batch.tier === "input"
-                    ? "bg-warning-100 text-warning-700"
-                    : "bg-slate-100 text-slate-600",
-            )}
-          >
-            {done ? (batch.tier === "input" ? "Sent to Ally" : "Published") : batch.tier === "input" ? batch.ask : batch.chip}
-          </span>
-        </div>
+        {/* One tag, one job: the deadline, or the batch's state once it's done or running. "No deadline" says nothing, so it's left off. */}
+        {(done || batch.tier === "autopilot" || batch.chip.startsWith("Expires")) && (
+          <div className="mt-2 flex items-center gap-2">
+            <span
+              className={cn(
+                "rounded px-1.5 py-0.5 text-[11px] font-semibold",
+                done ? "bg-success-100 text-success-700" : batch.tier === "autopilot" ? "bg-info-100 text-info-700" : "bg-warning-100 text-warning-700",
+              )}
+            >
+              {done ? (batch.tier === "input" ? "Sent to Ally" : "Published") : batch.chip}
+            </span>
+          </div>
+        )}
         {batch.skuRows.length > 0 && (
         <div
           onClick={(e) => { e.stopPropagation(); onToggleExpand() }}
           className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-brand-700"
         >
-          {expanded ? "Hide the SKUs" : `See all ${batch.skus} SKUs`}
+          {expanded ? "Hide the SKUs" : `See all ${batch.inputSkus ?? batch.skus} SKUs`}
           <ChevronDown className={cn("size-3.5 transition-transform", expanded && "rotate-180")} />
         </div>
         )}
@@ -85,7 +82,7 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
                 onClick={() => onSelectSku(row.skuId)}
                 className={cn(
                   "flex w-full items-center gap-2.5 border-b border-slate-50 px-5.5 py-2.5 pl-7.5 text-left transition-colors",
-                  skuActive ? "bg-brand-50" : "hover:bg-slate-50",
+                  skuActive ? ACTIVE[batch.tier] : "hover:bg-slate-50",
                 )}
               >
                 <img
@@ -101,7 +98,7 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
             )
           })}
           <div className="px-5.5 py-2.5 pl-7.5 text-xs text-slate-500">
-            Showing {batch.skuRows.length} of {batch.approveSkus}
+            Showing {batch.skuRows.length} of {batch.inputSkus ?? batch.approveSkus}
           </div>
         </div>
       )}

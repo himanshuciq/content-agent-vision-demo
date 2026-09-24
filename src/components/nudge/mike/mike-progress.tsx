@@ -55,7 +55,7 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
       </div>
       <div className="relative border-y border-slate-200 bg-brand-25 px-10 py-4">
         <div className="flex items-baseline justify-between gap-6">
-          <div className="text-sm text-slate-600 tabular-nums">
+          <div className="text-sm text-slate-500 tabular-nums">
             <span className="font-semibold text-slate-950">{fmt(BANKED)} banked</span>
             {actedValue > 0 && (
               <>
@@ -73,7 +73,7 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
                 </div>
               </div>
             )}
-            <div className="text-sm text-slate-600 tabular-nums">{fmt(open)} open</div>
+            <div className="text-sm text-slate-500 tabular-nums">{fmt(open)} open</div>
           </div>
         </div>
         <div className="mt-2.5 flex h-2 gap-0.5 overflow-hidden rounded-full bg-brand-100">

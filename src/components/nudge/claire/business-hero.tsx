@@ -26,7 +26,7 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
 
   return (
     <section className="px-12 pt-9 pb-7">
-      <div className="flex flex-wrap items-center gap-x-2 text-sm text-slate-600">
+      <div className="flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
         <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
           <span className="size-1.5 rounded-full bg-brand-200" />
         </span>
@@ -49,7 +49,7 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
                 <DropdownMenuRadioItem
                   key={p.id}
                   value={p.id}
-                  className="cursor-pointer rounded-lg px-2.5 py-1.5 text-sm outline-hidden select-none focus:bg-brand-50 data-checked:bg-brand-100 data-checked:text-slate-900 **:data-[slot=dropdown-menu-radio-item-indicator]:hidden"
+                  className="cursor-pointer rounded-lg px-2.5 py-1.5 text-sm outline-hidden select-none focus:bg-brand-50 data-checked:bg-brand-100 data-checked:text-slate-950 **:data-[slot=dropdown-menu-radio-item-indicator]:hidden"
                 >
                   {p.label}
                 </DropdownMenuRadioItem>

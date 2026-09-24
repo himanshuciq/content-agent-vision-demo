@@ -6,6 +6,10 @@ function text(label: string, live: string[], draft: { text: string; changed?: bo
   return { kind: "text", label, live, draft }
 }
 
+function input(label: string, live: string, placeholder: string): SkuSection {
+  return { kind: "input", label, live, placeholder }
+}
+
 function image(label: string, liveLabel: string, draftLabel: string): SkuSection {
   return { kind: "image", label, liveLabel, draftLabel }
 }
@@ -142,29 +146,41 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
     },
   ],
 
+  concepts: [
+    {
+      skuId: "sku-3",
+      sections: [
+        input("Halloween concept", "Warm Amber Floral Soy Jar Candle, 16 oz, Best Seller", "Theme or tagline, e.g. a warm glow for trick-or-treat night"),
+        input("Image idea", "Standard pack shot", "e.g. candle on a porch step between two jack-o'-lanterns"),
+      ],
+    },
+    {
+      skuId: "sku-8",
+      sections: [
+        input("Halloween concept", "Aurelle Candles Coastal Linen Large Scented Jar, 22 oz", "Theme or tagline, e.g. clean linen for the morning after the party"),
+        input("Image idea", "Standard pack shot", "e.g. candle on a white sheet with a ghost cut-out"),
+      ],
+    },
+  ],
+
   readiness: [
     {
       skuId: "sku-4",
       sections: [
-        text("Required attributes", ["Country of origin: —"], [{ text: "Country of origin: United States", ...NEW }]),
-        text("Required attributes", ["Item form: — · Age range: —"], [{ text: "Item form: solid · Age range: adult", ...NEW }]),
+        text("Filled by Ally", ["Item form: — · Age range: —"], [{ text: "Item form: solid · Age range: adult", ...NEW }]),
+        input("Country of origin", "—", "e.g. United States"),
+        input("Safety warning", "—", "e.g. Never leave a burning candle unattended"),
       ],
     },
     {
       skuId: "sku-9",
       sections: [
-        text("Required attributes", ["Country of origin: —"], [{ text: "Country of origin: United States", ...NEW }]),
-        text("Required attributes", ["Item form: — · Age range: —"], [{ text: "Item form: solid · Age range: adult", ...NEW }]),
-      ],
-    },
-    {
-      skuId: "sku-10",
-      sections: [
-        text("Required attributes", ["Country of origin: —"], [{ text: "Country of origin: Vietnam", ...NEW }]),
-        text("Required attributes", ["Item form: — · Age range: —"], [{ text: "Item form: solid · Age range: adult", ...NEW }]),
+        text("Filled by Ally", ["Item form: — · Age range: —"], [{ text: "Item form: solid · Age range: adult", ...NEW }]),
+        input("Material", "—", "e.g. soy wax, glass jar"),
       ],
     },
   ],
+
   pim: [
     {
       skuId: "sku-5",
