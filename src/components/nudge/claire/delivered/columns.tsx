@@ -50,7 +50,7 @@ export function ValueCells({
     <>
       {projectedFirst ? proj : del}
       {projectedFirst ? del : proj}
-      <span className={cn("text-right font-mono text-sm tabular-nums", delta >= 0 ? "text-success-700" : "text-warning-700")}>
+      <span className={cn("text-right font-mono text-sm tabular-nums", delta >= 0 ? "text-success-700" : "text-error-600")}>
         {delta >= 0 ? "+" : "−"}
         {fmtValue(Math.abs(delta))}
       </span>

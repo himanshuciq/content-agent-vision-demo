@@ -27,6 +27,32 @@ const TOTAL_BAR = "bg-slate-500"
 
 type Bullets = NonNullable<WorkType["bullets"]>
 
+/** Money and percentages inside a bullet. */
+const FIGURE = /([−-]\$[\d.,]+[KM]?|\+?\$[\d.,]+[KM]?|\+?[\d.]+%)/g
+
+/**
+ * A bullet's text with its figures colored by the number rule (design-specs.md):
+ * a loss carries a minus and is red; in a bullet about what worked, gains are green.
+ */
+function Figures({ text, tone }: { text: string; tone: Bullets[number]["tone"] }) {
+  return (
+    <>
+      {text.split(FIGURE).map((part, i) =>
+        i % 2 === 0 ? (
+          part
+        ) : (
+          <span
+            key={i}
+            className={cn("font-medium whitespace-nowrap", part.startsWith("−") || part.startsWith("-") ? "text-error-600" : tone === "green" ? "text-success-700" : undefined)}
+          >
+            {part}
+          </span>
+        ),
+      )}
+    </>
+  )
+}
+
 /** The content owner's "needs your team" row: Nudge team on a bullet nudges it (real Slack DM to Mike). */
 const CONTENT_TEAM_ROW = TEAM_TIER.rows.find((r) => r.agent === "content")!
 
@@ -65,7 +91,9 @@ function BulletCard({
             ) : (
               <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", DOT[b.tone])} />
             )}
-            <span className="flex-1">{b.text}</span>
+            <span className="flex-1">
+              <Figures text={b.text} tone={b.tone} />
+            </span>
             {/* Pinned over the empty end of the bullet's last line, so hiding it costs no width. */}
             {b.action === "autopilot" && (
               <button

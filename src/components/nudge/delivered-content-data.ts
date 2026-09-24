@@ -241,7 +241,7 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
   delivered: 0.52,
   did: "205 SKUs improved so far",
   bullets: [
-    { tone: "orange", text: "205 of 236 SKUs went live. 28 waited on approval ($35K), 3 needed your team's input ($10K), and one stockout cost $15K.", action: "autopilot" },
+    { tone: "orange", text: "205 of 236 SKUs went live. 28 waited on approval (−$35K), 3 needed your team's input (−$10K), and one ran out of stock (−$15K).", action: "autopilot" },
     { tone: "green", text: "Sales increased 3.2% compared to control (category average, or a 50/50 traffic split where possible), adjusted for ad spend, pricing and unavailability." },
     { tone: "learn", text: "25 of 205 SKUs underperformed. Ally tuned itself on what didn't work to make the next run better." },
   ],
@@ -254,7 +254,7 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
       id: "seasonal", name: "Seasonal", method: "vs category", did: "150 SKUs for back to school", promised: 0.3, delivered: 0.26,
       bullets: [
         { tone: "green", text: "150 of 168 SKUs went live for back to school and drove a 2.9% sales lift over the category average, adjusted for pricing, ad spend and availability." },
-        { tone: "orange", text: "$40K short of projected: 18 SKUs weren't approved in time ($25K) and one top seller ran out of stock ($15K).", action: "autopilot" },
+        { tone: "orange", text: "−$40K vs projected: 18 SKUs weren't approved in time (−$25K) and one top seller ran out of stock (−$15K).", action: "autopilot" },
       ],
     },
     {
@@ -268,7 +268,7 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
       id: "retail-readiness", name: "Retail readiness", method: "A/B tested", did: "10 SKUs unblocked", promised: 0.09, delivered: 0.08,
       bullets: [
         { tone: "green", text: "10 SKUs unblocked for syndication (content last updated 2 quarters ago) by auto-updating 28 backend attributes." },
-        { tone: "orange", text: "3 SKUs need your team's input ($10K).", action: "nudge-team" },
+        { tone: "orange", text: "3 SKUs need your team's input (−$10K).", action: "nudge-team" },
       ],
     },
   ],
@@ -290,14 +290,14 @@ export const OPS_BANKED_Q3: ContentDelivered = {
   bullets: [
     { tone: "green", text: "Caught 78 SKUs losing the buy box, missing a promo badge, or dropping below the shipping speed bar, and fixed them in 48 hours instead of 2 weeks." },
     { tone: "green", text: "$310K of revenue leakage prevented: each SKU's normal daily sales × the 12 days sooner it was fixed, adjusted for price and seasonality." },
-    { tone: "orange", text: "$50K short of projected: 2 buy-box fixes are waiting on restocks ($30K), the retailer rejected 4 promo badges ($10K), and 2 SKUs still ship too slowly ($10K).", action: "nudge-team" },
+    { tone: "orange", text: "−$50K vs projected: 2 buy-box fixes are waiting on restocks (−$30K), the retailer rejected 4 promo badges (−$10K), and 2 SKUs still ship too slowly (−$10K).", action: "nudge-team" },
   ],
   workTypes: [
     {
       id: "buy-box", name: "Buy box", method: "Leakage prevented", did: "38 SKUs won back", promised: 0.18, delivered: 0.15,
       bullets: [
         { tone: "green", text: "Won back the buy box on 36 of 38 SKUs within 48 hours, 12 days sooner than a manual fix." },
-        { tone: "orange", text: "2 fixes are waiting on restocks ($30K).", action: "nudge-team" },
+        { tone: "orange", text: "2 fixes are waiting on restocks (−$30K).", action: "nudge-team" },
         { tone: "learn", text: "Ally now checks stock before chasing the buy box, so fixes don't stall on restocks." },
       ],
     },
@@ -305,14 +305,14 @@ export const OPS_BANKED_Q3: ContentDelivered = {
       id: "promo-badge", name: "Promo badge", method: "Leakage prevented", did: "26 badges restored", promised: 0.11, delivered: 0.1,
       bullets: [
         { tone: "green", text: "Promo badges are live again on 22 of 26 SKUs, so shoppers see the deal on the listing." },
-        { tone: "orange", text: "The retailer rejected 4 badges. They need a new coupon setup ($10K).", action: "nudge-team" },
+        { tone: "orange", text: "The retailer rejected 4 badges. They need a new coupon setup (−$10K).", action: "nudge-team" },
       ],
     },
     {
       id: "shipping-speed", name: "Shipping speed", method: "Leakage prevented", did: "14 SKUs back above the bar", promised: 0.07, delivered: 0.06,
       bullets: [
         { tone: "green", text: "12 of 14 SKUs are back above the shipping speed bar and keep the fast-delivery badge." },
-        { tone: "orange", text: "2 SKUs still ship too slowly from one warehouse ($10K).", action: "nudge-team" },
+        { tone: "orange", text: "2 SKUs still ship too slowly from one warehouse (−$10K).", action: "nudge-team" },
       ],
     },
   ],

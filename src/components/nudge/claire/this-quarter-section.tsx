@@ -57,7 +57,7 @@ export function ThisQuarterSection() {
         <span className="text-2xl font-semibold tracking-tight text-slate-950">
           Delivered <span className="font-mono text-brand-600">{fmtValue(delivered)}</span>
         </span>
-        <span className={cn("font-mono text-sm font-semibold tabular-nums", delta >= 0 ? "text-success-700" : "text-warning-700")}>
+        <span className={cn("font-mono text-sm font-semibold tabular-nums", delta >= 0 ? "text-success-700" : "text-error-600")}>
           {delta >= 0 ? "+" : "−"}
           {fmtValue(Math.abs(delta))}
         </span>
