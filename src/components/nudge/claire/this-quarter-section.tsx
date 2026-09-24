@@ -1,18 +1,21 @@
 "use client"
 
+import { useState } from "react"
+import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BANKED_OTHER, INFLIGHT, fmtValue } from "../data"
 import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
-import { ContentDeliveredRow } from "./delivered/content-delivered-row"
-import { DeliveredHeader } from "./delivered/columns"
+import { ContentWaterfall } from "./content-waterfall"
+import { DELIVERED_GRID, DeliveredHeader, RowLabel, ValueCells } from "./delivered/columns"
 import { DeliveredSummaryRow } from "./delivered/delivered-summary-row"
 
 /**
  * The proof, kept below the actions (waterfall version): this quarter so far,
- * Projected · Delivered · vs projected. Content opens to its reasons as dot
- * bullets, its three types of work, and one link to the results page.
+ * Projected · Delivered · vs projected. Content opens to a small waterfall by
+ * type; each bar shows its 2–3 bullets. Deeper detail is the results link.
  */
 export function ThisQuarterSection() {
+  const [open, setOpen] = useState(false)
   const c = CONTENT_BANKED_Q3
   const projected = c.promised + BANKED_OTHER.reduce((s, b) => s + b.promised, 0)
   const delivered = c.delivered + BANKED_OTHER.reduce((s, b) => s + b.delivered, 0)
@@ -36,7 +39,24 @@ export function ThisQuarterSection() {
 
       <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
         <DeliveredHeader projectedFirst />
-        <ContentDeliveredRow data={c} bullets resultsHref="/content-results?period=qtd" />
+        <div className="border-t border-slate-200">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setOpen((o) => !o)}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpen((o) => !o)}
+            className={cn(DELIVERED_GRID, "cursor-pointer px-6 py-3.5 hover:bg-slate-50")}
+          >
+            <RowLabel name="Content" note={c.did} top />
+            <ValueCells delivered={c.delivered} promised={c.promised} strong projectedFirst />
+            <ChevronDown className={cn("size-4 justify-self-end text-slate-400 transition-transform", open && "rotate-180")} />
+          </div>
+          {open && (
+            <div className="border-t border-slate-100 bg-slate-25 px-6 py-5">
+              <ContentWaterfall data={c} resultsHref="/content-results?period=qtd" />
+            </div>
+          )}
+        </div>
         {BANKED_OTHER.map((b) => (
           <DeliveredSummaryRow key={b.agent} bucket={b} projectedFirst />
         ))}

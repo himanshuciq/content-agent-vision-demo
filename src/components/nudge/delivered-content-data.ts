@@ -86,6 +86,8 @@ export interface WorkType {
   delivered: number
   event?: EventCard
   abTest?: AbTestCard
+  /** Waterfall version: the 2–3 bullets shown when this type's bar is selected. */
+  bullets?: { tone: "orange" | "red" | "green"; text: string }[]
 }
 
 export interface ContentDelivered {
@@ -241,8 +243,28 @@ export const CONTENT_BANKED_Q3: ContentDelivered = {
     "$45K is waiting on 30 SKUs still in approval, and $15K was lost to one stockout during back to school. The changes that went live are on plan.",
   ],
   workTypes: [
-    { id: "seasonal", name: "Seasonal", method: "vs category", did: "150 SKUs for back to school", promised: 0.3, delivered: 0.26 },
-    { id: "foundational", name: "Foundational", method: "A/B tested", did: "Keywords, titles and images on 45 SKUs", promised: 0.19, delivered: 0.18 },
-    { id: "retail-readiness", name: "Retail readiness", method: "A/B tested", did: "12 SKUs unblocked", promised: 0.09, delivered: 0.08 },
+    {
+      id: "seasonal", name: "Seasonal", method: "vs category", did: "150 SKUs for back to school", promised: 0.3, delivered: 0.26,
+      bullets: [
+        { tone: "green", text: "New titles live on 150 of 168 SKUs grew 5.4% faster than the category, vs 2.5% before back to school" },
+        { tone: "orange", text: "$40K short: 18 SKUs weren't approved in time and 1 top seller ran out of stock" },
+        { tone: "green", text: "Price and ad spend held steady, so the lift is from content" },
+      ],
+    },
+    {
+      id: "foundational", name: "Foundational", method: "A/B tested", did: "Keywords, titles and images on 45 SKUs", promised: 0.19, delivered: 0.18,
+      bullets: [
+        { tone: "green", text: "New content beat the old on 38 of 45 SKUs in A/B tests: +4.0% sales, same shoppers, same weeks" },
+        { tone: "orange", text: "$10K short: 10 SKUs still waiting for approval" },
+        { tone: "green", text: "The 7 that lost went back to old content; what didn't work is now in the agent's context" },
+      ],
+    },
+    {
+      id: "retail-readiness", name: "Retail readiness", method: "A/B tested", did: "12 SKUs unblocked", promised: 0.09, delivered: 0.08,
+      bullets: [
+        { tone: "green", text: "Unblocked 12 of 14 SKUs for syndication; new content then won A/B tests on 10 of 12: +3.8% sales" },
+        { tone: "orange", text: "$10K short: 2 SKUs still waiting for approval" },
+      ],
+    },
   ],
 }
