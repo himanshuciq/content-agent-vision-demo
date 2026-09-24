@@ -111,3 +111,4 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - "With Ally" bar caption "by area" removed.
 - On autopilot bar caption: "Already scheduled, no action required" (was "0 min"); chart label area 60→72px so the two-line caption plus Select/Viewing fits.
 - Hero reworded fact → fear → comfort (VP of Sales voice): "You're tracking to $40M in sales this quarter." / "That's $5M short of your $45M plan." / "We have $6.8M in the pipeline to close it." Each headline sentence on its own line; period word follows the dropdown.
+- Last chart bar renamed "With Ally" → "Total opportunity".

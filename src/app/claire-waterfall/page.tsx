@@ -18,7 +18,7 @@ import type { Period } from "@/components/nudge/types"
 /**
  * Alternate view of the same buckets as /claire, rendered as a bridge to plan
  * (on pace → open buckets → with Ally, against the plan line). Clicking a stage
- * opens its line items; clicking "With Ally" opens the split by area. Same
+ * opens its line items; clicking "Total opportunity" opens the split by area. Same
  * shared nudge state as the tier version.
  */
 export default function ClaireWaterfallPage() {
