@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { fmtValue } from "../data"
 import { ResultsMetrics } from "./results-metrics"
 import { ResultsTable } from "./results-table"
+import { SettingsGear } from "../settings-gear"
 import { RESULTS_BY_PERIOD } from "../content-results-data"
 import type { ResultPeriod, ResultType } from "../content-results-data"
 
@@ -71,10 +72,13 @@ export function ContentResults() {
   return (
     <div className="flex flex-col gap-7 px-12 py-8">
       <div className="flex flex-col gap-4">
-        <button type="button" onClick={back} className="inline-flex w-fit items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
-          <ArrowLeft className="size-4" />
-          Back to overview
-        </button>
+        <div className="flex items-center justify-between gap-4">
+          <button type="button" onClick={back} className="inline-flex w-fit items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
+            <ArrowLeft className="size-4" />
+            Back to overview
+          </button>
+          <SettingsGear />
+        </div>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-slate-500">

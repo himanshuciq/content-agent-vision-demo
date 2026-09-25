@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useNudge } from "../nudge-context"
+import { SettingsGear } from "../settings-gear"
 import { NUDGE_TARGETS } from "../data"
 import type { NudgeKey } from "../types"
 
@@ -76,6 +77,7 @@ export function MikeHeader() {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        <SettingsGear />
       </div>
     </header>
   )

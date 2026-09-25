@@ -47,6 +47,8 @@ export interface Batch {
   type: "Seasonal" | "Foundational" | "Retail readiness"
   /** ISO date the value expires, when it does. */
   deadline?: string
+  /** SKUs by revenue tier and the fields the changes touch, for the review policy. */
+  split?: import("./policy").TierSplit
   /** For "Needs your input" batches: how many SKUs need Mike's input (the Review button's count). */
   inputSkus?: number
   /** What Ally needs (input) or is doing (autopilot), shown in place of the approve button; toast fires when inputs are sent. */

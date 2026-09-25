@@ -153,3 +153,13 @@ Each row is a waterfall change to port to `/claire` if we keep it.
   - bucket sections back as clear bands (tinted header one shade darker, colored edge) with a line saying what each bucket means. Mike's approval line is computed from review minutes; the default is "One approval each"
   - each expiring item shows its own "Expires in 18 days" as amber text, no filled chip. The deadline is per item, never assumed for the whole group
   - items on white, neutral selection
+
+## Review policy, step 1: gear and settings page
+- **Gear icon** in the top line of Claire, Mike, Michelle and the results page opens `/settings`.
+- **Settings → Review policy:**
+  - tier defaults (Hero · top 50% of sales, Core · next 40%, Tail · last 10%) with Review each / Approve in bulk / Autopilot
+  - two optional switches (every title change, every main image change) that send matching SKUs to review whatever the tier
+  - review rules scoped by retailer, brands, SKU groups and tier, with the most specific one winning. They look like the product's Knowledge page, with neutral chips and the author and date
+  - a save bar that previews the effect on today's work ("Saving puts 394 more SKUs (+$590K) on autopilot")
+- **Settings → Knowledge:** a simple version of the product's Knowledge page on this design system.
+- The policy is saved with the demo state (Reset restores the defaults). Model in `policy.ts`; Mike's two approval batches carry SKU splits by tier (mock).

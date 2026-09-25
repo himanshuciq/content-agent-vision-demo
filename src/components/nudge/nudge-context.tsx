@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import type { NudgeKey } from "./types"
+import { DEFAULT_KNOWLEDGE, DEFAULT_POLICY } from "./policy"
+import type { KnowledgeEntry, Policy } from "./policy"
 
 const STORAGE_KEY = "ally-nudge-demo-state"
 
@@ -11,6 +13,9 @@ const MIKE_NUDGE_KEYS: NudgeKey[] = ["approval-content", "team-content"]
 interface StoredState {
   nudged: Partial<Record<NudgeKey, boolean>>
   approved: Record<string, boolean>
+  /** Review policy and knowledge from the settings page; absent = defaults. */
+  policy?: Policy
+  knowledge?: KnowledgeEntry[]
 }
 
 interface NudgeContextValue extends StoredState {
@@ -18,6 +23,10 @@ interface NudgeContextValue extends StoredState {
   /** Marks several keys nudged in one state update (so a "Nudge team" click doesn't clobber). */
   nudgeMany: (keys: NudgeKey[]) => void
   approve: (batchId: string) => void
+  policy: Policy
+  savePolicy: (p: Policy) => void
+  knowledge: KnowledgeEntry[]
+  saveKnowledge: (k: KnowledgeEntry[]) => void
   mikeNotified: boolean
   clearNotification: () => void
   /** Wipes all nudge/approve state so the demo can be replayed from scratch. */
@@ -91,6 +100,9 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
     [update],
   )
 
+  const savePolicy = useCallback((policy: Policy) => update((prev) => ({ ...prev, policy })), [update])
+  const saveKnowledge = useCallback((knowledge: KnowledgeEntry[]) => update((prev) => ({ ...prev, knowledge })), [update])
+
   const mikeNotified =
     !notifCleared && MIKE_NUDGE_KEYS.some((key) => state.nudged[key])
 
@@ -106,6 +118,10 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
         nudge,
         nudgeMany,
         approve,
+        policy: state.policy ?? DEFAULT_POLICY,
+        savePolicy,
+        knowledge: state.knowledge ?? DEFAULT_KNOWLEDGE,
+        saveKnowledge,
         mikeNotified,
         clearNotification: () => setNotifCleared(true),
         resetDemo,
