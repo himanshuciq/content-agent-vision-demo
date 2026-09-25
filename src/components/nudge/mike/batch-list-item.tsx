@@ -30,7 +30,10 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
     <div className={cn("rounded-lg transition-colors", active ? ITEM_ACTIVE : ITEM_IDLE)}>
       <button type="button" onClick={onSelectBatch} className="block w-full rounded-lg px-3.5 pt-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-brand-300">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[15px] font-semibold text-slate-950">{batch.type}</span>
+          <span className="text-[15px] font-semibold text-slate-950">
+            {batch.type}
+            {batch.partLabel && ` · ${batch.partLabel}`}
+          </span>
           {/* Signed: it's the extra sales Ally projects, not the SKUs' revenue. Green only once approved. */}
           <span className={cn("font-mono text-[15px] font-semibold tabular-nums", done ? "text-success-700" : "text-slate-950")}>+{value}</span>
         </div>
@@ -39,6 +42,8 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
       <div className="px-3.5 pb-3">
         <MetaLine
           parts={[
+            // No SKU list to open (e.g. a part scheduled on autopilot): the count as plain text.
+            batch.skuRows.length === 0 && `${skuCount} SKUs`,
             batch.skuRows.length > 0 && (
               <button
                 type="button"
@@ -51,7 +56,7 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
               </button>
             ),
             done && <span className="font-medium text-success-700">{batch.tier === "input" ? "Sent to Ally" : "Published"}</span>,
-            !done && batch.tier === "autopilot" && <span className="font-medium text-info-700">Running</span>,
+            !done && batch.tier === "autopilot" && <span className="font-medium text-info-700">{batch.chip}</span>,
             // Each batch says its own deadline: in real data one may expire and the next may not.
             !done && batch.deadline && <span className="font-medium text-warning-700">{batch.chip}</span>,
           ]}

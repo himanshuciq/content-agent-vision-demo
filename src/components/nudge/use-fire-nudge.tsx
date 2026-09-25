@@ -3,7 +3,7 @@
 import { useCallback } from "react"
 import { toast } from "sonner"
 import { useNudge } from "./nudge-context"
-import { NUDGE_TARGETS } from "./data"
+import { nudgeTargets } from "./data"
 import { useSlackNudgeToast } from "./slack-toast"
 import type { TierRow } from "./types"
 
@@ -13,13 +13,13 @@ import type { TierRow } from "./types"
  * Slack DM + in-app popup, used by "Nudge team" after `nudgeMany` marks the rows.
  */
 export function useFireNudge() {
-  const { nudge } = useNudge()
+  const { nudge, policy } = useNudge()
   const showSlackToast = useSlackNudgeToast()
 
   const sendSlack = useCallback(
     (row: TierRow) => {
       if (!row.nudgeKey) return
-      const t = NUDGE_TARGETS[row.nudgeKey]
+      const t = nudgeTargets(policy)[row.nudgeKey]
       if (!t) return
       showSlackToast({ batchName: t.batchName, description: row.description, value: t.value, skus: t.skus, deadlineDays: t.deadlineDays, queuePath: t.queuePath })
       void fetch("/api/nudge", {
@@ -36,17 +36,17 @@ export function useFireNudge() {
         }),
       }).catch(() => {})
     },
-    [showSlackToast],
+    [showSlackToast, policy],
   )
 
   const fire = useCallback(
     (row: TierRow) => {
       if (!row.nudgeKey) return
       nudge(row.nudgeKey)
-      if (NUDGE_TARGETS[row.nudgeKey]) sendSlack(row)
+      if (nudgeTargets(policy)[row.nudgeKey]) sendSlack(row)
       else toast.success(`Nudged ${row.analystName}`, { position: "top-right" })
     },
-    [nudge, sendSlack],
+    [nudge, sendSlack, policy],
   )
 
   return { fire, sendSlack }

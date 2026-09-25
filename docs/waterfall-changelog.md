@@ -168,3 +168,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Removed the "Also review, for every SKU" switches. A review rule now has a "Changes" picker: Any change, Title changes, Main image changes.
 - `Policy` drops `reviewTitles` / `reviewImages`; `ReviewRule` gains optional `field`. A field rule applies only to changes touching that field and takes the stricter of its mode and the SKU's mode, so it only adds review.
 - `shipPlan` pulls touched SKUs into the stricter field-rule mode per tier. Same numbers as the old switch for an "Amazon · All brands · Every tier · Title changes → Review each" rule.
+
+## Review policy step 2: Mike's inbox cut by the policy (one item, one action)
+- `contentBatches(policy)` (data.ts) cuts each batch with a tier split into parts: bulk keeps the batch id, the one-by-one part is `<id>-review`, the autopilot part is `<id>-auto` (moves to the autopilot band, "Goes live Oct 1", no deadline). Parts carry `mode` and `partLabel` ("Core", "Hero", "Tail" when a part is one tier). Change counts scale to the part.
+- `getSnapshot(policy?)`, `tierView`, `waterfallStages`, `openView`, `deadlineView` take an optional policy; `useLive` passes the saved one, so Claire's buckets, bridge and expiry follow it. No policy = the seed batches, so /claire stays frozen.
+- Default policy: one approval away $680K (Halloween core $400K, hero $60K; gift sets core $190K, hero $30K); autopilot +$60K (tails, Oct 1). Claire shows $680K for Mike and "$680K expires in 18 days".
+- Approve all ships bulk items only; with only one-by-one items left it hides. One-by-one items: "Review N SKUs" opens the first SKU; the SKU pane footer approves the part.
+- `nudgeTargets(policy)` replaces the static targets in the Slack nudge and Mike's bell, so the DM ties too.

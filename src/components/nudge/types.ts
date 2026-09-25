@@ -40,7 +40,12 @@ export interface BatchChange {
 }
 
 export interface Batch {
-  id: "halloween" | "gifts" | "concepts" | "readiness" | "pim"
+  /** A seed batch id, or a policy part of one ("halloween-review", "halloween-auto"). */
+  id: string
+  /** How this part ships under the review policy; unset on unsplit batches. */
+  mode?: import("./policy").ReviewMode
+  /** Why a part is separate, shown after the type: "Hero", "Tail". */
+  partLabel?: string
   /** Which of Claire's buckets it sits in, so Mike's inbox groups the same way her page does. */
   tier: "approval" | "input" | "autopilot"
   /** The kind of content work, as Claire's page names it. */

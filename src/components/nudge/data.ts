@@ -3,6 +3,8 @@ import { SKU_ROWS } from "./sku-rows-data"
 import type { AgentId, Batch, ClosedGrain, ClosedPeriodData, InflightData, NudgeKey, Period, TierRow } from "./types"
 import { actedValue, daysUntil, expiring, money, openByLever, sum, tierRows, tierTotal } from "./model"
 import type { Acted, Snapshot, Tier, WorkItem } from "./model"
+import { TIERS, TIER_INFO, shipPlan } from "./policy"
+import type { Policy, ReviewMode, SkuTier } from "./policy"
 
 /**
  * Real numbers from the Ally_Home reference artifact — keep exactly as given.
@@ -176,6 +178,72 @@ export const BATCHES: Batch[] = [
     skuRows: SKU_ROWS.pim,
   },
 ]
+
+/** When SKUs the review policy puts on autopilot go live. */
+const AUTOPILOT_GO_LIVE = "2026-10-01"
+const shortDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+const fmtPart = (v: number) => (v >= 1 ? `$${+v.toFixed(2)}M` : `$${Math.round(v * 1000)}K`)
+
+/**
+ * Mike's inbox under a review policy: each batch with a tier split is cut into
+ * one item per mode, so every item has one action. Bulk keeps the batch id; the
+ * one-by-one part is "<id>-review"; the autopilot part is "<id>-auto" and moves
+ * to the autopilot band with its go-live date. No policy = the seed batches.
+ */
+export function contentBatches(policy?: Policy): Batch[] {
+  if (!policy) return BATCHES
+  const human: Batch[] = []
+  const auto: Batch[] = []
+  for (const b of BATCHES) {
+    if (!b.split || b.tier !== "approval") {
+      human.push(b)
+      continue
+    }
+    const plan = shipPlan(policy, b.split)
+    // The only tier in a part names it ("Hero", "Tail"); a mixed part goes unlabeled.
+    const label = (m: ReviewMode) => {
+      const tiers = TIERS.filter((t) => plan[m].byTier[t]) as SkuTier[]
+      return tiers.length === 1 ? TIER_INFO[tiers[0]].label : undefined
+    }
+    const part = (m: ReviewMode, id: string, extra: Partial<Batch>): Batch => {
+      const { skus, value } = plan[m]
+      return {
+        ...b,
+        id,
+        mode: m,
+        partLabel: label(m),
+        skus,
+        approveSkus: skus,
+        value: fmtPart(value),
+        approveValue: value,
+        doneLabel: `${skus} published · ${fmtPart(value)}`,
+        changes: b.changes.map((c) => ({ ...c, skus: Math.round((c.skus * skus) / b.skus) })),
+        ...extra,
+      }
+    }
+    const rows = b.skuRows
+    // One real SKU row stands in for the one-by-one part; the rest sample the bulk part.
+    const reviewRows = plan.each.skus ? rows.slice(0, 1) : []
+    if (plan.bulk.skus) human.push(part("bulk", b.id, { skuRows: rows.slice(reviewRows.length) }))
+    if (plan.each.skus) human.push(part("each", `${b.id}-review`, { skuRows: reviewRows, reviewMinutes: plan.each.skus }))
+    if (plan.autopilot.skus)
+      auto.push(
+        part("autopilot", `${b.id}-auto`, {
+          tier: "autopilot",
+          deadline: undefined,
+          chip: `Goes live ${shortDate(AUTOPILOT_GO_LIVE)}`,
+          reviewMinutes: 0,
+          skuRows: [],
+          doneLabel: `Goes live ${shortDate(AUTOPILOT_GO_LIVE)} on autopilot`,
+          need: {
+            text: `Your review policy ships these ${plan.autopilot.skus} SKUs on autopilot on ${shortDate(AUTOPILOT_GO_LIVE)}. Nothing for you to do.`,
+            toast: "",
+          },
+        }),
+      )
+  }
+  return [...human, ...auto]
+}
 
 export function batchExampleSku(batch: Batch) {
   return MOCK_SKUS.find((sku) => sku.id === batch.exampleSkuId) ?? MOCK_SKUS[0]
@@ -581,6 +649,7 @@ const MEDIA_ITEMS: WorkItem[] = [
 /** $M from a display string: "$500K" → 0.5, "$2.4M" → 2.4. Seed values are still typed as strings on the batches. */
 const toM = (v: string) => parseFloat(v.replace(/[$KM,]/g, "")) / (v.endsWith("K") ? 1000 : 1)
 const tierOf = (t: "approval" | "input" | "autopilot"): Tier => t
+const contentItem = (b: Batch): WorkItem => ({ id: b.id, lever: "content", tier: tierOf(b.tier), value: toM(b.value), skus: b.inputSkus ?? b.approveSkus, deadline: b.deadline })
 
 const SNAPSHOT: Snapshot = {
   asOf: AS_OF,
@@ -591,7 +660,7 @@ const SNAPSHOT: Snapshot = {
     james: { name: "James", lever: "media" },
   },
   items: [
-    ...BATCHES.map((b) => ({ id: b.id, lever: "content" as AgentId, tier: tierOf(b.tier), value: toM(b.value), skus: b.inputSkus ?? b.approveSkus, deadline: b.deadline })),
+    ...BATCHES.map((b) => contentItem(b)),
     ...OPS_BATCHES.map((b) => ({ id: b.id, lever: "ops" as AgentId, tier: tierOf(b.tier), value: toM(b.value), skus: b.skus, urgent: b.urgent })),
     ...MEDIA_ITEMS,
   ],
@@ -632,16 +701,25 @@ const SNAPSHOT: Snapshot = {
   },
 }
 
-/** The one read of the data. Swap this for a database call returning the same Snapshot. */
-export function getSnapshot(): Snapshot {
-  return SNAPSHOT
+const byPolicy = new Map<string, Snapshot>()
+
+/**
+ * The one read of the data. Swap this for a database call returning the same Snapshot.
+ * With a review policy, content items are the policy's parts (see contentBatches).
+ */
+export function getSnapshot(policy?: Policy): Snapshot {
+  if (!policy) return SNAPSHOT
+  const key = JSON.stringify(policy)
+  if (!byPolicy.has(key))
+    byPolicy.set(key, { ...SNAPSHOT, items: [...contentBatches(policy).map(contentItem), ...SNAPSHOT.items.filter((i) => i.lever !== "content")] })
+  return byPolicy.get(key)!
 }
 
 const AUTOPILOT_ORDER: AgentId[] = ["content", "media", "ops"]
 
 /** A bucket as the pages show it, for this session's actions (none = the starting state). */
-export function tierView(tier: Tier, acted: Acted = {}) {
-  const snap = getSnapshot()
+export function tierView(tier: Tier, acted: Acted = {}, policy?: Policy) {
+  const snap = getSnapshot(policy)
   return {
     value: money(tierTotal(snap, tier, acted)),
     effort: snap.tiers[tier].effort,
@@ -651,10 +729,10 @@ export function tierView(tier: Tier, acted: Acted = {}) {
 }
 
 /** The bridge's three steps, in order from no effort to most. */
-export function waterfallStages(acted: Acted = {}): WaterfallStage[] {
-  const snap = getSnapshot()
+export function waterfallStages(acted: Acted = {}, policy?: Policy): WaterfallStage[] {
+  const snap = getSnapshot(policy)
   const stage = (id: WaterfallStage["id"], tier: Tier, label: string, extra: Partial<WaterfallStage> = {}): WaterfallStage => {
-    const view = tierView(tier, acted)
+    const view = tierView(tier, acted, policy)
     return { id, label, effort: view.effort, value: tierTotal(snap, tier, acted), rows: view.rows, canNudgeTeam: view.canNudgeTeam, ...extra }
   }
   return [
@@ -665,8 +743,8 @@ export function waterfallStages(acted: Acted = {}): WaterfallStage[] {
 }
 
 /** Open value by lever and in total, as display strings. */
-export function openView(acted: Acted = {}) {
-  const snap = getSnapshot()
+export function openView(acted: Acted = {}, policy?: Policy) {
+  const snap = getSnapshot(policy)
   const byArea = openByLever(snap, acted).map((a) => ({ agent: a.agent, value: money(a.value) }))
   const total = sum(snap.items.filter((i) => !acted[i.id]))
   return { byArea, total, totalLabel: money(total), acted: actedValue(snap, acted) }
@@ -676,8 +754,8 @@ export function openView(acted: Acted = {}) {
  * What expires first among open items one approval away (the line next to "45 min unlocks…");
  * undefined when nothing does. Pass `undefined` for every bucket (today $1.16M: the $420K Halloween concepts share Oct 8).
  */
-export function deadlineView(acted: Acted = {}, tier: Tier | undefined = "approval") {
-  const e = expiring(getSnapshot(), acted, tier)
+export function deadlineView(acted: Acted = {}, tier: Tier | undefined = "approval", policy?: Policy) {
+  const e = expiring(getSnapshot(policy), acted, tier)
   return e && { days: e.days, date: e.date, expiring: money(e.value), value: e.value }
 }
 
@@ -705,9 +783,9 @@ export interface NudgeTarget {
 }
 
 /** Which nudges fire a real Slack DM, to whom, and where "Open in Ally" lands. Value, SKUs and deadline come from the items. */
-function target(tier: Tier, lever: AgentId, recipient: NudgeTarget["recipient"], queuePath: string, batchName: string): NudgeTarget {
-  const items = getSnapshot().items.filter((i) => i.tier === tier && i.lever === lever)
-  const d = deadlineView()
+function target(tier: Tier, lever: AgentId, recipient: NudgeTarget["recipient"], queuePath: string, batchName: string, policy?: Policy): NudgeTarget {
+  const items = getSnapshot(policy).items.filter((i) => i.tier === tier && i.lever === lever)
+  const d = deadlineView({}, "approval", policy)
   return {
     recipient,
     queuePath,
@@ -718,8 +796,13 @@ function target(tier: Tier, lever: AgentId, recipient: NudgeTarget["recipient"],
   }
 }
 
-export const NUDGE_TARGETS: Partial<Record<NudgeKey, NudgeTarget>> = {
-  "approval-content": target("approval", "content", "mike", "/mike", "Halloween seasonal moments and gift sets"),
-  "team-content": target("input", "content", "mike", "/mike", "Halloween concepts and retail readiness"),
-  "approval-ops": target("approval", "ops", "michelle", "/michelle", "Buy box, promo and listing fixes"),
+/** Under a review policy, a nudge carries only what's left for a person (not what's scheduled on autopilot). */
+export function nudgeTargets(policy?: Policy): Partial<Record<NudgeKey, NudgeTarget>> {
+  return {
+    "approval-content": target("approval", "content", "mike", "/mike", "Halloween seasonal moments and gift sets", policy),
+    "team-content": target("input", "content", "mike", "/mike", "Halloween concepts and retail readiness", policy),
+    "approval-ops": target("approval", "ops", "michelle", "/michelle", "Buy box, promo and listing fixes", policy),
+  }
 }
+
+export const NUDGE_TARGETS = nudgeTargets()

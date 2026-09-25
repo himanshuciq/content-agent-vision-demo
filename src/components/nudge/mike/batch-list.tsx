@@ -1,6 +1,6 @@
 "use client"
 
-import { BATCHES } from "../data"
+import { contentBatches } from "../data"
 import { useNudge } from "../nudge-context"
 import { BatchListItem } from "./batch-list-item"
 import { ApproveAll, GROUPS, RailGroup } from "./rail"
@@ -22,17 +22,20 @@ const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith(
 
 /**
  * Left rail: Mike's inbox, grouped the way Claire's page is (see rail.tsx for the
- * look). Each batch carries its own deadline; Approve all ships every pending
- * batch one approval away.
+ * look). Items are cut by the review policy (see contentBatches), so each has
+ * one action. Each carries its own deadline; Approve all ships the bulk items.
  */
 export function BatchList({ selectedId, selectedSkuId, expandedBatchId, onToggleExpand, onSelectBatch, onSelectSku, onApproveAll }: BatchListProps) {
-  const { approved } = useNudge()
+  const { approved, policy } = useNudge()
+  const all = contentBatches(policy)
 
   return (
     <div className="border-r border-slate-200 bg-white">
       {GROUPS.map((g, gi) => {
-        const batches = BATCHES.filter((b) => b.tier === g.tier)
+        const batches = all.filter((b) => b.tier === g.tier)
         const pending = batches.filter((b) => !approved[b.id])
+        // Approve all can't claim the SKUs the policy says need a one-by-one review.
+        const bulk = pending.filter((b) => b.mode !== "each")
         return (
           <RailGroup
             key={g.tier}
@@ -40,7 +43,8 @@ export function BatchList({ selectedId, selectedSkuId, expandedBatchId, onToggle
             group={g}
             effort={g.tier === "approval" ? (pending.length ? `${pending.reduce((m, b) => m + b.reviewMinutes, 0)} min to review` : "All approved") : undefined}
             value={`+${fmt(batches.reduce((s, b) => s + money(b.value), 0))}`}
-            action={g.tier === "approval" ? <ApproveAll pending={pending.length} onClick={() => onApproveAll(pending)} /> : undefined}
+            // "All approved" only when nothing is left; with only one-by-one items left, no bulk action.
+            action={g.tier === "approval" && (bulk.length || !pending.length) ? <ApproveAll pending={bulk.length} onClick={() => onApproveAll(bulk)} /> : undefined}
           >
             {batches.map((b) => (
               <BatchListItem

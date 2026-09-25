@@ -1,7 +1,7 @@
 "use client"
 
 import { PublishConfetti } from "@/components/home/publish-confetti"
-import { AS_OF, BATCHES } from "../data"
+import { AS_OF, contentBatches } from "../data"
 import { daysUntil } from "../model"
 import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
 import { useNudge } from "../nudge-context"
@@ -26,7 +26,8 @@ interface Celebrate {
  * he approves, against what's open.
  */
 export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
-  const { approved } = useNudge()
+  const { approved, policy } = useNudge()
+  const BATCHES = contentBatches(policy)
 
   const approvalBatches = BATCHES.filter((b) => b.tier === "approval")
   const doneValue = approvalBatches.reduce((sum, b) => sum + (approved[b.id] ? b.approveValue : 0), 0)

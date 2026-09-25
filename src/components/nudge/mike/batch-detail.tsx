@@ -62,7 +62,10 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
     <div className="flex min-w-0 flex-col px-10 py-8">
       <div className="flex items-start justify-between gap-8">
         <div className="min-w-0">
-          <div className="text-sm font-medium text-slate-500">{batch.type}</div>
+          <div className="text-sm font-medium text-slate-500">
+            {batch.type}
+            {batch.partLabel && ` · ${batch.partLabel}`}
+          </div>
           <div className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
           <div className="mt-1.5 text-sm text-slate-500">{batch.nudgeSource}</div>
         </div>
@@ -109,6 +112,10 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
             <Check className="size-4" />
             {batch.doneLabel}
           </div>
+        ) : batch.mode === "each" ? (
+          <button type="button" onClick={() => onReviewAll(batch)} className={cn(PRIMARY, "w-fit")}>
+            Review {batch.approveSkus} SKUs
+          </button>
         ) : batch.tier === "input" && batch.need ? (
           <div className="flex flex-col gap-4 rounded-xl border border-warning-200 bg-warning-50 px-5 py-4">
             <div className="text-sm text-slate-700">{batch.need.text}</div>
@@ -132,7 +139,7 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
         )}
       </div>
 
-      {showSample && sku && row && (
+      {showSample && sku && row && batch.mode !== "each" && (
         <div ref={sampleRef} className="mt-8 scroll-mt-6 border-t border-slate-100 pt-8">
           <div className="mb-4 flex items-center gap-4">
             <img src={sku.thumbnailUrl} alt={sku.title} className="size-12 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-slate-200" />

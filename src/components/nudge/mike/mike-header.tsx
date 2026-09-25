@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useNudge } from "../nudge-context"
 import { SettingsGear } from "../settings-gear"
-import { NUDGE_TARGETS } from "../data"
+import { nudgeTargets } from "../data"
 import type { NudgeKey } from "../types"
 
 const Dot = () => <span className="text-slate-300">·</span>
@@ -19,9 +19,10 @@ const Up = ({ children }: { children: React.ReactNode }) => <span className="fon
 
 /** Mike's top line, shaped like Claire's: greeting, quarter, how his content is doing. Then the bell that ties back to Claire's nudge. */
 export function MikeHeader() {
-  const { mikeNotified, clearNotification, nudged } = useNudge()
+  const { mikeNotified, clearNotification, nudged, policy } = useNudge()
   // What Claire actually nudged Mike about, from the nudges sent (not a fixed batch).
-  const nudgedTargets = (Object.keys(NUDGE_TARGETS) as NudgeKey[]).filter((k) => nudged[k] && NUDGE_TARGETS[k]?.recipient === "mike").map((k) => NUDGE_TARGETS[k]!)
+  const targets = nudgeTargets(policy)
+  const nudgedTargets = (Object.keys(targets) as NudgeKey[]).filter((k) => nudged[k] && targets[k]?.recipient === "mike").map((k) => targets[k]!)
 
   return (
     <header className="flex items-start justify-between gap-6 px-10 pt-8">

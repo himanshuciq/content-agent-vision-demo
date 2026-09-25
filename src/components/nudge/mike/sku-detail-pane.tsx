@@ -72,8 +72,17 @@ export function SkuDetailPane({ batch, row, onBack, onApprove }: SkuDetailPanePr
       {!done && batch.tier === "approval" && (
         <div className="mt-8 flex items-center gap-4 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.approveSkus - 1} SKUs got the same treatment.</div>
-            <div className="mt-0.5 text-sm text-slate-500">Approve the whole batch in one go, or pick another SKU on the left.</div>
+            {batch.mode === "each" ? (
+              <>
+                <div className="text-sm font-semibold text-slate-950">Checked each one? Approve all {batch.approveSkus} together.</div>
+                <div className="mt-0.5 text-sm text-slate-500">Your review policy sends {batch.partLabel ? `${batch.partLabel.toLowerCase()} SKUs` : "these SKUs"} one by one. Pick the next one on the left.</div>
+              </>
+            ) : (
+              <>
+                <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.approveSkus - 1} SKUs got the same treatment.</div>
+                <div className="mt-0.5 text-sm text-slate-500">Approve the whole batch in one go, or pick another SKU on the left.</div>
+              </>
+            )}
           </div>
           <button
             type="button"

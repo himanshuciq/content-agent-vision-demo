@@ -11,7 +11,7 @@ import { MikeProgress } from "@/components/nudge/mike/mike-progress"
 import { BatchList } from "@/components/nudge/mike/batch-list"
 import { BatchDetail } from "@/components/nudge/mike/batch-detail"
 import { SkuDetailPane } from "@/components/nudge/mike/sku-detail-pane"
-import { BATCHES } from "@/components/nudge/data"
+import { contentBatches } from "@/components/nudge/data"
 import { useNudge } from "@/components/nudge/nudge-context"
 import type { Batch } from "@/components/nudge/types"
 
@@ -22,13 +22,15 @@ import type { Batch } from "@/components/nudge/types"
  * comparison on the right.
  */
 export default function MikePage() {
-  const { approve } = useNudge()
+  const { approve, policy } = useNudge()
+  const batches = contentBatches(policy)
   const [selectedId, setSelectedId] = useState<Batch["id"]>("halloween")
   const [selectedSkuId, setSelectedSkuId] = useState<string | null>(null)
   const [expandedBatchId, setExpandedBatchId] = useState<Batch["id"] | null>(null)
   const [celebrate, setCelebrate] = useState<{ value: number; skus: number } | null>(null)
 
-  const selected = BATCHES.find((b) => b.id === selectedId) ?? BATCHES[0]
+  // A policy change can remove the selected part (e.g. its SKUs moved to autopilot): fall back to the first item.
+  const selected = batches.find((b) => b.id === selectedId) ?? batches[0]
   const selectedRow = selectedSkuId ? selected.skuRows.find((r) => r.skuId === selectedSkuId) : undefined
 
   function handleApprove(batch: Batch) {
@@ -37,7 +39,7 @@ export default function MikePage() {
     window.setTimeout(() => setCelebrate(null), 2200)
   }
 
-  /** "Approve all" on a group: ship every pending batch in it at once. */
+  /** "Approve all" on a group: ship every pending bulk item in it at once (one-by-one items stay for their review). */
   function handleApproveAll(batches: Batch[]) {
     batches.forEach((b) => approve(b.id))
     setCelebrate({ value: batches.reduce((s, b) => s + b.approveValue, 0), skus: batches.reduce((s, b) => s + b.approveSkus, 0) })
@@ -56,8 +58,8 @@ export default function MikePage() {
 
   function handleReviewAll(batch: Batch) {
     setSelectedId(batch.id)
-    // Input batches open straight on the first SKU, where Mike types what Ally needs.
-    setSelectedSkuId(batch.tier === "input" ? (batch.skuRows[0]?.skuId ?? null) : null)
+    // Input batches and one-by-one parts open straight on the first SKU.
+    setSelectedSkuId(batch.tier === "input" || batch.mode === "each" ? (batch.skuRows[0]?.skuId ?? null) : null)
     setExpandedBatchId(batch.id)
   }
 
