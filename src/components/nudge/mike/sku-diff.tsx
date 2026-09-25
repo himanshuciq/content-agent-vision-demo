@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import type { SkuInputSection, SkuSection } from "../types"
+import { BackgroundComposer } from "./background-composer"
 
 type Op<T> = { t: "same" | "del" | "add"; v: T }
 
@@ -165,6 +166,7 @@ export function SkuSections({ sections, thumbnailUrl }: { sections: SkuSection[]
     <div className="flex flex-col gap-3">
       {sections.map((section, i) => {
         if (section.kind === "input") return <InputField key={i} section={section} />
+        if (section.kind === "background") return <BackgroundComposer key={i} section={section} thumbnailUrl={thumbnailUrl} />
         const rows = section.kind === "text" ? lineRows(section.live, section.draft.map((d) => d.text)) : []
         return (
           <div key={i} className="overflow-hidden rounded-xl border border-slate-200">
@@ -191,7 +193,7 @@ export function SkuSections({ sections, thumbnailUrl }: { sections: SkuSection[]
           </div>
         )
       })}
-      {sections.some((sec) => sec.kind !== "input") && (
+      {sections.some((sec) => sec.kind === "text" || sec.kind === "image") && (
       <div className="flex gap-4 px-1 text-xs text-slate-500">
         <span className="text-slate-400 line-through">Removed</span>
         <span className="text-slate-950">Kept</span>

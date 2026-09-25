@@ -52,6 +52,8 @@ export interface KnowledgeEntry extends Scope {
 
 export interface Policy {
   tiers: Record<SkuTier, ReviewMode>
+  /** Batches whose autopilot part Mike held back for review, just this once (not a rule). */
+  holds?: string[]
   rules: ReviewRule[]
 }
 

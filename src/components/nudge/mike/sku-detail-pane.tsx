@@ -64,7 +64,7 @@ export function SkuDetailPane({ batch, row, onBack, onApprove }: SkuDetailPanePr
             }}
             className={PRIMARY}
           >
-            Send to Ally
+            {batch.need?.cta ?? "Send to Ally"}
           </button>
         </div>
       )}

@@ -151,14 +151,14 @@ export const SKU_ROWS: Record<string, SkuRow[]> = {
       skuId: "sku-3",
       sections: [
         input("Halloween concept", "Warm Amber Floral Soy Jar Candle, 16 oz, Best Seller", "Theme or tagline, e.g. a warm glow for trick-or-treat night"),
-        input("Image idea", "Standard pack shot", "e.g. candle on a porch step between two jack-o'-lanterns"),
+        { kind: "background", label: "Main image", liveLabel: "Standard pack shot" },
       ],
     },
     {
       skuId: "sku-8",
       sections: [
         input("Halloween concept", "Aurelle Candles Coastal Linen Large Scented Jar, 22 oz", "Theme or tagline, e.g. clean linen for the morning after the party"),
-        input("Image idea", "Standard pack shot", "e.g. candle on a white sheet with a ghost cut-out"),
+        { kind: "background", label: "Main image", liveLabel: "Standard pack shot" },
       ],
     },
   ],

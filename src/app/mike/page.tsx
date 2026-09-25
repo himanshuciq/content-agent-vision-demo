@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
@@ -28,6 +28,7 @@ export default function MikePage() {
   const [selectedSkuId, setSelectedSkuId] = useState<string | null>(null)
   const [expandedBatchId, setExpandedBatchId] = useState<Batch["id"] | null>(null)
   const [celebrate, setCelebrate] = useState<{ value: number; skus: number } | null>(null)
+  const queueRef = useRef<HTMLDivElement>(null)
 
   // A policy change can remove the selected part (e.g. its SKUs moved to autopilot): fall back to the first item.
   const selected = batches.find((b) => b.id === selectedId) ?? batches[0]
@@ -56,11 +57,20 @@ export default function MikePage() {
     setSelectedSkuId(skuId)
   }
 
+  /** Every "Review N SKUs" opens the first SKU side by side, its list open on the left, scrolled up to the top of the queue. */
   function handleReviewAll(batch: Batch) {
     setSelectedId(batch.id)
-    // Input batches and one-by-one parts open straight on the first SKU.
-    setSelectedSkuId(batch.tier === "input" || batch.mode === "each" ? (batch.skuRows[0]?.skuId ?? null) : null)
+    setSelectedSkuId(batch.skuRows[0]?.skuId ?? null)
     setExpandedBatchId(batch.id)
+    // After the SKU view renders (the sample above it collapses), so the target doesn't move mid-scroll.
+    window.setTimeout(() => {
+      const top = queueRef.current ? queueRef.current.getBoundingClientRect().top + window.scrollY - 16 : 0
+      window.scrollTo({ top, behavior: "smooth" })
+      // Some embedded browsers ignore smooth scrolling: land there anyway.
+      window.setTimeout(() => {
+        if (Math.abs(window.scrollY - top) > 4) window.scrollTo({ top })
+      }, 600)
+    }, 50)
   }
 
   return (
@@ -68,7 +78,7 @@ export default function MikePage() {
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <MikeHeader />
         <MikeProgress celebrate={celebrate} />
-        <div className="grid grid-cols-[340px_minmax(0,1fr)]">
+        <div ref={queueRef} className="grid scroll-mt-4 grid-cols-[340px_minmax(0,1fr)]">
           <BatchList
             selectedId={selectedId}
             selectedSkuId={selectedSkuId}
@@ -87,7 +97,7 @@ export default function MikePage() {
               onReviewAll={handleReviewAll}
             />
           ) : (
-            <BatchDetail batch={selected} onApprove={handleApprove} onReviewAll={handleReviewAll} />
+            <BatchDetail batch={selected} onApprove={handleApprove} onReviewAll={handleReviewAll} onSelect={handleSelectBatch} />
           )}
         </div>
         <MikeDelivered />

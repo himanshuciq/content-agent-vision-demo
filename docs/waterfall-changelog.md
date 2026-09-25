@@ -189,3 +189,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Mail icon (`EmailPdfButton`) left of the bell downloads the summary PDF.
 - `exec-pdf.ts` rebuilt from the live model to mirror the page, fully expanded: hero sentences, the bridge chart against plan, every stage's rows with this week's status, open opportunity by area and bucket, this quarter so far with each lever's breakdown and bullets. Takes `{ approved, nudged, policy }`.
 - Total opportunity drill-down now reads the review policy. Slack popup moved to bottom-right so it doesn't cover the bell panel.
+
+## Mike: trust signals, review-all lands on the first SKU, hold autopilot, Halloween background
+- Core items carry `reassure` ("None of these are hero SKUs. Your 12 hero SKUs get reviewed one by one."), derived from the plan, shown under the approve buttons.
+- Every "Review N SKUs" / "Or review all N one by one" opens the first SKU side by side, expands its list in the rail and scrolls the queue to the top (smooth, with a jump fallback).
+- Hero sample ends with "This is 1 of 12 hero SKUs…" + Review 12 SKUs + "Or approve all 12".
+- Autopilot parts (tails) get a sample SKU, "See all N SKUs", and "Hold these N SKUs for your review": `policy.holds` (one-off, not a rule) turns the part into a `<id>-held` item one approval away; Claire's buckets follow.
+- Concepts: new `background` section kind. `BackgroundComposer`: three SVG Halloween scenes or an upload, "Apply to this SKU" places the product photo on the scene; footer CTA "Apply to all 245 SKUs" (`need.cta`).

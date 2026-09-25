@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ArrowRight, Check, ChevronDown, RefreshCw, Sparkles } from "lucide-react"
+import { ArrowRight, Check, ChevronDown, PauseCircle, RefreshCw, ShieldCheck, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { skuById } from "../data"
 import { useNudge } from "../nudge-context"
@@ -13,6 +13,8 @@ interface BatchDetailProps {
   batch: Batch
   onApprove: (batch: Batch) => void
   onReviewAll: (batch: Batch) => void
+  /** Select another item, e.g. the held part once Mike holds an autopilot part back. */
+  onSelect?: (id: string) => void
 }
 
 /**
@@ -28,6 +30,12 @@ function Actions({ batch, onApprove, onReviewAll, children }: BatchDetailProps &
         </button>
         {children}
       </div>
+      {batch.reassure && (
+        <div className="flex items-center gap-2 text-sm text-slate-700">
+          <ShieldCheck className="size-4 shrink-0 text-success-600" />
+          {batch.reassure}
+        </div>
+      )}
       <button
         type="button"
         onClick={() => onReviewAll(batch)}
@@ -45,8 +53,11 @@ function Actions({ batch, onApprove, onReviewAll, children }: BatchDetailProps &
  * a sample SKU" opens one real SKU's edit right here and scrolls to it, so Mike
  * never leaves the batch he's about to approve.
  */
-export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps) {
-  const { approved, nudged } = useNudge()
+export function BatchDetail({ batch, onApprove, onReviewAll, onSelect }: BatchDetailProps) {
+  const { approved, nudged, policy, savePolicy } = useNudge()
+  // A policy part scheduled on autopilot ("halloween-auto"): Mike can check it and hold it back, just this once.
+  const scheduled = batch.tier === "autopilot" && batch.mode === "autopilot"
+  const seedId = batch.id.replace(/-auto$/, "")
   const done = !!approved[batch.id]
   const source = batch.nudgeKey && nudged[batch.nudgeKey] ? "Nudged by Claire, just now" : batch.nudgeSource
   const [showSample, setShowSample] = useState(false)
@@ -111,9 +122,32 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
 
       <div className="mt-8">
         {batch.tier === "autopilot" ? (
-          <div className="flex items-start gap-3 rounded-xl border border-info-100 bg-info-50 px-5 py-4 text-sm text-slate-700">
-            <RefreshCw className="mt-0.5 size-4 shrink-0 text-info-600" />
-            {batch.need?.text}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start gap-3 rounded-xl border border-info-100 bg-info-50 px-5 py-4 text-sm text-slate-700">
+              <RefreshCw className="mt-0.5 size-4 shrink-0 text-info-600" />
+              {batch.need?.text}
+            </div>
+            {scheduled && (
+              <>
+                <div className="flex flex-wrap items-center gap-3">
+                  {sampleButton}
+                  <button type="button" onClick={() => onReviewAll(batch)} className={SECONDARY}>
+                    See all {batch.skus} SKUs
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    savePolicy({ ...policy, holds: [...(policy.holds ?? []), seedId] })
+                    onSelect?.(`${seedId}-held`)
+                  }}
+                  className="inline-flex w-fit items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-brand-700"
+                >
+                  <PauseCircle className="size-4" />
+                  Not sure? Hold these {batch.skus} SKUs for your review
+                </button>
+              </>
+            )}
           </div>
         ) : done ? (
           <div className="flex items-center gap-2 text-[15px] font-medium text-success-700">
@@ -158,7 +192,23 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
           </div>
           <SkuSections sections={row.sections} thumbnailUrl={sku.thumbnailUrl} />
           {/* One-by-one parts have no bulk approve under the sample: each SKU gets its own look. */}
-          {!done && batch.mode !== "each" && (
+          {!done && batch.mode === "each" && (
+            <div className="mt-6 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
+              <div className="text-sm font-semibold text-slate-950">
+                This is 1 of {batch.approveSkus} {batch.partLabel ? `${batch.partLabel.toLowerCase()} SKUs` : "SKUs"}. Your review policy has you check them one by one.
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <button type="button" onClick={() => onReviewAll(batch)} className={PRIMARY}>
+                  Review {batch.approveSkus} SKUs
+                </button>
+                <button type="button" onClick={() => onApprove(batch)} className="inline-flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-brand-700">
+                  Or approve all {batch.approveSkus}
+                  <ArrowRight className="size-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+          {!done && batch.tier === "approval" && batch.mode !== "each" && (
             <div className="mt-6 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
               <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.approveSkus - 1} SKUs got the same treatment.</div>
               <Actions batch={batch} onApprove={onApprove} onReviewAll={onReviewAll} />

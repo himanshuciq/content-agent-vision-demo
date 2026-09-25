@@ -57,7 +57,9 @@ export interface Batch {
   /** For "Needs your input" batches: how many SKUs need Mike's input (the Review button's count). */
   inputSkus?: number
   /** What Ally needs (input) or is doing (autopilot), shown in place of the approve button; toast fires when inputs are sent. */
-  need?: { text: string; toast: string }
+  need?: { text: string; toast: string; cta?: string }
+  /** Under the bulk approve: why it's safe, e.g. "None of these are hero SKUs." */
+  reassure?: string
   /** Heading over the changes list; defaults to "What Ally changed". */
   changesTitle?: string
   name: string
@@ -104,7 +106,14 @@ export interface SkuInputSection {
   placeholder: string
 }
 
-export type SkuSection = SkuTextSection | SkuImageSection | SkuInputSection
+/** The Halloween background Mike picks or uploads; Ally places the product on it. */
+export interface SkuBackgroundSection {
+  kind: "background"
+  label: string
+  liveLabel: string
+}
+
+export type SkuSection = SkuTextSection | SkuImageSection | SkuInputSection | SkuBackgroundSection
 
 export interface SkuRow {
   skuId: string

@@ -117,8 +117,9 @@ export const BATCHES: Batch[] = [
       { text: "Drafts titles, bullets and images, then sends them back for one approval", skus: 245 },
     ],
     need: {
-      text: "Each SKU needs your Halloween concept: a theme, tagline or image idea. Ally localizes it for each retailer and customizes it for the SKU.",
-      toast: "Concepts sent to Ally. Drafts for 245 SKUs in about a day.",
+      text: "Each SKU needs a Halloween main image and tagline. Pick a background or upload your own: Ally places each product on it and adapts it for every retailer.",
+      toast: "Background sent to Ally. Drafts for 245 SKUs in about a day.",
+      cta: "Apply to all 245 SKUs",
     },
     skuRows: SKU_ROWS.concepts,
   },
@@ -227,16 +228,22 @@ export function contentBatches(policy?: Policy): Batch[] {
     const rows = b.skuRows
     // One real SKU row stands in for the one-by-one part; the rest sample the bulk part.
     const reviewRows = plan.each.skus ? rows.slice(0, 1) : []
-    if (plan.bulk.skus) human.push(part("bulk", b.id, { skuRows: rows.slice(reviewRows.length) }))
+    const hero = plan.each.byTier.hero ?? 0
+    const reassure = !plan.bulk.byTier.hero && hero ? `None of these are hero SKUs. Your ${hero} hero SKUs get reviewed one by one.` : undefined
+    if (plan.bulk.skus) human.push(part("bulk", b.id, { skuRows: rows.slice(reviewRows.length), reassure }))
     if (plan.each.skus) human.push(part("each", `${b.id}-review`, { skuRows: reviewRows, reviewMinutes: plan.each.skus }))
-    if (plan.autopilot.skus)
+    // Held back from autopilot: the same SKUs, one approval away until Mike approves them.
+    if (plan.autopilot.skus && policy.holds?.includes(b.id))
+      human.push(part("autopilot", `${b.id}-held`, { mode: "bulk", skuRows: rows.slice(-1), reviewMinutes: 5, nudgeSource: "Held from autopilot by you" }))
+    else if (plan.autopilot.skus)
       auto.push(
         part("autopilot", `${b.id}-auto`, {
           tier: "autopilot",
           deadline: undefined,
           chip: `Goes live ${shortDate(AUTOPILOT_GO_LIVE)}`,
           reviewMinutes: 0,
-          skuRows: [],
+          // A real SKU to check before it goes live.
+          skuRows: rows.slice(-1),
           doneLabel: `Goes live ${shortDate(AUTOPILOT_GO_LIVE)} on autopilot`,
           need: {
             text: `Your review policy ships these ${plan.autopilot.skus} SKUs on autopilot on ${shortDate(AUTOPILOT_GO_LIVE)}. Nothing for you to do.`,
