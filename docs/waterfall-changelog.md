@@ -175,3 +175,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Default policy: one approval away $680K (Halloween core $400K, hero $60K; gift sets core $190K, hero $30K); autopilot +$60K (tails, Oct 1). Claire shows $680K for Mike and "$680K expires in 18 days".
 - Approve all ships bulk items only; with only one-by-one items left it hides. One-by-one items: "Review N SKUs" opens the first SKU; the SKU pane footer approves the part.
 - `nudgeTargets(policy)` replaces the static targets in the Slack nudge and Mike's bell, so the DM ties too.
+
+## Review policy: value by sales share, sample on hero items, clearer names, nudge-driven source
+- Tier split value follows share of sales (hero 48%, core 41%, tail 11%), not SKU count. Halloween: hero $240K, core $205K, tail $55K. Gift sets: hero $115K, core $100K, tail $25K. One approval away $660K; autopilot +$80K from tails.
+- "Preview a sample" → "Review sample SKU", now also on one-by-one (hero) items.
+- "Halloween moments" → "Halloween jar candles" (event + category); Slack nudge batch name to match.
+- `Batch.nudgeKey`: the source line reads "Emailed Monday 8:00 AM" until Claire nudges, then "Nudged by Claire, just now".
+- Mike's Ask Ally "approve first" answer updated to hero first, then core.

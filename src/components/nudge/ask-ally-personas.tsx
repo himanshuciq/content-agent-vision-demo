@@ -22,7 +22,7 @@ export function mikeAnswer(q: string) {
   if (q === MIKE_QUESTIONS[0])
     return (
       <p>
-        Halloween moments: <N>$500K</N> on <N>378</N> SKUs, and it expires in 18 days. Then Halloween gift sets, <N>$240K</N>. Each is one approval.
+        Your hero SKUs first, one by one: <N>$240K</N> on <N>12</N> Halloween jar candles and <N>$115K</N> on <N>8</N> gift sets. Then the core in one approval each: <N>$305K</N> on <N>394</N> SKUs. All of it expires in 18 days.
       </p>
     )
   if (q === MIKE_QUESTIONS[1])

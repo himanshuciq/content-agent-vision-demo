@@ -46,8 +46,9 @@ function Actions({ batch, onApprove, onReviewAll, children }: BatchDetailProps &
  * never leaves the batch he's about to approve.
  */
 export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps) {
-  const { approved } = useNudge()
+  const { approved, nudged } = useNudge()
   const done = !!approved[batch.id]
+  const source = batch.nudgeKey && nudged[batch.nudgeKey] ? "Nudged by Claire, just now" : batch.nudgeSource
   const [showSample, setShowSample] = useState(false)
   const sampleRef = useRef<HTMLDivElement>(null)
   const row = batch.skuRows[0]
@@ -58,6 +59,13 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
     if (showSample) sampleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [showSample])
 
+  const sampleButton = sku && (
+    <button type="button" onClick={() => setShowSample((v) => !v)} className={SECONDARY}>
+      {showSample ? "Hide sample" : "Review sample SKU"}
+      <ChevronDown className={cn("size-4 text-slate-400 transition-transform", showSample && "rotate-180")} />
+    </button>
+  )
+
   return (
     <div className="flex min-w-0 flex-col px-10 py-8">
       <div className="flex items-start justify-between gap-8">
@@ -67,7 +75,7 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
             {batch.partLabel && ` · ${batch.partLabel}`}
           </div>
           <div className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
-          <div className="mt-1.5 text-sm text-slate-500">{batch.nudgeSource}</div>
+          <div className="mt-1.5 text-sm text-slate-500">{source}</div>
         </div>
         <div className="shrink-0 text-right">
           <div className={cn("font-mono text-[28px] font-bold tracking-tight tabular-nums", done ? "text-success-700" : "text-slate-950")}>
@@ -113,9 +121,12 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
             {batch.doneLabel}
           </div>
         ) : batch.mode === "each" ? (
-          <button type="button" onClick={() => onReviewAll(batch)} className={cn(PRIMARY, "w-fit")}>
-            Review {batch.approveSkus} SKUs
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" onClick={() => onReviewAll(batch)} className={PRIMARY}>
+              Review {batch.approveSkus} SKUs
+            </button>
+            {sampleButton}
+          </div>
         ) : batch.tier === "input" && batch.need ? (
           <div className="flex flex-col gap-4 rounded-xl border border-warning-200 bg-warning-50 px-5 py-4">
             <div className="text-sm text-slate-700">{batch.need.text}</div>
@@ -129,17 +140,12 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
           </div>
         ) : (
           <Actions batch={batch} onApprove={onApprove} onReviewAll={onReviewAll}>
-            {sku && (
-              <button type="button" onClick={() => setShowSample((v) => !v)} className={SECONDARY}>
-                {showSample ? "Hide sample" : "Preview a sample"}
-                <ChevronDown className={cn("size-4 text-slate-400 transition-transform", showSample && "rotate-180")} />
-              </button>
-            )}
+            {sampleButton}
           </Actions>
         )}
       </div>
 
-      {showSample && sku && row && batch.mode !== "each" && (
+      {showSample && sku && row && (
         <div ref={sampleRef} className="mt-8 scroll-mt-6 border-t border-slate-100 pt-8">
           <div className="mb-4 flex items-center gap-4">
             <img src={sku.thumbnailUrl} alt={sku.title} className="size-12 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-slate-200" />
@@ -151,7 +157,8 @@ export function BatchDetail({ batch, onApprove, onReviewAll }: BatchDetailProps)
             </div>
           </div>
           <SkuSections sections={row.sections} thumbnailUrl={sku.thumbnailUrl} />
-          {!done && (
+          {/* One-by-one parts have no bulk approve under the sample: each SKU gets its own look. */}
+          {!done && batch.mode !== "each" && (
             <div className="mt-6 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
               <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.approveSkus - 1} SKUs got the same treatment.</div>
               <Actions batch={batch} onApprove={onApprove} onReviewAll={onReviewAll} />

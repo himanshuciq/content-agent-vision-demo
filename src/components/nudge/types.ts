@@ -62,7 +62,10 @@ export interface Batch {
   changesTitle?: string
   name: string
   chip: string
+  /** Where the item came from, before anyone nudges. */
   nudgeSource: string
+  /** Claire's nudge for this item; once sent, the source reads "Nudged by Claire, just now". */
+  nudgeKey?: NudgeKey
   skus: number
   reviewMinutes: number
   value: string

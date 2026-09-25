@@ -28,7 +28,7 @@ The same skeleton for every persona, so each page reads as the same product.
    - Each item shows the type in bold, a specific subscript (never the type repeated), the value, and one tag: the deadline or the state.
 5. **Detail pane:** type eyebrow, name, value.
    - A "What Ally changed / caught / fixes" card with counts.
-   - **Approval:** Approve N (primary), Preview a sample (secondary), and a quiet "Or review all N one by one →".
+   - **Approval:** Approve N (primary), Review sample SKU (secondary; also on one-by-one items), and a quiet "Or review all N one by one →".
    - **Input:** an amber callout explaining what Ally did and what's left, then "Review N SKUs". Each field only the team can fill gets a full-width "Your input" box with the live value above it, then "Send to Ally".
    - **Autopilot:** a blue note saying it's running and there's nothing to do.
 6. **Sample SKU:** side by side, Live on retailer | Ally wrote. Word-level diff (removed struck on the live side, kept black, added green on Ally's side). Seasonal images must look seasonal, not just grayscale vs color.
