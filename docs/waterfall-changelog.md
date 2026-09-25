@@ -149,3 +149,7 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - **Claire:**
   - the area table's nudge now reads "Nudge", and stage rows say "Nudge" (was "Nudge again")
   - disclosure chevrons moved to the leading edge in the area table and "This quarter so far", with media indented to line up
+- Inbox rail, second pass:
+  - bucket sections back as clear bands (tinted header one shade darker, colored edge) with a line saying what each bucket means. Mike's approval line is computed from review minutes; the default is "One approval each"
+  - each expiring item shows its own "Expires in 18 days" as amber text, no filled chip. The deadline is per item, never assumed for the whole group
+  - items on white, neutral selection

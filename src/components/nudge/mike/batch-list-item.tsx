@@ -5,13 +5,11 @@ import { cn } from "@/lib/utils"
 import { skuById } from "../data"
 import { useNudge } from "../nudge-context"
 import type { Batch } from "../types"
-import { ITEM_ACTIVE, ITEM_IDLE, MetaLine, sharedDeadline } from "./rail"
+import { ITEM_ACTIVE, ITEM_IDLE, MetaLine } from "./rail"
 
 
 interface BatchListItemProps {
   batch: Batch
-  /** Show this item's own deadline (off when the group header already says it). */
-  showDeadline: boolean
   active: boolean
   selectedSkuId: string | null
   expanded: boolean
@@ -21,7 +19,7 @@ interface BatchListItemProps {
 }
 
 /** One batch row: select it, or expand "See all N SKUs" to drill into a real SKU. */
-export function BatchListItem({ batch, showDeadline, active, selectedSkuId, expanded, onToggleExpand, onSelectBatch, onSelectSku }: BatchListItemProps) {
+export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggleExpand, onSelectBatch, onSelectSku }: BatchListItemProps) {
   const { approved } = useNudge()
   const done = !!approved[batch.id]
 
@@ -54,7 +52,8 @@ export function BatchListItem({ batch, showDeadline, active, selectedSkuId, expa
             ),
             done && <span className="font-medium text-success-700">{batch.tier === "input" ? "Sent to Ally" : "Published"}</span>,
             !done && batch.tier === "autopilot" && <span className="font-medium text-info-700">Running</span>,
-            !done && showDeadline && batch.deadline && <span className="font-medium text-warning-700">{sharedDeadline([batch.deadline])}</span>,
+            // Each batch says its own deadline: in real data one may expire and the next may not.
+            !done && batch.deadline && <span className="font-medium text-warning-700">{batch.chip}</span>,
           ]}
         />
       </div>

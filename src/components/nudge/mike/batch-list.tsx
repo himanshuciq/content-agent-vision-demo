@@ -3,7 +3,7 @@
 import { BATCHES } from "../data"
 import { useNudge } from "../nudge-context"
 import { BatchListItem } from "./batch-list-item"
-import { ApproveAll, GROUPS, RailGroup, sharedDeadline } from "./rail"
+import { ApproveAll, GROUPS, RailGroup } from "./rail"
 import type { Batch } from "../types"
 
 interface BatchListProps {
@@ -22,8 +22,8 @@ const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith(
 
 /**
  * Left rail: Mike's inbox, grouped the way Claire's page is (see rail.tsx for the
- * look). The shared deadline sits once in the group header; Approve all ships
- * every pending batch one approval away.
+ * look). Each batch carries its own deadline; Approve all ships every pending
+ * batch one approval away.
  */
 export function BatchList({ selectedId, selectedSkuId, expandedBatchId, onToggleExpand, onSelectBatch, onSelectSku, onApproveAll }: BatchListProps) {
   const { approved } = useNudge()
@@ -33,22 +33,19 @@ export function BatchList({ selectedId, selectedSkuId, expandedBatchId, onToggle
       {GROUPS.map((g, gi) => {
         const batches = BATCHES.filter((b) => b.tier === g.tier)
         const pending = batches.filter((b) => !approved[b.id])
-        const groupDeadline = sharedDeadline(pending.map((b) => b.deadline))
         return (
           <RailGroup
             key={g.tier}
             first={gi === 0}
-            dot={g.dot}
-            label={g.label}
+            group={g}
+            effort={g.tier === "approval" ? (pending.length ? `${pending.reduce((m, b) => m + b.reviewMinutes, 0)} min to review` : "All approved") : undefined}
             value={`+${fmt(batches.reduce((s, b) => s + money(b.value), 0))}`}
-            meta={groupDeadline}
             action={g.tier === "approval" ? <ApproveAll pending={pending.length} onClick={() => onApproveAll(pending)} /> : undefined}
           >
             {batches.map((b) => (
               <BatchListItem
                 key={b.id}
                 batch={b}
-                showDeadline={!groupDeadline}
                 active={selectedId === b.id && !selectedSkuId}
                 selectedSkuId={selectedId === b.id ? selectedSkuId : null}
                 expanded={expandedBatchId === b.id}

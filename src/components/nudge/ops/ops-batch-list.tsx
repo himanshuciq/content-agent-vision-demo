@@ -28,8 +28,7 @@ export function OpsBatchList({ selectedId, onSelect, onApproveAll }: OpsBatchLis
           <RailGroup
             key={g.tier}
             first={gi === 0}
-            dot={g.dot}
-            label={g.label}
+            group={g}
             value={`+${fmt(batches.reduce((s, b) => s + money(b.value), 0))}`}
             action={g.tier === "approval" ? <ApproveAll pending={pending.length} onClick={() => onApproveAll(pending)} /> : undefined}
           >
