@@ -243,3 +243,9 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Each open ops fix stores `perDay` (daily sales at risk); its value is derived: perDay × `OPS_DAYS_SAVED` (12: fixed in about 2 days vs about 2 weeks). Same method as delivered. Buy box $108K (hero $72K, core $36K), promo badge $72K, deal page $48K, suppressed offers $60K, shipping $24K. Profit recovery (claims) and autopilot (recurring, sized from history) unchanged.
 - Ops open $3.2M → $1.1M; pipeline $6.8M → $4.7M; bridge One approval away $3.6M → $1.5M; total $52.7M vs $52M plan. "Losing $X a day" and the email read `perDay`.
 - One framework for all levers (run rate includes normal incidents; open work; autopilot for recurring types; delivered by method; expired). No separate forecast line.
+
+## Michelle's Ops view rebuilt on Mike's design
+- Rail: `OpsListItem` mirrors Mike's batch row: type · tier, value, issue, "N SKUs ▾" opening the SKUs under it (thumbnail, ASIN, name, check when reviewed). `opsSkus()` gives every issue its SKUs (buy box from seller evidence, the rest from `skuList`).
+- Issue pane: what Ally found (skills), drafted email, then the action: core "Send · N SKUs" with the no-hero line and "Or review all N one by one", hero "Review N SKUs"; "Review sample SKU" opens one SKU inline with the same next step.
+- SKU pane (`OpsSkuPane`): back to the issue, SKU header, gap to plan for that SKU, evidence; hero footer "Looks right · next SKU" until all are checked, then Send; core footer sends all.
+- "Review N SKUs" opens the first SKU, expands the list and scrolls to the queue. The rail's Issues / Brand & category toggle is removed; the Business view replaces it next.

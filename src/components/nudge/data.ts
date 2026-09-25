@@ -276,7 +276,8 @@ export function opsBatches(policy?: Policy): OpsBatch[] {
     const bulk = plan.bulk.skus + plan.autopilot.skus
     const tiersIn = (ids: SkuTier[]) => (b.sellerSkus ?? []).filter((x) => ids.includes(x.tier))
     const eachTiers = TIERS.filter((t) => plan.each.byTier[t]) as SkuTier[]
-    const bulkTiers = TIERS.filter((t) => !eachTiers.includes(t)) as SkuTier[]
+    // Only tiers that have SKUs in this item name it ("Core", not "Core and Tail" when tail is empty).
+    const bulkTiers = TIERS.filter((t) => !eachTiers.includes(t) && b.split!.tiers[t].skus > 0) as SkuTier[]
     const label = (tiers: SkuTier[]) => (tiers.length === 1 ? TIER_INFO[tiers[0]].label : undefined)
     const part = (id: string, skus: number, value: number, mode: ReviewMode, tiers: SkuTier[], extra: Partial<OpsBatch> = {}): OpsBatch => ({
       ...b,
@@ -450,6 +451,8 @@ export interface OpsBatch {
   split?: import("./policy").TierSplit
   /** Per-SKU evidence for buy-box items: who's winning, at what price, crawl by crawl. */
   sellerSkus?: SellerSku[]
+  /** The SKUs under any other issue, each with what Ally saw on it. */
+  skuList?: { asin: string; name: string; note: string[] }[]
   /** The escalation Ally drafted for the person who can fix it (sent from the pane; mock). */
   email?: { to: string; role: string; subject: string; body: string }
   /** How this part ships under the review policy (set on policy parts). */
@@ -497,6 +500,12 @@ function buyBoxSku(asin: string, name: string, tier: SellerSku["tier"], price: n
  * × the 12 days sooner. The same method measures what it delivered.
  */
 export const OPS_DAYS_SAVED = 12
+
+/** An ops item's SKUs as the rail lists them: buy-box SKUs from their seller evidence, the rest from skuList. */
+export function opsSkus(b: OpsBatch): { asin: string; name: string; note: string[] }[] {
+  if (b.sellerSkus?.length) return b.sellerSkus.map((x) => ({ asin: x.asin, name: x.name, note: [] }))
+  return b.skuList ?? []
+}
 const withLeakage = (b: OpsBatch): OpsBatch => {
   if (!b.perDay) return b
   const v = +(b.perDay * OPS_DAYS_SAVED).toFixed(3)
@@ -553,6 +562,11 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "promo-badge",
+    skuList: [
+      { asin: "B08NF9KBZ4", name: "Aurelle Noir Cherry Large Jar, 22 oz", note: ["Deal live Oct 1–31", "Badge not showing", "$30.40 vs $38.00 list; the 20% off isn't shown"] },
+      { asin: "B00FLYWNYQ", name: "Aurelle Coastal Linen Large Jar, 22 oz", note: ["Deal live Oct 1–31", "Badge not showing", "$30.40 vs $38.00 list"] },
+      { asin: "B0BCM08080", name: "Bright Citrus Mini Jar, 8 oz", note: ["Deal live Oct 1–31", "Strike-through price missing"] },
+    ],
     perDay: 0.006,
     tier: "approval",
     type: "Promotions",
@@ -581,6 +595,11 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "deal-page",
+    skuList: [
+      { asin: "B07GR5MSKD", name: "Aurelle Amber Floral Soy Jar, 16 oz", note: ["Deal active", "Not listed on the deals page"] },
+      { asin: "B09HWCD118", name: "Hearthwood Cedar & Smoke Jar, 18 oz", note: ["Deal active", "Not listed on the deals page"] },
+      { asin: "B0ATT30313", name: "Aurelle Travel Tin Trio", note: ["Deal active", "Listed only on page 4 of the deals page"] },
+    ],
     perDay: 0.004,
     tier: "approval",
     type: "Promotions",
@@ -603,6 +622,10 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "oos",
+    skuList: [
+      { asin: "B00FLYWNYQ", name: "Aurelle Coastal Linen Large Jar, 22 oz", note: ["2,400 units at the DC", "Page unavailable in 76% of crawls", "Offer suppressed Sep 30"] },
+      { asin: "B0BCM08080", name: "Bright Citrus Mini Jar, 8 oz", note: ["900 units at the DC", "Page unavailable in 64% of crawls"] },
+    ],
     perDay: 0.005,
     tier: "approval",
     type: "Listings",
@@ -625,6 +648,10 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "shipping",
+    skuList: [
+      { asin: "B0ATT30313", name: "Aurelle Travel Tin Trio", note: ["Standard 4.5 days vs Prime 1.1 days", "Slower in 8 of 12 ZIPs"] },
+      { asin: "B0BCM08080", name: "Bright Citrus Mini Jar, 8 oz", note: ["Standard 4.2 days vs Prime 1.2 days", "Slower in 6 of 12 ZIPs"] },
+    ],
     perDay: 0.002,
     tier: "approval",
     type: "Shipping",

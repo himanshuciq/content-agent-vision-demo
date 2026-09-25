@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import { AskBar, ChatProvider, ChatThread, useChat, useChatSource } from "@/components/nudge/chat/inline-chat"
-import { GapDiagnostic, GapTree } from "@/components/nudge/ops/gap-view"
+import { useRef, useState } from "react"
+import { toast } from "sonner"
+import { AskBar, ChatProvider, ChatThread, useChatSource } from "@/components/nudge/chat/inline-chat"
+import { OpsSkuPane } from "@/components/nudge/ops/ops-sku-pane"
 import { PageShell } from "@/components/layout/page-shell"
 import { MichelleHeader } from "@/components/nudge/ops/michelle-header"
 import { OpsProgress } from "@/components/nudge/ops/ops-progress"
@@ -12,7 +12,7 @@ import { OpsBatchDetail } from "@/components/nudge/ops/ops-batch-detail"
 import { OpsDelivered } from "@/components/nudge/ops/ops-delivered"
 import { MICHELLE_QUESTIONS, michelleAnswer } from "@/components/nudge/ask-ally-personas"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
-import { opsBatches } from "@/components/nudge/data"
+import { opsBatches, opsSkus } from "@/components/nudge/data"
 import { useNudge } from "@/components/nudge/nudge-context"
 import type { OpsBatch } from "@/components/nudge/data"
 
@@ -39,10 +39,6 @@ export default function MichellePage() {
 }
 
 function Michelle() {
-  const { clear } = useChat()
-  // Issues is the queue; Brand & category is gap to plan, computed on every node.
-  const [mode, setMode] = useState<"issues" | "gap">("issues")
-  const [nodeId, setNodeId] = useState("overall")
   const { approve, policy } = useNudge()
   const OPS_BATCHES = opsBatches(policy)
   // Open on the top of the inbox: the most valuable item one approval away.
@@ -50,6 +46,43 @@ function Michelle() {
   const [celebrate, setCelebrate] = useState<{ value: number; label: string } | null>(null)
 
   const selected = OPS_BATCHES.find((b) => b.id === selectedId) ?? OPS_BATCHES[0]
+  // Same model as Mike's page: a SKU open side by side, its issue's list open in the rail.
+  const [selectedSku, setSelectedSku] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  // One-by-one review: which SKUs of each issue are checked.
+  const [checked, setChecked] = useState<Record<string, Record<string, boolean>>>({})
+  const queueRef = useRef<HTMLDivElement>(null)
+
+  function scrollToQueue() {
+    window.setTimeout(() => {
+      const top = queueRef.current ? queueRef.current.getBoundingClientRect().top + window.scrollY - 16 : 0
+      window.scrollTo({ top, behavior: "smooth" })
+      window.setTimeout(() => {
+        if (Math.abs(window.scrollY - top) > 4) window.scrollTo({ top })
+      }, 600)
+    }, 50)
+  }
+
+  function selectBatch(id: string) {
+    setSelectedId(id)
+    setSelectedSku(null)
+  }
+
+  /** "Review N SKUs": the first SKU side by side, the list open on the left. */
+  function reviewAll(batch: OpsBatch) {
+    const first = opsSkus(batch)[0]
+    setSelectedId(batch.id)
+    setSelectedSku(first?.asin ?? null)
+    setExpandedId(batch.id)
+    scrollToQueue()
+  }
+
+  function check(asin: string) {
+    const skus = opsSkus(selected)
+    setChecked((c) => ({ ...c, [selected.id]: { ...(c[selected.id] ?? {}), [asin]: true } }))
+    const next = skus[skus.findIndex((s) => s.asin === asin) + 1]
+    if (next) setSelectedSku(next.asin)
+  }
 
   function celebrateFor(batches: OpsBatch[]) {
     const one = batches.length === 1 ? batches[0] : null
@@ -61,6 +94,7 @@ function Michelle() {
   function handleAction(batch: OpsBatch) {
     approve(batch.id)
     celebrateFor([batch])
+    if (batch.email) toast.success(`Sent to ${batch.email.to}, ${batch.email.role} · evidence attached`, { position: "top-right" })
   }
 
   function handleApproveAll(batches: OpsBatch[]) {
@@ -73,64 +107,30 @@ function Michelle() {
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <MichelleHeader />
         <OpsProgress celebrate={celebrate} />
-        <div className="grid grid-cols-[340px_minmax(0,1fr)]">
+        <div ref={queueRef} className="grid grid-cols-[340px_minmax(0,1fr)]">
           <div className="border-r border-slate-200 bg-white">
-            <div className="flex gap-1 border-b border-slate-200 p-2">
-              {(
-                [
-                  ["issues", "Issues"],
-                  ["gap", "Brand & category"],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => {
-                    clear()
-                    setMode(id)
-                  }}
-                  className={cn(
-                    "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                    mode === id ? "bg-slate-100 text-slate-950 ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-800",
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {mode === "issues" ? (
-              <OpsBatchList selectedId={selectedId} onSelect={setSelectedId} onApproveAll={handleApproveAll} />
-            ) : (
-              <GapTree
-                selected={nodeId}
-                onSelect={(id) => {
-                  clear()
-                  setNodeId(id)
-                }}
-              />
-            )}
-          </div>
-          {mode === "issues" ? (
-            <OpsBatchDetail batch={selected} onAction={handleAction} />
-          ) : (
-            <GapDiagnostic
-              nodeId={nodeId}
-              onInbox={(batchId) => {
-                // A recommendation that's already a drafted item opens it in the queue.
-                clear()
-                setMode("issues")
-                setSelectedId(OPS_BATCHES.find((b) => b.id === batchId)?.id ?? OPS_BATCHES.find((b) => batchId.startsWith(b.id))?.id ?? selectedId)
-                window.scrollTo({ top: 0, behavior: "smooth" })
+            <OpsBatchList
+              selectedId={selectedId}
+              selectedSku={selectedSku}
+              expandedId={expandedId}
+              checked={checked}
+              onToggleExpand={(id) => setExpandedId((e) => (e === id ? null : id))}
+              onSelect={selectBatch}
+              onSelectSku={(batchId, asin) => {
+                setSelectedId(batchId)
+                setSelectedSku(asin)
               }}
+              onApproveAll={handleApproveAll}
             />
+          </div>
+          {selectedSku ? (
+            <OpsSkuPane batch={selected} asin={selectedSku} checked={checked[selected.id] ?? {}} onBack={() => setSelectedSku(null)} onCheck={check} onSend={handleAction} />
+          ) : (
+            <OpsBatchDetail batch={selected} onAction={handleAction} onReviewAll={reviewAll} />
           )}
         </div>
-        {mode === "issues" && (
-          <>
-            <InboxChat />
-            <ChatThread />
-          </>
-        )}
+        <InboxChat />
+        <ChatThread />
         <OpsDelivered />
         {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
         <div className="flex justify-end px-10 pb-24 opacity-50 hover:opacity-100">

@@ -3,7 +3,10 @@
 import { useState } from "react"
 import { Check, ChevronDown, Mail, Paperclip, Pencil, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { candleThumbnail } from "@/lib/candle-thumbnails"
+import { opsSkus } from "../data"
 import type { OpsBatch, SellerSku } from "../data"
+import { Points } from "../points"
 
 /** "Found by 3 skills · Show steps": what Ally ran to find and size the issue, collapsed by default. */
 export function SkillsTrace({ skills }: { skills: NonNullable<OpsBatch["skills"]> }) {
@@ -129,6 +132,37 @@ export function EmailDraft({ email, fill }: { email: NonNullable<OpsBatch["email
             </span>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+/** A SKU's header in the pane: thumbnail, ASIN, name. */
+export function SkuHeader({ asin, name, label }: { asin: string; name: string; label?: string }) {
+  return (
+    <div className="flex items-center gap-4">
+      <img src={candleThumbnail(asin)} alt={name} className="size-12 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-slate-200" />
+      <div className="min-w-0">
+        <div className="font-mono text-xs text-slate-500">
+          {label ? `${label} · ` : ""}
+          {asin}
+        </div>
+        <div className="mt-0.5 text-lg font-semibold tracking-tight text-slate-950">{name}</div>
+      </div>
+    </div>
+  )
+}
+
+/** What Ally saw on one SKU: the seller comparison for buy-box issues, else its notes. */
+export function SkuEvidence({ batch, asin }: { batch: OpsBatch; asin: string }) {
+  const seller = batch.sellerSkus?.find((x) => x.asin === asin)
+  if (seller) return <SellerEvidence sku={seller} />
+  const sku = opsSkus(batch).find((x) => x.asin === asin)
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200">
+      <div className="border-b border-slate-100 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-950">What Ally saw on this SKU</div>
+      <div className="px-5 py-4">
+        <Points items={sku?.note ?? []} />
       </div>
     </div>
   )

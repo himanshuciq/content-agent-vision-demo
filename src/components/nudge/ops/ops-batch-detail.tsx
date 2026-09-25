@@ -1,19 +1,21 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Check, RefreshCw, Search } from "lucide-react"
+import { ArrowRight, Check, ChevronDown, RefreshCw, Search } from "lucide-react"
 import { toast } from "sonner"
 import { useNudge } from "../nudge-context"
-import { PRIMARY } from "../mike/buttons"
-import { OPS_DAYS_SAVED, fmtValue } from "../data"
+import { PRIMARY, SECONDARY } from "../mike/buttons"
+import { OPS_DAYS_SAVED, fmtValue, opsSkus } from "../data"
 import type { OpsBatch } from "../data"
-import { EmailDraft, SellerEvidence, SkillsTrace } from "./ops-evidence"
+import { EmailDraft, SkillsTrace, SkuEvidence, SkuHeader } from "./ops-evidence"
 import { ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface OpsBatchDetailProps {
   batch: OpsBatch
   onAction: (batch: OpsBatch) => void
+  /** Open the first SKU side by side, its list open in the rail. */
+  onReviewAll: (batch: OpsBatch) => void
 }
 
 /** A field only Michelle's team can fill: what Ally drafted, then a full-width box. Same look as Mike's input fields. */
@@ -41,27 +43,21 @@ function InputRow({ item }: { item: NonNullable<OpsBatch["inputs"]>[number] }) {
  * sign-off Ally sends for you. Needs your input: review the items only your team
  * can answer, then send them to Ally. On autopilot: nothing to do.
  */
-export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
+export function OpsBatchDetail({ batch, onAction, onReviewAll }: OpsBatchDetailProps) {
   const { approved } = useNudge()
   const done = !!approved[batch.id]
   const [reviewing, setReviewing] = useState(false)
-  const skus = batch.sellerSkus ?? []
-  const [skuIdx, setSkuIdx] = useState(0)
-  // One-by-one items: every SKU gets its own look before the escalation goes.
-  const [checked, setChecked] = useState<Record<string, boolean>>({})
+  const skus = opsSkus(batch)
+  const sample = skus[0]
+  const [showSample, setShowSample] = useState(false)
   useEffect(() => {
     setReviewing(false)
-    setSkuIdx(0)
-    setChecked({})
+    setShowSample(false)
   }, [batch.id])
-  const sku = skus[Math.min(skuIdx, skus.length - 1)]
   const each = batch.mode === "each"
-  const allChecked = skus.every((x) => checked[x.asin])
   const daily = fmtValue(batch.perDay ?? batch.approveValue / OPS_DAYS_SAVED)
-  function send() {
-    onAction(batch)
-    toast.success(batch.email ? `Sent to ${batch.email.to}, ${batch.email.role} · evidence attached` : batch.doneLabel, { position: "top-right" })
-  }
+  // The page confirms the send (same toast from the issue pane and the SKU pane).
+  const send = () => onAction(batch)
 
   return (
     <div className="flex min-w-0 flex-col px-10 py-8">
@@ -151,66 +147,66 @@ export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
-            {sku && (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="mr-1 text-sm font-medium text-slate-500">SKUs ({skus.length})</span>
-                  {skus.map((x, i) => (
-                    <button
-                      key={x.asin}
-                      type="button"
-                      onClick={() => setSkuIdx(i)}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
-                        i === skuIdx ? "border-slate-300 bg-slate-100 text-slate-950" : "border-slate-200 text-slate-600 hover:border-slate-300",
-                      )}
-                    >
-                      {checked[x.asin] && <Check className="size-3.5 text-success-600" />}
-                      {x.name.split(",")[0]}
-                    </button>
-                  ))}
-                </div>
-                <div className="text-xs text-slate-500">
-                  <span className="font-mono">{sku.asin}</span> · {sku.name}
-                </div>
-                <SellerEvidence sku={sku} />
-                {each && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setChecked((c) => ({ ...c, [sku.asin]: true }))
-                      if (skuIdx < skus.length - 1) setSkuIdx(skuIdx + 1)
-                    }}
-                    disabled={!!checked[sku.asin]}
-                    className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-medium text-slate-800 hover:border-brand-300 hover:text-brand-700 disabled:border-success-200 disabled:bg-success-50 disabled:text-success-700"
-                  >
-                    <Check className="size-4" />
-                    {checked[sku.asin] ? "Checked" : skuIdx < skus.length - 1 ? "Looks right · next SKU" : "Looks right"}
+          <div className="flex flex-col gap-8">
+            {batch.email && <EmailDraft key={batch.id} email={batch.email} fill={{ n: String(batch.skus), daily }} />}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {each ? (
+                  <button type="button" onClick={() => onReviewAll(batch)} className={PRIMARY}>
+                    Review {batch.skus} SKUs
+                  </button>
+                ) : (
+                  <button type="button" onClick={send} className={PRIMARY}>
+                    {batch.action} · {batch.skus} SKUs
+                  </button>
+                )}
+                {sample && (
+                  <button type="button" onClick={() => setShowSample((v) => !v)} className={SECONDARY}>
+                    {showSample ? "Hide sample" : "Review sample SKU"}
+                    <ChevronDown className={cn("size-4 text-slate-400 transition-transform", showSample && "rotate-180")} />
                   </button>
                 )}
               </div>
-            )}
-            {batch.email && <EmailDraft key={batch.id} email={batch.email} fill={{ n: String(batch.skus), daily }} />}
-            <div className="flex flex-col gap-3">
               {batch.reassure && (
                 <div className="flex items-center gap-2 text-sm text-slate-700">
                   <ShieldCheck className="size-4 shrink-0 text-success-600" />
                   {batch.reassure}
                 </div>
               )}
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="button" onClick={send} disabled={each && !allChecked} className={cn(PRIMARY, "disabled:opacity-50")}>
-                  {batch.action}
-                  {each ? ` · ${batch.skus} hero SKUs` : ""}
+              {!each && skus.length > 1 && (
+                <button type="button" onClick={() => onReviewAll(batch)} className="inline-flex w-fit items-center gap-1 text-sm text-slate-500 transition-colors hover:text-brand-700">
+                  Or review all {batch.skus} SKUs one by one
+                  <ArrowRight className="size-3.5" />
                 </button>
-                {each && !allChecked && (
-                  <span className="text-sm text-slate-500">
-                    Check each hero SKU first · {skus.filter((x) => checked[x.asin]).length} of {skus.length}
-                  </span>
-                )}
-              </div>
+              )}
             </div>
+            {showSample && sample && (
+              <div className="border-t border-slate-100 pt-8">
+                <SkuHeader asin={sample.asin} name={sample.name} label="Sample" />
+                <div className="mt-4">
+                  <SkuEvidence batch={batch} asin={sample.asin} />
+                </div>
+                <div className="mt-6 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
+                  {each ? (
+                    <>
+                      <div className="text-sm font-semibold text-slate-950">
+                        This is 1 of {batch.skus} {batch.partLabel ? `${batch.partLabel.toLowerCase()} SKUs` : "SKUs"}. Your review policy has you check them one by one.
+                      </div>
+                      <button type="button" onClick={() => onReviewAll(batch)} className={cn(PRIMARY, "w-fit")}>
+                        Review {batch.skus} SKUs
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.skus - 1} SKUs have the same issue.</div>
+                      <button type="button" onClick={send} className={cn(PRIMARY, "w-fit")}>
+                        {batch.action} · {batch.skus} SKUs
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
