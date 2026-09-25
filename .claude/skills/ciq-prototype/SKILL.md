@@ -97,8 +97,8 @@ Full table in the project's `design-specs.md` under "Number and Color Rules".
   - earn their place; execs dislike new visualization types, so prefer a headline number
   - a bridge or waterfall has a plan line and gray totals
   - comparisons use a filled track with a benchmark tick, so the gap reads without math
-- **Color is a hint, never a fill.** Mark a group with a small dot in its bucket color. No tinted headers, no colored side bars, no chips on tinted backgrounds. One strong color per area at most.
-- **Say a shared fact once.** A deadline every item shares goes in the group header as plain amber text ("Expires Oct 8 · 18 days"), not as a chip on each item.
+- **Buckets read as clear sections:** a tinted header band plus a colored edge in the bucket's color, and a line saying what the bucket means. Items sit on white with a neutral selection, so bucket color never clashes with a selected item or an amber deadline. No chips on tinted backgrounds.
+- **Deadlines belong to each item.** Show "Expires in 18 days" on every item that expires, as amber text (not a filled chip). Never lift it to the group, because in real data one item may expire and the next may not.
 - **Disclosure arrows at the leading edge** (a chevron before the name that rotates when open), so the right edge holds only values and actions. Rows without one are indented to line up.
 - **Labels don't repeat the row.** Write "Nudge", not "Nudge Mike", when the row already names Mike.
 - **Floating Ask Ally bar** on every page, with page-specific questions answered from that page's numbers. It collapses on outside click. Leave bottom padding so it doesn't cover content.
