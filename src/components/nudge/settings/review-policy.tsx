@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils"
 import { BATCHES } from "../data"
 import { useNudge } from "../nudge-context"
 import { PRIMARY, SECONDARY } from "../mike/buttons"
-import { BRANDS, MODES, MODE_LABEL, RETAILERS, SKU_GROUPS, TIERS, TIER_INFO, shipPlan } from "../policy"
-import type { Policy, ReviewMode, ReviewRule, SkuTier } from "../policy"
+import { BRANDS, FIELDS, FIELD_LABEL, MODES, MODE_LABEL, RETAILERS, SKU_GROUPS, TIERS, TIER_INFO, shipPlan } from "../policy"
+import type { Field, Policy, ReviewMode, ReviewRule, SkuTier } from "../policy"
 import { MultiPicker, ScopeChips, SinglePicker } from "./scope-picker"
 
 const money = (v: number) => (v >= 0.9995 ? `$${(Math.round(v * 10) / 10).toFixed(1)}M` : `$${Math.round(v * 1000)}K`)
@@ -31,23 +31,6 @@ function ModeSwitch({ value, onChange }: { value: ReviewMode; onChange: (m: Revi
         </button>
       ))}
     </div>
-  )
-}
-
-function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
-  return (
-    <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-950">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
-        onClick={() => onChange(!on)}
-        className={cn("relative h-5 w-9 shrink-0 rounded-full transition-colors", on ? "bg-brand-500" : "bg-slate-300")}
-      >
-        <span className={cn("absolute top-0.5 size-4 rounded-full bg-white shadow-xs transition-all", on ? "left-4.5" : "left-0.5")} />
-      </button>
-      {label}
-    </label>
   )
 }
 
@@ -81,8 +64,8 @@ function effectLine(saved: Policy, draft: Policy) {
 }
 
 /**
- * The Review policy tab: tier defaults, two optional review switches, and review
- * rules for a scope, shown like the Knowledge page. Changes preview their effect
+ * The Review policy tab: tier defaults, and review rules for a scope (and
+ * optionally one field), shown like the Knowledge page. Changes preview their effect
  * on today's work before saving.
  */
 export function ReviewPolicy() {
@@ -90,11 +73,12 @@ export function ReviewPolicy() {
   const [draft, setDraft] = useState<Policy>(policy)
   useEffect(() => setDraft(policy), [policy])
 
-  const [scope, setScope] = useState<{ retailer: string; brands: string[]; skuGroups: string[]; tier: string; mode: ReviewMode }>({
+  const [scope, setScope] = useState<{ retailer: string; brands: string[]; skuGroups: string[]; tier: string; field: string; mode: ReviewMode }>({
     retailer: "Amazon",
     brands: [],
     skuGroups: [],
     tier: "any",
+    field: "any",
     mode: "each",
   })
   const dirty = JSON.stringify(draft) !== JSON.stringify(policy)
@@ -106,6 +90,7 @@ export function ReviewPolicy() {
       brands: scope.brands,
       skuGroups: scope.skuGroups,
       tier: scope.tier === "any" ? undefined : (scope.tier as SkuTier),
+      field: scope.field === "any" ? undefined : (scope.field as Field),
       mode: scope.mode,
       author: "Claire Bennett",
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
@@ -143,19 +128,8 @@ export function ReviewPolicy() {
 
       <section className={CARD}>
         <div className={TITLE_BAR}>
-          <div className="text-lg font-semibold text-slate-950">Also review, for every SKU</div>
-          <div className="mt-0.5 text-sm text-slate-500">Optional. Any change that touches these goes to review, whatever the tier.</div>
-        </div>
-        <div className="flex flex-wrap gap-x-10 gap-y-3 px-6 py-4">
-          <Toggle on={draft.reviewTitles} onChange={(v) => setDraft({ ...draft, reviewTitles: v })} label="Every title change" />
-          <Toggle on={draft.reviewImages} onChange={(v) => setDraft({ ...draft, reviewImages: v })} label="Every main image change" />
-        </div>
-      </section>
-
-      <section className={CARD}>
-        <div className={TITLE_BAR}>
           <div className="text-lg font-semibold text-slate-950">Review rules</div>
-          <div className="mt-0.5 text-sm text-slate-500">For a brand, SKU group or tier that needs different handling. The most specific rule wins.</div>
+          <div className="mt-0.5 text-sm text-slate-500">For a scope or field that needs different handling. The most specific rule wins. A title or image rule only adds review.</div>
         </div>
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-6 py-4">
           <SinglePicker label="Retailer" value={scope.retailer} options={RETAILERS.map((r) => ({ id: r, label: r }))} onChange={(v) => setScope({ ...scope, retailer: v })} />
@@ -166,6 +140,12 @@ export function ReviewPolicy() {
             value={scope.tier}
             options={[{ id: "any", label: "Every tier" }, ...TIERS.map((t) => ({ id: t, label: TIER_INFO[t].label }))]}
             onChange={(v) => setScope({ ...scope, tier: v })}
+          />
+          <SinglePicker
+            label="Changes"
+            value={scope.field}
+            options={[{ id: "any", label: "Any change" }, ...FIELDS.map((f) => ({ id: f, label: FIELD_LABEL[f] }))]}
+            onChange={(v) => setScope({ ...scope, field: v })}
           />
           <span className="px-1 text-sm text-slate-400">→</span>
           <SinglePicker label="Mode" value={scope.mode} options={MODES.map((m) => ({ id: m, label: MODE_LABEL[m] }))} onChange={(v) => setScope({ ...scope, mode: v as ReviewMode })} />
@@ -187,6 +167,7 @@ export function ReviewPolicy() {
                     ...(r.brands.length ? r.brands : ["All brands"]),
                     ...(r.skuGroups.length ? r.skuGroups : []),
                     r.tier ? TIER_INFO[r.tier].label : "Every tier",
+                    r.field ? FIELD_LABEL[r.field] : "Any change",
                   ]}
                 />
                 <div className="mt-1.5 text-[15px] font-semibold text-slate-950">{MODE_LABEL[r.mode]}</div>

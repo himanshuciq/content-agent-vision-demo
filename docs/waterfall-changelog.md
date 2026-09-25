@@ -163,3 +163,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
   - a save bar that previews the effect on today's work ("Saving puts 394 more SKUs (+$590K) on autopilot")
 - **Settings → Knowledge:** a simple version of the product's Knowledge page on this design system.
 - The policy is saved with the demo state (Reset restores the defaults). Model in `policy.ts`; Mike's two approval batches carry SKU splits by tier (mock).
+
+## Review policy: title and image review folded into Review rules
+- Removed the "Also review, for every SKU" switches. A review rule now has a "Changes" picker: Any change, Title changes, Main image changes.
+- `Policy` drops `reviewTitles` / `reviewImages`; `ReviewRule` gains optional `field`. A field rule applies only to changes touching that field and takes the stricter of its mode and the SKU's mode, so it only adds review.
+- `shipPlan` pulls touched SKUs into the stricter field-rule mode per tier. Same numbers as the old switch for an "Amazon · All brands · Every tier · Title changes → Review each" rule.

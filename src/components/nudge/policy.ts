@@ -1,9 +1,9 @@
 /**
  * Review policy: how much a person reviews depends on how much a SKU matters.
- * SKU tiers come from revenue; each tier has a default mode; two optional
- * switches send every title or main-image change to review; review rules
+ * SKU tiers come from revenue; each tier has a default mode; review rules
  * override for a scope (retailer, brands, SKU groups, tier). The most specific
- * rule wins. "Needs your input" is not a mode: it's a state of the work.
+ * rule wins. A rule can name a field (title, main image): changes touching it
+ * take the stricter of the SKU's mode and the rule's, so it only adds review. "Needs your input" is not a mode: it's a state of the work.
  */
 
 export type SkuTier = "hero" | "core" | "tail"
@@ -12,6 +12,12 @@ export type ReviewMode = "each" | "bulk" | "autopilot"
 export const MODE_LABEL: Record<ReviewMode, string> = { each: "Review each", bulk: "Approve in bulk", autopilot: "Autopilot" }
 export const MODES: ReviewMode[] = ["each", "bulk", "autopilot"]
 export const TIERS: SkuTier[] = ["hero", "core", "tail"]
+
+export type Field = "title" | "image"
+export const FIELD_LABEL: Record<Field, string> = { title: "Title changes", image: "Main image changes" }
+export const FIELDS: Field[] = ["title", "image"]
+/** Higher is stricter: more human review. */
+const STRICTNESS: Record<ReviewMode, number> = { autopilot: 0, bulk: 1, each: 2 }
 
 /** Tier definitions by share of sales, and the catalog's current size in each (mock). */
 export const TIER_INFO: Record<SkuTier, { label: string; band: string; skus: number; share: number }> = {
@@ -30,6 +36,8 @@ export interface ReviewRule extends Scope {
   id: string
   /** Undefined = every tier. */
   tier?: SkuTier
+  /** Undefined = any change. */
+  field?: Field
   mode: ReviewMode
   author: string
   date: string
@@ -44,8 +52,6 @@ export interface KnowledgeEntry extends Scope {
 
 export interface Policy {
   tiers: Record<SkuTier, ReviewMode>
-  reviewTitles: boolean
-  reviewImages: boolean
   rules: ReviewRule[]
 }
 
@@ -55,8 +61,6 @@ export const SKU_GROUPS = ["Jar candles", "Gift sets", "Pillar candles", "Travel
 
 export const DEFAULT_POLICY: Policy = {
   tiers: { hero: "each", core: "bulk", tail: "autopilot" },
-  reviewTitles: false,
-  reviewImages: false,
   rules: [
     { id: "r1", retailer: "Amazon", brands: ["Hearthwood"], skuGroups: [], tier: "core", mode: "each", author: "Claire Bennett", date: "Sep 22, 2026" },
   ],
@@ -86,11 +90,14 @@ export const DEFAULT_KNOWLEDGE: KnowledgeEntry[] = [
 /** How specific a rule is: SKU groups beat brands, brands beat retailer-only. */
 const specificity = (r: ReviewRule) => (r.skuGroups.length ? 4 : 0) + (r.brands.length ? 2 : 0) + (r.tier ? 1 : 0)
 
-/** The rule that governs a SKU, if any: matching scope, most specific first, newest on a tie. */
-export function ruleFor(policy: Policy, sku: { retailer: string; brand: string; skuGroup: string; tier: SkuTier }) {
+type SkuKey = { retailer: string; brand: string; skuGroup: string; tier: SkuTier }
+
+/** The rule that governs a SKU (or one field of it), if any: matching scope, most specific first, newest on a tie. */
+export function ruleFor(policy: Policy, sku: SkuKey, field?: Field) {
   return policy.rules
     .filter(
       (r) =>
+        r.field === field &&
         r.retailer === sku.retailer &&
         (r.brands.length === 0 || r.brands.includes(sku.brand)) &&
         (r.skuGroups.length === 0 || r.skuGroups.includes(sku.skuGroup)) &&
@@ -100,7 +107,7 @@ export function ruleFor(policy: Policy, sku: { retailer: string; brand: string; 
 }
 
 /** The mode for a SKU: its rule if one matches, else its tier's default. */
-export function modeFor(policy: Policy, sku: { retailer: string; brand: string; skuGroup: string; tier: SkuTier }): ReviewMode {
+export function modeFor(policy: Policy, sku: SkuKey): ReviewMode {
   return ruleFor(policy, sku)?.mode ?? policy.tiers[sku.tier]
 }
 
@@ -116,9 +123,9 @@ export interface TierSplit {
 }
 
 /**
- * How a batch ships under a policy: SKUs and value per mode. The title and image
- * switches pull the SKUs whose change touches that field into "Review each",
- * in proportion within each tier.
+ * How a batch ships under a policy: SKUs and value per mode. A field rule that
+ * is stricter than the SKU's mode pulls the SKUs whose change touches that
+ * field into the rule's mode, in proportion within each tier.
  */
 export function shipPlan(policy: Policy, split: TierSplit) {
   const out: Record<ReviewMode, { skus: number; value: number; byTier: Partial<Record<SkuTier, number>> }> = {
@@ -126,22 +133,31 @@ export function shipPlan(policy: Policy, split: TierSplit) {
     bulk: { skus: 0, value: 0, byTier: {} },
     autopilot: { skus: 0, value: 0, byTier: {} },
   }
-  const total = TIERS.reduce((n, t) => n + split.tiers[t].skus, 0)
-  const fieldShare = Math.min(
-    1,
-    Math.max(policy.reviewTitles ? split.titleSkus : 0, policy.reviewImages ? split.imageSkus : 0) / Math.max(total, 1),
-  )
+  const total = Math.max(TIERS.reduce((n, t) => n + split.tiers[t].skus, 0), 1)
+  const touched: Record<Field, number> = { title: split.titleSkus, image: split.imageSkus }
   for (const tier of TIERS) {
     const { skus, value } = split.tiers[tier]
-    const mode = modeFor(policy, { ...split, tier })
-    const pulled = mode === "each" ? 0 : Math.round(skus * fieldShare)
-    const add = (m: ReviewMode, n: number, v: number) => {
+    if (!skus) continue
+    const sku = { ...split, tier }
+    const mode = modeFor(policy, sku)
+    // Stricter field rules for this SKU; SKUs touching several fields go to the strictest.
+    const stricter = FIELDS.map((f) => ({ f, mode: ruleFor(policy, sku, f)?.mode }))
+      .filter((x): x is { f: Field; mode: ReviewMode } => !!x.mode && STRICTNESS[x.mode] > STRICTNESS[mode])
+    const add = (m: ReviewMode, n: number) => {
+      if (!n) return
       out[m].skus += n
-      out[m].value += v
+      out[m].value += (value * n) / skus
       out[m].byTier[tier] = (out[m].byTier[tier] ?? 0) + n
     }
-    if (pulled) add("each", pulled, (value * pulled) / skus)
-    if (skus - pulled) add(mode, skus - pulled, (value * (skus - pulled)) / skus)
+    let pulled = 0
+    for (const m of MODES.filter((m) => stricter.some((x) => x.mode === m))) {
+      // MODES runs strictest first, so each mode gets what a stricter one hasn't taken.
+      const share = Math.min(1, Math.max(...stricter.filter((x) => STRICTNESS[x.mode] >= STRICTNESS[m]).map((x) => touched[x.f])) / total)
+      const n = Math.round(skus * share) - pulled
+      add(m, n)
+      pulled += Math.max(n, 0)
+    }
+    add(mode, skus - pulled)
   }
   return out
 }
