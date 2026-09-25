@@ -841,8 +841,8 @@ const SNAPSHOT: Snapshot = {
   asOf: AS_OF,
   people: {
     claire: { name: "Claire" },
-    mike: { name: "Mike", lever: "content" },
-    michelle: { name: "Michelle", lever: "ops" },
+    mike: { name: "Mike", lever: "content", page: "/mike" },
+    michelle: { name: "Michelle", lever: "ops", page: "/michelle" },
     james: { name: "James", lever: "media" },
   },
   items: [
@@ -907,6 +907,11 @@ function shareIn(item: WorkItem, period: Period) {
   const total = Math.max(daysUntil(ends, AS_OF), 1)
   const within = Math.max(Math.min(daysUntil(periodEnd(period), AS_OF), total), 0)
   return within / total
+}
+
+/** The page of the person who owns a lever, if they have one. */
+export function ownerPage(lever: AgentId): string | undefined {
+  return Object.values(SNAPSHOT.people).find((p) => p.lever === lever)?.page
 }
 
 /**

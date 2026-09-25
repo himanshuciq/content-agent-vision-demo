@@ -9,6 +9,7 @@ import { tierView } from "../data"
 import { useLive } from "../live-model"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
+import { OwnerName } from "../owner-name"
 import { AGENT_LABEL, type AgentId, type NudgeKey, type TierRow } from "../types"
 
 /** Content first for the demo, then the rest. */
@@ -60,7 +61,7 @@ function AreaGroup({ agent, buckets, value }: { agent: AgentId; buckets: { label
           <ChevronRight className={cn("-ml-1 size-4 text-slate-400 transition-transform", open && "rotate-90")} />
           <span className={`size-2 rounded-sm ${AGENT_DOT[agent]}`} />
           <span className="font-medium text-slate-950">{AGENT_LABEL[agent]}</span>
-          {owner && <span className="text-slate-500">{owner}</span>}
+          {owner && <OwnerName lever={agent} name={owner} className="font-normal text-slate-500" />}
         </span>
         <span className="text-right font-mono text-[15px] font-semibold text-slate-950 tabular-nums">{value}</span>
         <div className="justify-self-end">

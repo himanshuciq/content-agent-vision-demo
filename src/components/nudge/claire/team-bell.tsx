@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useLive } from "../live-model"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
+import { OwnerName } from "../owner-name"
 import type { TierRow } from "../types"
 
 /** Same square outline as the gear, so the three icons read as one group. */
@@ -84,13 +85,15 @@ export function TeamBell() {
               {notStarted.map((r) =>
                 r.nudgeKey && nudged[r.nudgeKey] ? (
                   <Line key={r.nudgeKey} mark={<Check className="size-3.5 text-success-600" />}>
-                    <span className="font-medium text-success-700">{r.analystName} nudged today</span>
+                    <span className="font-medium text-success-700">
+                      <OwnerName lever={r.agent} name={r.analystName} /> nudged today
+                    </span>
                   </Line>
                 ) : (
                   <Line key={r.nudgeKey ?? r.analystName} mark={<span className="size-2 rounded-full border-[1.5px] border-slate-400" />}>
                     <div className="flex items-center justify-between gap-3">
                       <span>
-                        {r.analystName} hasn&apos;t started · <span className="font-mono font-semibold text-slate-950">{r.value}</span>
+                        <OwnerName lever={r.agent} name={r.analystName} /> hasn&apos;t started · <span className="font-mono font-semibold text-slate-950">{r.value}</span>
                       </span>
                       {r.nudgeKey && (
                         <button

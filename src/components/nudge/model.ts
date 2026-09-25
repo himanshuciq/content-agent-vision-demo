@@ -32,6 +32,8 @@ export interface WorkItem {
 export interface Person {
   name: string
   lever?: AgentId
+  /** Their page in Ally, when they have one (James doesn't yet). */
+  page?: string
 }
 
 /** What an owner has done on their slice this week, before this session. */

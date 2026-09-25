@@ -235,3 +235,6 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - `ops/gap-data.ts`: Overall → brand → category → SKU, last week vs plan, week to date, projected end of week; each node's drivers (tagged Live, Resolved, Worth watching) sum to its gap, and its recommendations point to an inbox item, a play or a watch. Overall's projection ties to Claire's week view ($3.5M vs $3.7M).
 - Rail switch Issues | Brand & category. Picking a node shows three cards and "Explore more" chips; the analysis answers inline in the page's conversation: "Analyzed in 10 steps", key finding, plan vs actual, traffic × conversion × price = sales, drivers ranked by dollars, recommendations with actions. Crawl history for SKUs.
 - Michelle's page moves to the inline chat (ChatProvider, AskBar); the inbox registers its questions, each gap node its own.
+
+## Owner names open their pages
+- `Person.page` in the snapshot (Mike /mike, Michelle /michelle; James none yet); `ownerPage(lever)`. `OwnerName` renders a link with a small arrow when there's a page, plain text otherwise, and stops the click from toggling the row under it. Used in the stage tables, the Total opportunity split and the bell panel.

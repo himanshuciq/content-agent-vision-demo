@@ -4,6 +4,7 @@ import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
+import { OwnerName } from "../owner-name"
 import { AGENT_DOT } from "../agent-style"
 import { AGENT_LABEL, type TierRow } from "../types"
 
@@ -41,7 +42,7 @@ export function NudgeRow({
             <span className={`size-2 rounded-sm ${AGENT_DOT[row.agent]}`} />
             {row.analystName ? (
               <span className="text-sm text-slate-950">
-                <span className="font-medium">{row.analystName}</span>{" "}
+                <OwnerName lever={row.agent} name={row.analystName} />{" "}
                 <span className="text-slate-500">{AGENT_LABEL[row.agent]}</span>
               </span>
             ) : (
