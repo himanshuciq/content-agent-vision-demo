@@ -287,6 +287,7 @@ export function opsBatches(policy?: Policy): OpsBatch[] {
       value: fmtPart(value),
       approveValue: value,
       sellerSkus: tiersIn(tiers),
+      perDay: value / OPS_DAYS_SAVED,
       ...extra,
     })
     const parts: OpsBatch[] = []
@@ -437,8 +438,10 @@ export interface OpsBatch {
   /** How many items need input (the Review button's count) and what they're called. */
   inputCount?: number
   inputNoun?: string
-  /** Losing sales right now; drives "…of it is losing the sale right now". */
+  /** Losing sales right now; drives "You're losing $X a day". */
   urgent?: boolean
+  /** Ops fixes: daily sales at risk while the issue is open ($M). Value = perDay × days Ally saves (leakage prevented). */
+  perDay?: number
   /** Autopilot: what Ally fixes on its own. */
   fixes?: { text: string; count: number }[]
   /** The skills Ally ran to find and size it, shown as "Found by N skills · Show steps". */
@@ -488,9 +491,22 @@ function buyBoxSku(asin: string, name: string, tier: SellerSku["tier"], price: n
   }
 }
 
-export const OPS_BATCHES: OpsBatch[] = [
+/**
+ * Leakage prevented, the ops method: Ally fixes in about 2 days what takes
+ * about 2 weeks by hand, so each open fix is worth its daily sales at risk
+ * × the 12 days sooner. The same method measures what it delivered.
+ */
+export const OPS_DAYS_SAVED = 12
+const withLeakage = (b: OpsBatch): OpsBatch => {
+  if (!b.perDay) return b
+  const v = +(b.perDay * OPS_DAYS_SAVED).toFixed(3)
+  return { ...b, approveValue: v, value: v >= 1 ? `$${+v.toFixed(2)}M` : `$${Math.round(v * 1000)}K` }
+}
+
+const OPS_SEED: OpsBatch[] = [
   {
     id: "buybox",
+    perDay: 0.009,
     tier: "approval",
     type: "Buy box",
     name: "Third-party sellers below MAP",
@@ -505,12 +521,13 @@ export const OPS_BATCHES: OpsBatch[] = [
     doneLabel: "Escalation sent · evidence attached",
     exampleSku: "B07GR5MSKD",
     exampleName: "Aurelle Amber Floral Soy Jar, 16 oz",
-    evidence: ["CandleDepot at $27.50 vs your $34.00, below your $32 MAP floor", "You win 0 of the last 12 crawls", "Losing about $8.6K a day"],
+    evidence: ["CandleDepot at $27.50 vs your $34.00, below your $32 MAP floor", "You win 0 of the last 12 crawls", "Losing about $9K a day"],
     split: {
       retailer: "Amazon",
       brand: "Aurelle Candles",
       skuGroup: "Jar candles",
-      tiers: { hero: { skus: 4, value: 0.48 }, core: { skus: 2, value: 0.24 }, tail: { skus: 0, value: 0 } },
+      // Daily sales at risk × 12 days saved: hero $6K/day, core $3K/day.
+      tiers: { hero: { skus: 4, value: 0.072 }, core: { skus: 2, value: 0.036 }, tail: { skus: 0, value: 0 } },
       titleSkus: 0,
       imageSkus: 0,
     },
@@ -536,6 +553,7 @@ export const OPS_BATCHES: OpsBatch[] = [
   },
   {
     id: "promo-badge",
+    perDay: 0.006,
     tier: "approval",
     type: "Promotions",
     name: "Missing promo badge",
@@ -563,6 +581,7 @@ export const OPS_BATCHES: OpsBatch[] = [
   },
   {
     id: "deal-page",
+    perDay: 0.004,
     tier: "approval",
     type: "Promotions",
     name: "Deal page visibility",
@@ -584,6 +603,7 @@ export const OPS_BATCHES: OpsBatch[] = [
   },
   {
     id: "oos",
+    perDay: 0.005,
     tier: "approval",
     type: "Listings",
     name: "Shows out of stock, but isn't",
@@ -605,6 +625,7 @@ export const OPS_BATCHES: OpsBatch[] = [
   },
   {
     id: "shipping",
+    perDay: 0.002,
     tier: "approval",
     type: "Shipping",
     name: "Shipping speed slipped",
@@ -691,6 +712,8 @@ export const OPS_BATCHES: OpsBatch[] = [
     ],
   },
 ]
+
+export const OPS_BATCHES: OpsBatch[] = OPS_SEED.map(withLeakage)
 
 /** The five approval batches sum to Claire's ops "one approval away" ($2.4M); input $600K; autopilot $200K; $3.2M open. */
 export const OPS_TOTAL_VALUE = "$2.4M"

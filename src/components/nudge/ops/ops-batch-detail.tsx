@@ -5,9 +5,8 @@ import { Check, RefreshCw, Search } from "lucide-react"
 import { toast } from "sonner"
 import { useNudge } from "../nudge-context"
 import { PRIMARY } from "../mike/buttons"
-import { AS_OF, fmtValue, periodEnd } from "../data"
+import { OPS_DAYS_SAVED, fmtValue } from "../data"
 import type { OpsBatch } from "../data"
-import { daysUntil } from "../model"
 import { EmailDraft, SellerEvidence, SkillsTrace } from "./ops-evidence"
 import { ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -58,7 +57,7 @@ export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
   const sku = skus[Math.min(skuIdx, skus.length - 1)]
   const each = batch.mode === "each"
   const allChecked = skus.every((x) => checked[x.asin])
-  const daily = fmtValue(batch.approveValue / Math.max(daysUntil(periodEnd("quarter"), AS_OF), 1))
+  const daily = fmtValue(batch.perDay ?? batch.approveValue / OPS_DAYS_SAVED)
   function send() {
     onAction(batch)
     toast.success(batch.email ? `Sent to ${batch.email.to}, ${batch.email.role} · evidence attached` : batch.doneLabel, { position: "top-right" })

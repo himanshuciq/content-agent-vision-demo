@@ -1,8 +1,7 @@
 "use client"
 
 import { PublishConfetti } from "@/components/home/publish-confetti"
-import { AS_OF, opsBatches, periodEnd } from "../data"
-import { daysUntil } from "../model"
+import { OPS_DAYS_SAVED, opsBatches } from "../data"
 import { DELIVERED } from "../delivered-periods"
 import { useNudge } from "../nudge-context"
 import { SplitBar } from "../mike/split-bar"
@@ -36,8 +35,8 @@ export function OpsProgress({ celebrate }: { celebrate: Celebrate | null }) {
   // Whatever is flagged urgent and still open, not a fixed batch.
   const urgent = approvalBatches.filter((b) => b.urgent && !approved[b.id]).reduce((sum, b) => sum + money(b.value), 0)
   const open = total - actedValue
-  // What the urgent items cost per day if they stay open to quarter end.
-  const perDay = urgent / Math.max(daysUntil(periodEnd("quarter"), AS_OF), 1)
+  // Daily sales at risk on the urgent items still open (the same number their value is built from).
+  const perDay = approvalBatches.filter((b) => b.urgent && !approved[b.id]).reduce((sum, b) => sum + (b.perDay ?? b.approveValue / OPS_DAYS_SAVED), 0)
 
   return (
     <>

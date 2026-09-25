@@ -1,6 +1,9 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { fmtValue } from "./data"
+import { OPS_BATCHES, fmtValue } from "./data"
+
+/** The urgent ops item, for the "losing sales right now" answer. */
+const BUYBOX = OPS_BATCHES.find((b) => b.urgent)!
 import { DELIVERED } from "./delivered-periods"
 
 /**
@@ -56,7 +59,7 @@ export function michelleAnswer(q: string) {
   if (q === MICHELLE_QUESTIONS[0])
     return (
       <p>
-        Lost buy box on <N>6</N> SKUs, <N>$720K</N>. A third-party seller is pricing below your MAP floor. One approval reports it to Amazon.
+        Lost buy box on <N>{BUYBOX.skus}</N> SKUs: you&apos;re losing <N>{fmtValue(BUYBOX.perDay ?? 0)}</N> a day, <N>{BUYBOX.value}</N> if Ally fixes it 12 days sooner. Two sellers are pricing below your MAP floor; the escalation to your vendor manager is drafted.
       </p>
     )
   if (q === MICHELLE_QUESTIONS[1])

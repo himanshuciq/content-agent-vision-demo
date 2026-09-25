@@ -238,3 +238,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 
 ## Owner names open their pages
 - `Person.page` in the snapshot (Mike /mike, Michelle /michelle; James none yet); `ownerPage(lever)`. `OwnerName` renders a link with a small arrow when there's a page, plain text otherwise, and stops the click from toggling the row under it. Used in the stage tables, the Total opportunity split and the bell panel.
+
+## Ops recalibrated to one method: leakage prevented
+- Each open ops fix stores `perDay` (daily sales at risk); its value is derived: perDay × `OPS_DAYS_SAVED` (12: fixed in about 2 days vs about 2 weeks). Same method as delivered. Buy box $108K (hero $72K, core $36K), promo badge $72K, deal page $48K, suppressed offers $60K, shipping $24K. Profit recovery (claims) and autopilot (recurring, sized from history) unchanged.
+- Ops open $3.2M → $1.1M; pipeline $6.8M → $4.7M; bridge One approval away $3.6M → $1.5M; total $52.7M vs $52M plan. "Losing $X a day" and the email read `perDay`.
+- One framework for all levers (run rate includes normal incidents; open work; autopilot for recurring types; delivered by method; expired). No separate forecast line.
