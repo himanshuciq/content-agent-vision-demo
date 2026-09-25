@@ -20,7 +20,7 @@ export interface TierRow {
   /** Warning chip shown under the owner — the deadline lives on the row it belongs to, not the tier header. */
   deadline?: string
   /** Where the owner stands on this week's Monday email: not started, or in progress with how far along. */
-  weekly?: { state: "not-started" | "in-progress"; progress?: string }
+  weekly?: { state: "not-started" | "in-progress" | "done"; progress?: string }
 }
 
 /** Title-case agent label for the "Mike Content" owner line. */
@@ -45,6 +45,8 @@ export interface Batch {
   tier: "approval" | "input" | "autopilot"
   /** The kind of content work, as Claire's page names it. */
   type: "Seasonal" | "Foundational" | "Retail readiness"
+  /** ISO date the value expires, when it does. */
+  deadline?: string
   /** For "Needs your input" batches: how many SKUs need Mike's input (the Review button's count). */
   inputSkus?: number
   /** What Ally needs (input) or is doing (autopilot), shown in place of the approve button; toast fires when inputs are sent. */

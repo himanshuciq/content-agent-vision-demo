@@ -1,6 +1,8 @@
 import { MOCK_SKUS } from "@/components/home/data"
 import { SKU_ROWS } from "./sku-rows-data"
 import type { AgentId, Batch, ClosedGrain, ClosedPeriodData, InflightData, NudgeKey, Period, TierRow } from "./types"
+import { actedValue, daysUntil, expiring, money, openByLever, sum, tierRows, tierTotal } from "./model"
+import type { Acted, Snapshot, Tier, WorkItem } from "./model"
 
 /**
  * Real numbers from the Ally_Home reference artifact — keep exactly as given.
@@ -9,14 +11,10 @@ import type { AgentId, Batch, ClosedGrain, ClosedPeriodData, InflightData, Nudge
  * replaced with these, one per batch, per the handoff's "defer to the repo's
  * real SKU records" instruction.
  */
-export const DEADLINE = { days: 18, date: "Oct 8", expiring: "$740K" }
-
-/** Open $6.8M split by agent (summed across the three tiers), sorted by value. */
-export const OPEN_BY_AREA: { agent: "content" | "ops" | "media"; value: string }[] = [
-  { agent: "ops", value: "$3.2M" },
-  { agent: "media", value: "$2.1M" },
-  { agent: "content", value: "$1.5M" },
-]
+/** The demo's "today" and the one seasonal deadline in flight. Days to deadline are computed, never typed. */
+export const AS_OF = "2026-09-20"
+const HALLOWEEN_PUBLISH_BY = "2026-10-08"
+const expiresChip = (iso: string) => `Expires in ${daysUntil(iso, AS_OF)} days`
 
 export const BATCHES: Batch[] = [
   {
@@ -24,7 +22,8 @@ export const BATCHES: Batch[] = [
     tier: "approval",
     type: "Seasonal",
     name: "Halloween moments",
-    chip: `Expires in ${DEADLINE.days} days`,
+    chip: expiresChip(HALLOWEEN_PUBLISH_BY),
+    deadline: HALLOWEEN_PUBLISH_BY,
     nudgeSource: "Nudged by Claire, just now",
     skus: 378,
     reviewMinutes: 25,
@@ -50,7 +49,8 @@ export const BATCHES: Batch[] = [
     tier: "approval",
     type: "Seasonal",
     name: "Halloween gift sets",
-    chip: `Expires in ${DEADLINE.days} days`,
+    chip: expiresChip(HALLOWEEN_PUBLISH_BY),
+    deadline: HALLOWEEN_PUBLISH_BY,
     nudgeSource: "Nudged by Claire, just now",
     skus: 331,
     reviewMinutes: 20,
@@ -76,7 +76,8 @@ export const BATCHES: Batch[] = [
     type: "Seasonal",
     inputSkus: 245,
     name: "Add Halloween concepts",
-    chip: `Expires in ${DEADLINE.days} days`,
+    chip: expiresChip(HALLOWEEN_PUBLISH_BY),
+    deadline: HALLOWEEN_PUBLISH_BY,
     nudgeSource: "Flagged by Ally, 2 days ago",
     skus: 245,
     reviewMinutes: 15,
@@ -172,83 +173,6 @@ export function findBatch(id: string) {
   return BATCHES.find((b) => b.id === id) ?? BATCHES[0]
 }
 
-/** Claire's screen: three collapsible tiers, exactly as named in the handoff. */
-export const APPROVAL_TIER = {
-  value: "$3.7M",
-  effort: "45 min",
-  canNudgeTeam: true,
-  rows: [
-    {
-      agent: "content",
-      analystName: "Mike",
-      description: "Halloween seasonal updates and gift sets.",
-      value: "$740K",
-      nudgeKey: "approval-content",
-      deadline: `Expires in ${DEADLINE.days} days`,
-      weekly: { state: "not-started" },
-    },
-    {
-      agent: "ops",
-      analystName: "Michelle",
-      description: "Buy box, promo badge, listing and shipping fixes, one email each.",
-      value: "$2.4M",
-      nudgeKey: "approval-ops",
-      weekly: { state: "in-progress", progress: "Reviewing the fixes" },
-    },
-    {
-      agent: "media",
-      analystName: "James",
-      description: "5 new DSP campaigns for new-to-brand shoppers.",
-      value: "$0.56M",
-      nudgeKey: "approval-media",
-      weekly: { state: "in-progress", progress: "2 of 5 campaigns live" },
-    },
-  ] satisfies TierRow[],
-}
-
-export const TEAM_TIER = {
-  value: "$2.2M",
-  effort: "~3 days",
-  canNudgeTeam: true,
-  rows: [
-    {
-      agent: "content",
-      analystName: "Mike",
-      description: "Halloween concepts and attributes blocking syndication.",
-      value: "$560K",
-      nudgeKey: "team-content",
-      weekly: { state: "not-started" },
-    },
-    {
-      agent: "ops",
-      analystName: "Michelle",
-      description: "Chargebacks, fees, and shorted POs waiting on finance.",
-      value: "$0.6M",
-      nudgeKey: "team-ops",
-      weekly: { state: "not-started" },
-    },
-    {
-      agent: "media",
-      analystName: "James",
-      description: "Media plan for the $1M in newly unlocked budget.",
-      value: "$1.0M",
-      nudgeKey: "team-media",
-      weekly: { state: "in-progress", progress: "Plan drafted" },
-    },
-  ] satisfies TierRow[],
-}
-
-export const AUTOPILOT_TIER = {
-  value: "$0.9M",
-  effort: "0 min",
-  canNudgeTeam: false,
-  rows: [
-    { agent: "content", analystName: "", description: "Always-on PIM to PDP fixes.", value: "$0.2M" },
-    { agent: "media", analystName: "", description: "Incremental bid adjustments and budget pacing.", value: "$0.5M" },
-    { agent: "ops", analystName: "", description: "Promotions not live.", value: "$0.2M" },
-  ] satisfies TierRow[],
-}
-
 /** Already realized and live this quarter. */
 export const BANKED_VALUE = "$1.2M"
 /** Banked + the three open buckets. */
@@ -337,6 +261,8 @@ export interface OpsBatch {
   /** How many items need input (the Review button's count) and what they're called. */
   inputCount?: number
   inputNoun?: string
+  /** Losing sales right now; drives "…of it is losing the sale right now". */
+  urgent?: boolean
   /** Autopilot: what Ally fixes on its own. */
   fixes?: { text: string; count: number }[]
 }
@@ -347,6 +273,7 @@ export const OPS_BATCHES: OpsBatch[] = [
     tier: "approval",
     type: "Buy box",
     name: "Third-party seller below MAP",
+    urgent: true,
     chip: "Losing the sale now",
     team: "Sales",
     skus: 6,
@@ -518,14 +445,6 @@ export interface NudgeTarget {
   deadlineDays?: number
 }
 
-/** Which nudges fire a real Slack DM, to whom, and where "Open in Ally" lands. */
-export const NUDGE_TARGETS: Partial<Record<NudgeKey, NudgeTarget>> = {
-  "approval-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween seasonal moments and gift sets", value: "$740K", skus: 709, deadlineDays: DEADLINE.days },
-  "team-content": { recipient: "mike", queuePath: "/mike", batchName: "Halloween concepts and retail readiness", value: "$560K", skus: 339 },
-  "approval-ops": { recipient: "michelle", queuePath: "/michelle", batchName: "Buy box, promo and listing fixes", value: "$2.4M", skus: 28 },
-}
-
-export const OPEN_TOTAL = "$6.8M"
 
 /**
  * Claire's business for the in-flight period, $M: sold so far, where the current
@@ -538,7 +457,6 @@ export const BUSINESS: Record<Period, { soFar: number; pace: number; plan: numbe
   quarter: { soFar: 37, pace: 40, plan: 45 },
   year: { soFar: 125, pace: 168, plan: 175 },
 }
-export const OPEN_TOTAL_M = 6.8
 
 /** $M for business numbers: whole millions from $10M up, one decimal below. */
 export function fmtBiz(v: number): string {
@@ -552,8 +470,6 @@ export const INFLIGHT: Record<Period, InflightData> = {
   quarter: { name: "Q3 FY26", ptd: "$37M", ptdLabel: "quarter to date", plan: "95%", share: "market share flat at 18.6%" },
   year: { name: "FY26", ptd: "$125M", ptdLabel: "year to date", plan: "99%", share: "market share up 0.2 pts to 18.6%" },
 }
-/** Mike's "One approval away" total; ties to Claire's content row in that bucket ($740K). */
-export const TOTAL_WAITING_APPROVAL = 0.74
 export const TOTAL_SKUS_REMAINING = 1096
 
 /** The "{priorName} · {priorValue} driven by Ally" toggle and its agent breakdown. */
@@ -607,6 +523,8 @@ export const COMPARE = {
  * ------------------------------------------------------------------------- */
 export interface WaterfallStage {
   id: "approval" | "team" | "autopilot"
+  /** Caption under the bar; defaults to the effort. */
+  caption?: string
   label: string
   effort: string
   /** Millions, for bar height + labels. */
@@ -618,16 +536,9 @@ export interface WaterfallStage {
   note?: string
 }
 
-export const WATERFALL_STAGES: WaterfallStage[] = [
-  { id: "autopilot", label: "On autopilot", effort: AUTOPILOT_TIER.effort, value: 0.9, rows: AUTOPILOT_TIER.rows, canNudgeTeam: false, note: "Runs on its own — no one has to open this screen." },
-  { id: "approval", label: "One approval away", effort: APPROVAL_TIER.effort, value: 3.7, rows: APPROVAL_TIER.rows, canNudgeTeam: true },
-  { id: "team", label: "Needs your team", effort: TEAM_TIER.effort, value: 2.2, rows: TEAM_TIER.rows, canNudgeTeam: true },
-]
-
 /** Share of each workstream's open opportunity that best-in-class brands run on autopilot (%). */
 export const AUTOPILOT_BEST_IN_CLASS: Record<AgentId, number> = { content: 35, media: 60, ops: 30 }
 
-export const WATERFALL_TOTAL = WATERFALL_STAGES.reduce((s, x) => s + x.value, 0)
 
 export function fmtM(v: number): string {
   return `$${v.toFixed(1)}M`
@@ -636,4 +547,162 @@ export function fmtM(v: number): string {
 /** K under a million, two-decimal M above — e.g. 0.478 → "$478K", 1.26 → "$1.26M". */
 export function fmtValue(v: number): string {
   return Math.abs(v) >= 1 ? `$${v.toFixed(2)}M` : `$${Math.round(v * 1000)}K`
+}
+
+/* ---------------------------------------------------------------------------
+ * The data model: work items + reference tables → every total on every page.
+ * getSnapshot() is the one place a database plugs in (see model.ts).
+ * ------------------------------------------------------------------------- */
+
+/** James's media work. He has no page yet, but his items feed Claire's rows. */
+const MEDIA_ITEMS: WorkItem[] = [
+  { id: "media-dsp", lever: "media", tier: "approval", value: 0.56, skus: 5 },
+  { id: "media-plan", lever: "media", tier: "input", value: 1.04, skus: 1 },
+  { id: "media-bids", lever: "media", tier: "autopilot", value: 0.5, skus: 0 },
+]
+
+/** $M from a display string: "$500K" → 0.5, "$2.4M" → 2.4. Seed values are still typed as strings on the batches. */
+const toM = (v: string) => parseFloat(v.replace(/[$KM,]/g, "")) / (v.endsWith("K") ? 1000 : 1)
+const tierOf = (t: "approval" | "input" | "autopilot"): Tier => t
+
+const SNAPSHOT: Snapshot = {
+  asOf: AS_OF,
+  people: {
+    claire: { name: "Claire" },
+    mike: { name: "Mike", lever: "content" },
+    michelle: { name: "Michelle", lever: "ops" },
+    james: { name: "James", lever: "media" },
+  },
+  items: [
+    ...BATCHES.map((b) => ({ id: b.id, lever: "content" as AgentId, tier: tierOf(b.tier), value: toM(b.value), skus: b.inputSkus ?? b.approveSkus, deadline: b.deadline })),
+    ...OPS_BATCHES.map((b) => ({ id: b.id, lever: "ops" as AgentId, tier: tierOf(b.tier), value: toM(b.value), skus: b.skus, urgent: b.urgent })),
+    ...MEDIA_ITEMS,
+  ],
+  /** Seeded from this week's activity (the Monday email): who had started before this session. */
+  activity: {
+    "approval:ops": { state: "in-progress", progress: "Reviewing the fixes" },
+    "approval:media": { state: "in-progress", progress: "2 of 5 campaigns live" },
+    "input:media": { state: "in-progress", progress: "Plan drafted" },
+  },
+  tiers: {
+    approval: {
+      effort: "45 min",
+      canNudgeTeam: true,
+      describe: {
+        content: "Halloween seasonal updates and gift sets.",
+        ops: "Buy box, promo badge, listing and shipping fixes, one email each.",
+        media: "5 new DSP campaigns for new-to-brand shoppers.",
+      },
+    },
+    input: {
+      effort: "~3 days",
+      canNudgeTeam: true,
+      describe: {
+        content: "Halloween concepts and attributes blocking syndication.",
+        ops: "Chargebacks, fees, and shorted POs waiting on finance.",
+        media: "Media plan for the $1M in newly unlocked budget.",
+      },
+    },
+    autopilot: {
+      effort: "0 min",
+      canNudgeTeam: false,
+      describe: {
+        content: "Always-on PIM to PDP fixes.",
+        media: "Incremental bid adjustments and budget pacing.",
+        ops: "Promotions not live.",
+      },
+    },
+  },
+}
+
+/** The one read of the data. Swap this for a database call returning the same Snapshot. */
+export function getSnapshot(): Snapshot {
+  return SNAPSHOT
+}
+
+const AUTOPILOT_ORDER: AgentId[] = ["content", "media", "ops"]
+
+/** A bucket as the pages show it, for this session's actions (none = the starting state). */
+export function tierView(tier: Tier, acted: Acted = {}) {
+  const snap = getSnapshot()
+  return {
+    value: money(tierTotal(snap, tier, acted)),
+    effort: snap.tiers[tier].effort,
+    canNudgeTeam: snap.tiers[tier].canNudgeTeam,
+    rows: tierRows(snap, tier, acted, tier === "autopilot" ? AUTOPILOT_ORDER : undefined),
+  }
+}
+
+/** The bridge's three steps, in order from no effort to most. */
+export function waterfallStages(acted: Acted = {}): WaterfallStage[] {
+  const snap = getSnapshot()
+  const stage = (id: WaterfallStage["id"], tier: Tier, label: string, extra: Partial<WaterfallStage> = {}): WaterfallStage => {
+    const view = tierView(tier, acted)
+    return { id, label, effort: view.effort, value: tierTotal(snap, tier, acted), rows: view.rows, canNudgeTeam: view.canNudgeTeam, ...extra }
+  }
+  return [
+    stage("autopilot", "autopilot", "On autopilot", { caption: "Already scheduled, no action required", note: "Runs on its own — no one has to open this screen." }),
+    stage("approval", "approval", "One approval away"),
+    stage("team", "input", "Needs your team"),
+  ]
+}
+
+/** Open value by lever and in total, as display strings. */
+export function openView(acted: Acted = {}) {
+  const snap = getSnapshot()
+  const byArea = openByLever(snap, acted).map((a) => ({ agent: a.agent, value: money(a.value) }))
+  const total = sum(snap.items.filter((i) => !acted[i.id]))
+  return { byArea, total, totalLabel: money(total), acted: actedValue(snap, acted) }
+}
+
+/**
+ * What expires first among open items one approval away (the line next to "45 min unlocks…");
+ * undefined when nothing does. Pass `undefined` for every bucket (today $1.16M: the $420K Halloween concepts share Oct 8).
+ */
+export function deadlineView(acted: Acted = {}, tier: Tier | undefined = "approval") {
+  const e = expiring(getSnapshot(), acted, tier)
+  return e && { days: e.days, date: e.date, expiring: money(e.value), value: e.value }
+}
+
+// Starting-state exports, same names and shapes the pages already use (/claire reads only these).
+export const APPROVAL_TIER = tierView("approval")
+export const TEAM_TIER = tierView("input")
+export const AUTOPILOT_TIER = tierView("autopilot")
+export const WATERFALL_STAGES = waterfallStages()
+export const WATERFALL_TOTAL = WATERFALL_STAGES.reduce((s, x) => s + x.value, 0)
+export const OPEN_BY_AREA = openView().byArea
+export const OPEN_TOTAL = openView().totalLabel
+export const OPEN_TOTAL_M = openView().total
+export const DEADLINE = deadlineView()!
+
+/** Mike's "One approval away" total; ties to Claire's content row in that bucket. */
+export const TOTAL_WAITING_APPROVAL = sum(getSnapshot().items.filter((i) => i.lever === "content" && i.tier === "approval"))
+
+export interface NudgeTarget {
+  recipient: "mike" | "michelle"
+  queuePath: string
+  batchName: string
+  value: string
+  skus?: number
+  deadlineDays?: number
+}
+
+/** Which nudges fire a real Slack DM, to whom, and where "Open in Ally" lands. Value, SKUs and deadline come from the items. */
+function target(tier: Tier, lever: AgentId, recipient: NudgeTarget["recipient"], queuePath: string, batchName: string): NudgeTarget {
+  const items = getSnapshot().items.filter((i) => i.tier === tier && i.lever === lever)
+  const d = deadlineView()
+  return {
+    recipient,
+    queuePath,
+    batchName,
+    value: money(sum(items)),
+    skus: items.reduce((n, i) => n + i.skus, 0),
+    deadlineDays: items.every((i) => i.deadline) ? d?.days : undefined,
+  }
+}
+
+export const NUDGE_TARGETS: Partial<Record<NudgeKey, NudgeTarget>> = {
+  "approval-content": target("approval", "content", "mike", "/mike", "Halloween seasonal moments and gift sets"),
+  "team-content": target("input", "content", "mike", "/mike", "Halloween concepts and retail readiness"),
+  "approval-ops": target("approval", "ops", "michelle", "/michelle", "Buy box, promo and listing fixes"),
 }
