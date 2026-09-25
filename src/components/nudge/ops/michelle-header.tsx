@@ -1,5 +1,6 @@
 "use client"
 
+import { PeriodSwitch } from "../period-switch"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { SettingsGear } from "../settings-gear"
@@ -18,7 +19,7 @@ export function MichelleHeader() {
         </span>
         <span>Hi Michelle</span>
         <Dot />
-        <span className="font-semibold text-slate-950">Q3 FY26</span>
+        <PeriodSwitch />
         <Dot />
         <span>
           Buy box win rate <Num>94%</Num> <Up>2 pts</Up>

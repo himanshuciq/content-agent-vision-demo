@@ -116,8 +116,8 @@ function AreaGroup({ agent, buckets, value }: { agent: AgentId; buckets: { label
  */
 export function AreaDetail() {
   const { open } = useLive()
-  const { approved, policy } = useNudge()
-  const views = BUCKETS.map((b) => ({ ...b, view: tierView(b.tier, approved, policy) }))
+  const { approved, policy, period } = useNudge()
+  const views = BUCKETS.map((b) => ({ ...b, view: tierView(b.tier, approved, policy, period) }))
 
   return (
     <div className="mt-6 overflow-hidden rounded-xl border border-slate-200">

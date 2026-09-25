@@ -2,7 +2,7 @@
 
 import { PublishConfetti } from "@/components/home/publish-confetti"
 import { OPS_BATCHES } from "../data"
-import { OPS_BANKED_Q3 } from "../delivered-content-data"
+import { DELIVERED } from "../delivered-periods"
 import { useNudge } from "../nudge-context"
 import { SplitBar } from "../mike/split-bar"
 
@@ -11,7 +11,7 @@ function fmt(v: number) {
 }
 /** "$720K" → 0.72 ($M). */
 const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith("K") ? 1000 : 1)
-const BANKED = OPS_BANKED_Q3.delivered
+const BANKED = DELIVERED.quarter.ops.delivered
 
 interface Celebrate {
   value: number

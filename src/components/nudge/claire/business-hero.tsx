@@ -1,10 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { BUSINESS, INFLIGHT, fmtBiz } from "../data"
+import { BUSINESS, fmtBiz } from "../data"
+import { PeriodSwitch } from "../period-switch"
 import { useLive } from "../live-model"
 import { SettingsGear } from "../settings-gear"
 import { EmailPdfButton } from "./email-pdf-button"
@@ -13,21 +10,14 @@ import type { Period } from "../types"
 
 const PERIOD_WORDS: Record<Period, string> = { week: "this week", month: "this month", quarter: "this quarter", year: "this year" }
 
-const PERIODS: { id: Period; label: string }[] = [
-  { id: "week", label: "This week" },
-  { id: "month", label: "This month" },
-  { id: "quarter", label: "This quarter" },
-  { id: "year", label: "This year" },
-]
-
 /**
  * The top of Claire's page, in her business terms: where she's landing against
  * plan, the gap, and the open opportunity that closes it. Then where it sits and
  * how fast it unlocks.
  */
-export function BusinessHero({ period, onPeriodChange }: { period: Period; onPeriodChange: (p: Period) => void }) {
-  const [open, setOpen] = useState(false)
+export function BusinessHero() {
   const live = useLive()
+  const { period } = live
   const b = { ...BUSINESS[period], pace: live.pace(period) }
   const gap = b.plan - b.pace
 
@@ -40,31 +30,7 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
           </span>
           <span>Hi Claire</span>
           <span className="text-slate-300">·</span>
-          <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-md py-0.5 font-semibold text-slate-950 outline-none">
-              {INFLIGHT[period].name}
-              <ChevronDown className={cn("size-3.5 text-slate-400 transition-transform", open && "rotate-180")} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" sideOffset={6} className="min-w-40 rounded-xl p-1.5 shadow-md ring-1 ring-slate-200/80">
-              <DropdownMenuRadioGroup
-                value={period}
-                onValueChange={(v) => {
-                  onPeriodChange(v as Period)
-                  setOpen(false)
-                }}
-              >
-                {PERIODS.map((p) => (
-                  <DropdownMenuRadioItem
-                    key={p.id}
-                    value={p.id}
-                    className="cursor-pointer rounded-lg px-2.5 py-1.5 text-sm outline-hidden select-none focus:bg-brand-50 data-checked:bg-brand-100 data-checked:text-slate-950 **:data-[slot=dropdown-menu-radio-item-indicator]:hidden"
-                  >
-                    {p.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <PeriodSwitch />
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <EmailPdfButton period={period} />

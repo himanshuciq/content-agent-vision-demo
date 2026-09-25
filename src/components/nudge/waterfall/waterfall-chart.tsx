@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { BUSINESS, fmtBiz, fmtM } from "../data"
+import { BUSINESS, fmtBiz, fmtM, fmtValue } from "../data"
 import type { WaterfallStage } from "../data"
 import { useLive } from "../live-model"
 
@@ -10,9 +10,16 @@ const CHART_HEIGHT = 300
 const LABEL_HEIGHT = 72
 /** Column top padding, above the chart band; the plan line is positioned against it. */
 const PAD_TOP = 32
-/** The axis starts above zero so the +$0.9M step is still visible next to a $40M base. Said on the chart. */
-const AXIS_MIN = 36
-const AXIS_MAX = 47.5
+/**
+ * The axis starts above zero so a small step is still visible next to a big base
+ * (said on the chart): 90% of the lower of run rate and plan, rounded down.
+ */
+const axisMin = (pace: number, plan: number) => {
+  const v = Math.min(pace, plan) * 0.9
+  return v >= 10 ? Math.floor(v) : Math.floor(v * 2) / 2
+}
+/** Steps under $1M read in K ("+$86K"), like every other number. */
+const fmtStep = (v: number) => (v >= 1 ? fmtM(v) : fmtValue(v))
 
 const BAR: Record<string, string> = {
   pace: "bg-slate-300",
@@ -34,21 +41,19 @@ interface Column {
   selectable: boolean
 }
 
-const frac = (v: number) => (v - AXIS_MIN) / (AXIS_MAX - AXIS_MIN)
-
 /** Current run rate → + each open bucket → where Ally takes you, against the plan line. */
-function buildColumns(stages: WaterfallStage[], pace: number): Column[] {
+function buildColumns(stages: WaterfallStage[], pace: number, min: number): Column[] {
   let acc = pace
   const steps = stages.map((s) => {
     const sub = s.caption ?? s.effort
-    const col = { key: s.id, label: s.label, sub, valueLabel: `+${fmtM(s.value)}`, start: acc, end: acc + s.value, selectable: true }
+    const col = { key: s.id, label: s.label, sub, valueLabel: `+${fmtStep(s.value)}`, start: acc, end: acc + s.value, selectable: true }
     acc += s.value
     return col
   })
   return [
-    { key: "pace", label: "Current run rate", sub: "", valueLabel: fmtBiz(pace), start: AXIS_MIN, end: pace, selectable: false },
+    { key: "pace", label: "Current run rate", sub: "", valueLabel: fmtBiz(pace), start: min, end: pace, selectable: false },
     ...steps,
-    { key: "total", label: "Total opportunity", sub: "", valueLabel: `$${acc.toFixed(1)}M`, start: AXIS_MIN, end: acc, selectable: true },
+    { key: "total", label: "Total opportunity", sub: "", valueLabel: `$${acc.toFixed(1)}M`, start: min, end: acc, selectable: true },
   ]
 }
 
@@ -63,9 +68,13 @@ interface WaterfallChartProps {
  * the detail panel below shows the line items or the split by area.
  */
 export function WaterfallChart({ selectedId, onSelect }: WaterfallChartProps) {
-  const { stages, pace } = useLive()
-  const columns = buildColumns(stages, pace("quarter"))
-  const { plan } = BUSINESS.quarter
+  const { stages, pace, period } = useLive()
+  const { plan } = BUSINESS[period]
+  const run = pace(period)
+  const min = axisMin(run, plan)
+  const columns = buildColumns(stages, run, min)
+  const max = Math.max(columns[columns.length - 1].end, plan) * 1.03
+  const frac = (v: number) => (v - min) / (max - min)
   const planTop = PAD_TOP + (1 - frac(plan)) * CHART_HEIGHT
 
   return (
@@ -132,7 +141,7 @@ export function WaterfallChart({ selectedId, onSelect }: WaterfallChartProps) {
           )
         })}
       </div>
-      <div className="mt-1 text-[11px] text-slate-400">Axis starts at {fmtBiz(AXIS_MIN)}</div>
+      <div className="mt-1 text-[11px] text-slate-400">Axis starts at {fmtBiz(min)}</div>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
-import type { NudgeKey } from "./types"
+import type { NudgeKey, Period } from "./types"
 import { DEFAULT_KNOWLEDGE, DEFAULT_POLICY } from "./policy"
 import type { KnowledgeEntry, Policy } from "./policy"
 
@@ -31,6 +31,9 @@ interface NudgeContextValue extends StoredState {
   clearNotification: () => void
   /** Wipes all nudge/approve state so the demo can be replayed from scratch. */
   resetDemo: () => void
+  /** The period every page shows (Claire's, Mike's and Michelle's switches share it). Not stored: a reload starts on the quarter. */
+  period: Period
+  setPeriod: (p: Period) => void
 }
 
 const EMPTY_STATE: StoredState = { nudged: {}, approved: {} }
@@ -54,6 +57,7 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
   // response to a state change, so it belongs in an effect.
   const [state, setState] = useState<StoredState>(EMPTY_STATE)
   const [notifCleared, setNotifCleared] = useState(false)
+  const [period, setPeriod] = useState<Period>("quarter")
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from localStorage (an external system) right after mount, not a response to a state change.
@@ -131,6 +135,8 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
         mikeNotified,
         clearNotification: () => setNotifCleared(true),
         resetDemo,
+        period,
+        setPeriod,
       }}
     >
       {children}

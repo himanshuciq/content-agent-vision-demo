@@ -14,8 +14,12 @@ import type { Policy, ReviewMode, SkuTier } from "./policy"
  * real SKU records" instruction.
  */
 /** The demo's "today" and the one seasonal deadline in flight. Days to deadline are computed, never typed. */
-export const AS_OF = "2026-09-20"
-const HALLOWEEN_PUBLISH_BY = "2026-10-08"
+export const AS_OF = "2026-10-08"
+const HALLOWEEN_PUBLISH_BY = "2026-10-26"
+/** Halloween's last day: seasonal sales stop landing after it. */
+const HALLOWEEN = "2026-10-31"
+/** Q4 FY26 runs Oct–Dec; FY26 ends with it. */
+const QUARTER_END = "2026-12-31"
 const expiresChip = (iso: string) => `Expires in ${daysUntil(iso, AS_OF)} days`
 
 export const BATCHES: Batch[] = [
@@ -184,7 +188,7 @@ export const BATCHES: Batch[] = [
 ]
 
 /** When SKUs the review policy puts on autopilot go live. */
-const AUTOPILOT_GO_LIVE = "2026-10-01"
+const AUTOPILOT_GO_LIVE = "2026-10-15"
 const shortDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })
 const fmtPart = (v: number) => (v >= 1 ? `$${+v.toFixed(2)}M` : `$${Math.round(v * 1000)}K`)
 
@@ -546,24 +550,27 @@ export interface NudgeTarget {
  * opportunity (OPEN_TOTAL) is what closes it.
  */
 export const BUSINESS: Record<Period, { soFar: number; pace: number; plan: number }> = {
-  week: { soFar: 3.4, pace: 3.6, plan: 3.8 },
-  month: { soFar: 12.4, pace: 14.2, plan: 15.4 },
-  quarter: { soFar: 37, pace: 40, plan: 45 },
-  year: { soFar: 125, pace: 168, plan: 175 },
+  // As of Oct 8, Q4 FY26 (Oct–Dec, holiday-sized). Week = Oct 5–11.
+  week: { soFar: 1.9, pace: 3.5, plan: 3.7 },
+  month: { soFar: 4.6, pace: 15.2, plan: 16.4 },
+  quarter: { soFar: 4.6, pace: 48, plan: 52 },
+  year: { soFar: 129.6, pace: 176, plan: 181 },
 }
 
 /** $M for business numbers: whole millions when whole, else one decimal, so parts always add up on screen ($40.5M + $4.5M = $45M). */
 export function fmtBiz(v: number): string {
+  // Under $1M reads in K, like every other number ($200K, not $0.2M).
+  if (Math.abs(v) < 0.95) return `$${Math.round(v * 1000)}K`
   const r = Math.round(v * 10) / 10
   return Number.isInteger(r) ? `$${r}M` : `$${r.toFixed(1)}M`
 }
 
 /** In-flight business context shown in the status strip — how the current period is tracking. */
 export const INFLIGHT: Record<Period, InflightData> = {
-  week: { name: "This week", ptd: "$3.4M", ptdLabel: "week to date", plan: "96%", share: "market share flat at 18.6%" },
-  month: { name: "September", ptd: "$12.4M", ptdLabel: "month to date", plan: "97%", share: "market share flat at 18.6%" },
-  quarter: { name: "Q3 FY26", ptd: "$37M", ptdLabel: "quarter to date", plan: "95%", share: "market share flat at 18.6%" },
-  year: { name: "FY26", ptd: "$125M", ptdLabel: "year to date", plan: "99%", share: "market share up 0.2 pts to 18.6%" },
+  week: { name: "This week", ptd: "$1.9M", ptdLabel: "week to date", plan: "95%", share: "market share flat at 18.6%" },
+  month: { name: "October", ptd: "$4.6M", ptdLabel: "month to date", plan: "93%", share: "market share flat at 18.6%" },
+  quarter: { name: "Q4 FY26", ptd: "$4.6M", ptdLabel: "quarter to date", plan: "92%", share: "market share flat at 18.6%" },
+  year: { name: "FY26", ptd: "$129.6M", ptdLabel: "year to date", plan: "97%", share: "market share up 0.2 pts to 18.6%" },
 }
 export const TOTAL_SKUS_REMAINING = 1096
 
@@ -659,7 +666,15 @@ const MEDIA_ITEMS: WorkItem[] = [
 /** $M from a display string: "$500K" → 0.5, "$2.4M" → 2.4. Seed values are still typed as strings on the batches. */
 const toM = (v: string) => parseFloat(v.replace(/[$KM,]/g, "")) / (v.endsWith("K") ? 1000 : 1)
 const tierOf = (t: "approval" | "input" | "autopilot"): Tier => t
-const contentItem = (b: Batch): WorkItem => ({ id: b.id, lever: "content", tier: tierOf(b.tier), value: toM(b.value), skus: b.inputSkus ?? b.approveSkus, deadline: b.deadline })
+const contentItem = (b: Batch): WorkItem => ({
+  id: b.id,
+  lever: "content",
+  tier: tierOf(b.tier),
+  value: toM(b.value),
+  skus: b.inputSkus ?? b.approveSkus,
+  deadline: b.deadline,
+  ends: b.type === "Seasonal" ? HALLOWEEN : undefined,
+})
 
 const SNAPSHOT: Snapshot = {
   asOf: AS_OF,
@@ -713,23 +728,46 @@ const SNAPSHOT: Snapshot = {
 
 const byPolicy = new Map<string, Snapshot>()
 
+/** Last day of the period containing today: week ends Sunday, FY26 ends with Q4. */
+export function periodEnd(period: Period): string {
+  const d = new Date(`${AS_OF}T12:00:00`)
+  if (period === "week") d.setDate(d.getDate() + ((7 - d.getDay()) % 7))
+  else if (period === "month") d.setMonth(d.getMonth() + 1, 0)
+  else return QUARTER_END
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * How much of an item's value lands in the period: its value spreads evenly from
+ * today until it ends (a seasonal event's last day, else the quarter's end).
+ */
+function shareIn(item: WorkItem, period: Period) {
+  const ends = item.ends ?? QUARTER_END
+  const total = Math.max(daysUntil(ends, AS_OF), 1)
+  const within = Math.max(Math.min(daysUntil(periodEnd(period), AS_OF), total), 0)
+  return within / total
+}
+
 /**
  * The one read of the data. Swap this for a database call returning the same Snapshot.
- * With a review policy, content items are the policy's parts (see contentBatches).
+ * With a review policy, content items are the policy's parts (see contentBatches);
+ * with a period, each item counts only the value that lands in it.
  */
-export function getSnapshot(policy?: Policy): Snapshot {
-  if (!policy) return SNAPSHOT
-  const key = JSON.stringify(policy)
-  if (!byPolicy.has(key))
-    byPolicy.set(key, { ...SNAPSHOT, items: [...contentBatches(policy).map(contentItem), ...SNAPSHOT.items.filter((i) => i.lever !== "content")] })
+export function getSnapshot(policy?: Policy, period: Period = "quarter"): Snapshot {
+  if (!policy && period === "quarter") return SNAPSHOT
+  const key = `${period}|${JSON.stringify(policy ?? null)}`
+  if (!byPolicy.has(key)) {
+    const items = policy ? [...contentBatches(policy).map(contentItem), ...SNAPSHOT.items.filter((i) => i.lever !== "content")] : SNAPSHOT.items
+    byPolicy.set(key, { ...SNAPSHOT, items: items.map((i) => ({ ...i, value: i.value * shareIn(i, period) })) })
+  }
   return byPolicy.get(key)!
 }
 
 const AUTOPILOT_ORDER: AgentId[] = ["content", "media", "ops"]
 
 /** A bucket as the pages show it, for this session's actions (none = the starting state). */
-export function tierView(tier: Tier, acted: Acted = {}, policy?: Policy) {
-  const snap = getSnapshot(policy)
+export function tierView(tier: Tier, acted: Acted = {}, policy?: Policy, period?: Period) {
+  const snap = getSnapshot(policy, period)
   return {
     value: money(tierTotal(snap, tier, acted)),
     effort: snap.tiers[tier].effort,
@@ -739,10 +777,10 @@ export function tierView(tier: Tier, acted: Acted = {}, policy?: Policy) {
 }
 
 /** The bridge's three steps, in order from no effort to most. */
-export function waterfallStages(acted: Acted = {}, policy?: Policy): WaterfallStage[] {
-  const snap = getSnapshot(policy)
+export function waterfallStages(acted: Acted = {}, policy?: Policy, period?: Period): WaterfallStage[] {
+  const snap = getSnapshot(policy, period)
   const stage = (id: WaterfallStage["id"], tier: Tier, label: string, extra: Partial<WaterfallStage> = {}): WaterfallStage => {
-    const view = tierView(tier, acted, policy)
+    const view = tierView(tier, acted, policy, period)
     return { id, label, effort: view.effort, value: tierTotal(snap, tier, acted), rows: view.rows, canNudgeTeam: view.canNudgeTeam, ...extra }
   }
   return [
@@ -753,8 +791,8 @@ export function waterfallStages(acted: Acted = {}, policy?: Policy): WaterfallSt
 }
 
 /** Open value by lever and in total, as display strings. */
-export function openView(acted: Acted = {}, policy?: Policy) {
-  const snap = getSnapshot(policy)
+export function openView(acted: Acted = {}, policy?: Policy, period?: Period) {
+  const snap = getSnapshot(policy, period)
   const byArea = openByLever(snap, acted).map((a) => ({ agent: a.agent, value: money(a.value) }))
   const total = sum(snap.items.filter((i) => !acted[i.id]))
   return { byArea, total, totalLabel: money(total), acted: actedValue(snap, acted) }
@@ -764,8 +802,10 @@ export function openView(acted: Acted = {}, policy?: Policy) {
  * What expires first among open items one approval away (the line next to "45 min unlocks…");
  * undefined when nothing does. Pass `undefined` for every bucket (today $1.16M: the $420K Halloween concepts share Oct 8).
  */
-export function deadlineView(acted: Acted = {}, tier: Tier | undefined = "approval", policy?: Policy) {
-  const e = expiring(getSnapshot(policy), acted, tier)
+export function deadlineView(acted: Acted = {}, tier: Tier | undefined = "approval", policy?: Policy, period?: Period) {
+  const e = expiring(getSnapshot(policy, period), acted, tier)
+  // A deadline after the period ends isn't this period's news (the week view doesn't warn about Oct 26).
+  if (e && period && e.days > daysUntil(periodEnd(period), AS_OF)) return undefined
   return e && { days: e.days, date: e.date, expiring: money(e.value), value: e.value }
 }
 

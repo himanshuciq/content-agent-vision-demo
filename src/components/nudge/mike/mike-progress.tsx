@@ -3,7 +3,7 @@
 import { PublishConfetti } from "@/components/home/publish-confetti"
 import { AS_OF, contentBatches } from "../data"
 import { daysUntil } from "../model"
-import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
+import { DELIVERED } from "../delivered-periods"
 import { useNudge } from "../nudge-context"
 import { SplitBar } from "./split-bar"
 
@@ -13,7 +13,8 @@ function fmt(v: number) {
 /** "$500K" → 0.5 ($M). */
 const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith("K") ? 1000 : 1)
 
-const BANKED = CONTENT_BANKED_Q3.delivered
+/** The bar is this quarter's content: banked so far (Q4, as every page shows it), then what's open. */
+const BANKED = DELIVERED.quarter.content.delivered
 
 interface Celebrate {
   value: number

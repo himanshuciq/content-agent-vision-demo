@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { fmtValue } from "./data"
+import { DELIVERED } from "./delivered-periods"
 
 /**
  * Ask Ally chips and answers for Mike, Michelle and the results page. Every
@@ -35,7 +37,8 @@ export function mikeAnswer(q: string) {
     return (
       <div>
         <p>
-          <N>$520K</N> delivered of <N>$580K</N> projected. <N>205</N> of <N>236</N> SKUs went live, and sales rose <N>$520K</N> (<N>3.2%</N>) against control.
+          {/* This quarter as every page shows it (Q4 FY26 so far). */}
+          <N>{fmtValue(DELIVERED.quarter.content.delivered)}</N> delivered of <N>{fmtValue(DELIVERED.quarter.content.promised)}</N> projected. {DELIVERED.quarter.content.summary[1]}
         </p>
         <Results />
       </div>
@@ -65,7 +68,7 @@ export function michelleAnswer(q: string) {
   if (q === MICHELLE_QUESTIONS[2])
     return (
       <p>
-        <N>$310K</N> of leakage prevented of <N>$360K</N> projected. <N>78</N> SKUs were fixed in 48 hours instead of 2 weeks.
+        <N>{fmtValue(DELIVERED.quarter.ops.delivered)}</N> of leakage prevented of <N>{fmtValue(DELIVERED.quarter.ops.promised)}</N> projected. {DELIVERED.quarter.ops.summary[1]}
       </p>
     )
   return (

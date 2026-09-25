@@ -11,17 +11,18 @@ import type { Period } from "./types"
  * rows, totals, bridge and statuses move as her team acts.
  */
 export function useLive() {
-  const { approved, policy } = useNudge()
+  const { approved, policy, period } = useNudge()
   return useMemo(() => {
-    const open = openView(approved, policy)
+    const open = openView(approved, policy, period)
     return {
-      snapshot: getSnapshot(policy),
-      stages: waterfallStages(approved, policy),
-      approval: tierView("approval", approved, policy),
+      period,
+      snapshot: getSnapshot(policy, period),
+      stages: waterfallStages(approved, policy, period),
+      approval: tierView("approval", approved, policy, period),
       open,
-      deadline: deadlineView(approved, "approval", policy),
+      deadline: deadlineView(approved, "approval", policy, period),
       /** Where the period lands: the run rate plus what was approved this session (it's now on its way live). */
       pace: (period: Period) => BUSINESS[period].pace + (period === "quarter" || period === "year" ? open.acted : 0),
     }
-  }, [approved, policy])
+  }, [approved, policy, period])
 }

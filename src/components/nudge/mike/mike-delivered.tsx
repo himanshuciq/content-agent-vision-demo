@@ -1,18 +1,21 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { INFLIGHT, fmtValue } from "../data"
-import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
+import { fmtValue } from "../data"
+import { DELIVERED } from "../delivered-periods"
+import { useNudge } from "../nudge-context"
 import { ContentWaterfall } from "../claire/content-waterfall"
 
-/** Claire's "This quarter so far", content only: projected vs delivered, then the content waterfall by type. */
+/** Claire's "so far" section for the shared period, content only: the same numbers as her Content row. */
 export function MikeDelivered() {
-  const c = CONTENT_BANKED_Q3
+  const { period } = useNudge()
+  const d = DELIVERED[period]
+  const c = d.content
   const delta = c.delivered - c.promised
 
   return (
     <section className="border-t border-slate-200 px-10 pt-9 pb-10">
-      <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">This quarter so far · {INFLIGHT.quarter.name}</div>
+      <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">{d.label}</div>
       <div className="mt-2 flex flex-wrap items-baseline gap-x-6 gap-y-1">
         <span className="text-2xl font-semibold tracking-tight text-slate-500">
           Projected <span className="font-mono">{fmtValue(c.promised)}</span>

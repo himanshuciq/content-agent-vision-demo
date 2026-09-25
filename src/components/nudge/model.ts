@@ -23,6 +23,8 @@ export interface WorkItem {
   skus: number
   /** ISO date the value expires, when it does. */
   deadline?: string
+  /** ISO date its sales stop landing (a seasonal event's last day); undefined = runs past the quarter. */
+  ends?: string
   /** Losing sales right now (e.g. lost buy box). */
   urgent?: boolean
 }

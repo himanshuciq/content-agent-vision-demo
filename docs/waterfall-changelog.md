@@ -200,3 +200,11 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 ## Concepts: apply per SKU, then next SKU or apply to all
 - `BackgroundProvider` (mike page) keeps the background applied per SKU; switching SKUs shows that SKU's own state (fixes "Applied" carrying over). New SKUs start from the last background used.
 - Composer: "Apply to this SKU" → "✓ Applied" + "Next SKU →". Footer: "N of 245 SKUs have a Halloween background. Use {scene} for the other X, or go one by one." with Next SKU and Apply to all 245 (disabled until one is applied). Rail shows a check on SKUs with a background.
+
+## Oct 8, Q4 FY26; one shared period drives every page
+- `AS_OF` 2026-10-08, Halloween publish-by Oct 26 (still "18 days"), tails go live Oct 15. Q4 FY26 = Oct–Dec; FY26 ends with it. `BUSINESS`/`INFLIGHT` are Q4-sized (quarter $48M run rate vs $52M plan).
+- `getSnapshot(policy, period)`: each item counts only the value that lands in the period (spread evenly from today to its end: Halloween Oct 31 for seasonal, else Dec 31). All views take `period`; `useLive` passes the shared one. Quarter = unchanged totals.
+- `period` lives in `NudgeProvider` (not stored); `PeriodSwitch` in Claire's, Mike's and Michelle's headers.
+- Bridge: plan and run rate for the period, axis start derived (90% of the lower, rounded), steps under $1M in K.
+- `delivered-periods.ts`: `DELIVERED[period]` (week, October = Q4 so far, FY26) for content, ops, media; Claire's section, Mike's and Michelle's sections, the progress bars' banked value, the PDF and Ask Ally all read it. Q3 data stays for the results page, relabeled "Last quarter".
+- `fmtBiz` reads K under $1M; the expiry line hides when the deadline falls after the period.

@@ -1,5 +1,6 @@
 "use client"
 
+import { PeriodSwitch } from "../period-switch"
 import Link from "next/link"
 import { ArrowLeft, Bell } from "lucide-react"
 import {
@@ -32,7 +33,7 @@ export function MikeHeader() {
         </span>
         <span>Hi Mike</span>
         <Dot />
-        <span className="font-semibold text-slate-950">Q3 FY26</span>
+        <PeriodSwitch />
         <Dot />
         <span>
           SEO share of voice <Num>42%</Num> <Up>0.8 pts</Up>

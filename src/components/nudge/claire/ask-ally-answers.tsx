@@ -7,7 +7,8 @@ import { downloadExecSummary } from "../exec-pdf"
 import { APPROVAL_TIER, COMPARE } from "../data"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
-import { CONTENT_BANKED_Q3, CONTENT_DELIVERED_Q2 } from "../delivered-content-data"
+import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
+import { DELIVERED } from "../delivered-periods"
 import { AGENT_LABEL } from "../types"
 
 /** Waterfall (business-first) version: the proof section is this quarter so far. */
@@ -125,12 +126,13 @@ function AdoptionAnswer() {
 }
 
 function ContentMissAnswer({ lastQuarter }: { lastQuarter: boolean }) {
-  const [what, why] = (lastQuarter ? CONTENT_DELIVERED_Q2 : CONTENT_BANKED_Q3).summary
+  // This quarter is Q4 FY26 (as every page shows it); last quarter is Q3, whose SKU-level results page exists.
+  const [what, why] = (lastQuarter ? CONTENT_BANKED_Q3 : DELIVERED.quarter.content).summary
   return (
     <div className="flex flex-col gap-2">
       <p className="font-medium text-slate-950">{what}</p>
       <p>{why}</p>
-      <Link href={`/content-results?period=${lastQuarter ? "quarter" : "qtd"}`} className="mt-1 inline-flex w-fit items-center gap-1 font-medium text-brand-700 hover:text-brand-800">
+      <Link href="/content-results?period=qtd" className="mt-1 inline-flex w-fit items-center gap-1 font-medium text-brand-700 hover:text-brand-800">
         See content results
         <ArrowRight className="size-3.5" />
       </Link>

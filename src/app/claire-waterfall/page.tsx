@@ -12,7 +12,6 @@ import { ThisQuarterSection } from "@/components/nudge/claire/this-quarter-secti
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
 import { useLive } from "@/components/nudge/live-model"
 import { useNudge } from "@/components/nudge/nudge-context"
-import type { Period } from "@/components/nudge/types"
 
 /** Module scope survives moves between pages, not a reload: so only a fresh load of this page resets the demo. */
 let resetThisLoad = false
@@ -24,7 +23,6 @@ let resetThisLoad = false
  * shared nudge state as the tier version.
  */
 export default function ClaireWaterfallPage() {
-  const [period, setPeriod] = useState<Period>("quarter")
   const [selectedId, setSelectedId] = useState<WaterfallSelection>("approval")
 
   const { stages } = useLive()
@@ -42,7 +40,7 @@ export default function ClaireWaterfallPage() {
   return (
     <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
-        <BusinessHero period={period} onPeriodChange={setPeriod} />
+        <BusinessHero />
 
         <div className="px-12 pt-1 pb-3">
           <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">Where it sits today</div>

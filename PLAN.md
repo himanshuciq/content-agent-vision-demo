@@ -24,3 +24,12 @@ Ordered by impact on the demo story. Items come from the founder-lens QA on Sep 
 15. Retire `/claire`, or port the waterfall changes to it (`docs/waterfall-changelog.md`).
 16. Replace mock benchmarks with real sources, or label them illustrative.
 17. Connect Vercel to GitHub so a push deploys by itself: link the himanshuciq account to the Vercel login, or move the repo under himanshuj18.
+
+## Parked for the real product: the clock-driven demo
+Agreed Sep 25, 2026 to keep the demo on a fixed date (Oct 8, Q4 FY26) for now. When this becomes the product:
+- **Event calendar.** Each event has an event day, recommendations appearing 5 weeks before, a live-by date 3 weeks before (full value), and an optional lead-out. Through year end: Halloween (Oct 31, live by Oct 10), Thanksgiving / Black Friday / Cyber Monday (Nov 27, Cyber Monday Nov 30; next event takes over), Holiday gifting (Dec 25). Per-event dates are data, not code.
+- **Value scales, doesn't expire.** Live after the live-by date = value × days left in the window; $0 once the window closes. Copy: "Full value if live by Oct 10" → "Worth $240K now · drops about $24K a day".
+- **Always-on value.** Starts at go-live and persists until the next change on that SKU (accretive). The A/B result confirms it 4–6 weeks later: "Measuring" → "Confirmed", delivered back-filled from launch.
+- **Delivered as dated records** (by lever, type of work, week), so any period is a sum; the date moving is the weekly refresh (on Oct 1 everything becomes Q4).
+- **Demo date control** next to Reset to rehearse any day.
+- Left out even then: traffic curves inside an event window; per-event content swap rules.

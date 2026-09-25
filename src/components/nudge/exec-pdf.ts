@@ -1,6 +1,6 @@
-import { BANKED_OTHER, BUSINESS, INFLIGHT, deadlineView, fmtBiz, fmtM, fmtValue, openView, tierView, waterfallStages } from "./data"
-import { CONTENT_BANKED_Q3, OPS_BANKED_Q3 } from "./delivered-content-data"
+import { AS_OF, BUSINESS, INFLIGHT, deadlineView, fmtBiz, fmtM, fmtValue, openView, tierView, waterfallStages } from "./data"
 import type { ContentDelivered } from "./delivered-content-data"
+import { DELIVERED, leverDelivered } from "./delivered-periods"
 import type { Acted } from "./model"
 import type { Policy } from "./policy"
 import { AGENT_LABEL, type AgentId, type NudgeKey, type Period, type TierRow } from "./types"
@@ -57,15 +57,16 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
   const R = W - M
   let y = 64
 
-  const open = openView(approved, policy)
-  const stages = waterfallStages(approved, policy)
-  const approval = tierView("approval", approved, policy)
-  const deadline = deadlineView(approved, "approval", policy)
+  const open = openView(approved, policy, period)
+  const stages = waterfallStages(approved, policy, period)
+  const approval = tierView("approval", approved, policy, period)
+  const deadline = deadlineView(approved, "approval", policy, period)
+  const done = DELIVERED[period]
   const biz = BUSINESS[period]
   // Same as the page: the run rate plus what was approved this session.
   const pace = biz.pace + (period === "quarter" || period === "year" ? open.acted : 0)
   const gap = biz.plan - pace
-  const quarter = INFLIGHT.quarter.name
+  const quarter = INFLIGHT[period].name
 
   const text = (s: string, x: number, o: { size?: number; bold?: boolean; color?: RGB; right?: boolean; at?: number } = {}) => {
     doc.setFont("helvetica", o.bold ? "bold" : "normal")
@@ -106,7 +107,7 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
 
   // Header
   text("Ally", M, { size: 11, bold: true, color: BRAND })
-  text(`${quarter} summary · prepared ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`, M, { size: 9.5, color: MUTED, right: true })
+  text(`${quarter} summary · prepared ${new Date(`${AS_OF}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`, M, { size: 9.5, color: MUTED, right: true })
   y += 14
   rule()
   y += 32
@@ -213,7 +214,7 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
   y += 12
   const buckets = (["approval", "input", "autopilot"] as const).map((t) => ({
     t,
-    view: tierView(t, approved, policy),
+    view: tierView(t, approved, policy, period),
     label: t === "approval" ? "One approval away" : t === "input" ? "Needs your team" : "On autopilot",
   }))
   ORDER.forEach((agent) => {
@@ -237,9 +238,10 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
   y += 30
 
   // This quarter so far, every lever opened
-  eyebrow(`This quarter so far · ${quarter}`)
-  const projected = CONTENT_BANKED_Q3.promised + BANKED_OTHER.reduce((s, b) => s + b.promised, 0)
-  const delivered = CONTENT_BANKED_Q3.delivered + BANKED_OTHER.reduce((s, b) => s + b.delivered, 0)
+  eyebrow(done.label)
+  const LEVERS: AgentId[] = ["content", "media", "ops"]
+  const projected = LEVERS.reduce((s, a) => s + leverDelivered(done, a).promised, 0)
+  const delivered = LEVERS.reduce((s, a) => s + leverDelivered(done, a).delivered, 0)
   const pLabel = `Projected ${fmtValue(projected)}`
   text(pLabel, M, { size: 15, bold: true, color: MUTED })
   const dx = M + width(pLabel, 15, true) + 20
@@ -254,7 +256,7 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
   text("vs projected", M, { size: 8.5, color: MUTED, right: true })
   y += 8
 
-  const DRILL: Partial<Record<AgentId, ContentDelivered>> = { content: CONTENT_BANKED_Q3, ops: OPS_BANKED_Q3 }
+  const DRILL: Partial<Record<AgentId, ContentDelivered>> = { content: done.content, ops: done.ops }
   const leverRow = (name: string, note: string, p: number, d: number, bold: boolean, indent = 0) => {
     text(name, M + indent, { size: bold ? 11 : 10, bold })
     text(note, M + indent + width(name, bold ? 11 : 10, bold) + 8, { size: 9.5, color: MUTED })
@@ -263,9 +265,9 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
     text(signed(d - p), M, { size: 10, bold: true, right: true, color: d >= p ? GOOD : BAD })
     y += 15
   }
-  ;(["content", ...BANKED_OTHER.map((b) => b.agent)] as AgentId[]).forEach((agent) => {
+  LEVERS.forEach((agent) => {
     const drill = DRILL[agent]
-    const summary = BANKED_OTHER.find((b) => b.agent === agent)
+    const summary = leverDelivered(done, agent)
     ensure(drill ? 110 : 40)
     rule()
     y += 16
