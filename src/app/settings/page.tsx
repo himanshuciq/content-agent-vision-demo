@@ -7,17 +7,19 @@ import { cn } from "@/lib/utils"
 import { PageShell } from "@/components/layout/page-shell"
 import { ReviewPolicy } from "@/components/nudge/settings/review-policy"
 import { Knowledge } from "@/components/nudge/settings/knowledge"
+import { BusinessSettings } from "@/components/nudge/settings/business-settings"
 
 const TABS = [
   { id: "policy", label: "Review policy" },
   { id: "knowledge", label: "Knowledge" },
+  { id: "business", label: "Business view" },
 ] as const
 
 /** Settings, behind the gear on every page: how Ally ships changes, and what it should know. Kept out of the main path. */
 function Settings() {
   const router = useRouter()
   const params = useSearchParams()
-  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>(params.get("tab") === "knowledge" ? "knowledge" : "policy")
+  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>(TABS.find((t) => t.id === params.get("tab"))?.id ?? "policy")
 
   function back() {
     if (window.history.length > 1) router.back()
@@ -48,7 +50,7 @@ function Settings() {
           ))}
         </div>
       </div>
-      {tab === "policy" ? <ReviewPolicy /> : <Knowledge />}
+      {tab === "policy" ? <ReviewPolicy /> : tab === "knowledge" ? <Knowledge /> : <BusinessSettings />}
     </div>
   )
 }

@@ -4,6 +4,8 @@ import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { AskBar, ChatProvider, ChatThread, useChatSource } from "@/components/nudge/chat/inline-chat"
 import { OpsSkuPane } from "@/components/nudge/ops/ops-sku-pane"
+import { BusinessHero, BusinessView } from "@/components/nudge/ops/business-view"
+import { cn } from "@/lib/utils"
 import { PageShell } from "@/components/layout/page-shell"
 import { MichelleHeader } from "@/components/nudge/ops/michelle-header"
 import { OpsProgress } from "@/components/nudge/ops/ops-progress"
@@ -40,6 +42,8 @@ export default function MichellePage() {
 
 function Michelle() {
   const { approve, policy } = useNudge()
+  // Business: the quarterback view (where you stand, why, is the work moving). Ops: the queue of fixes.
+  const [view, setView] = useState<"business" | "ops">("business")
   const OPS_BATCHES = opsBatches(policy)
   // Open on the top of the inbox: the most valuable item one approval away.
   const [selectedId, setSelectedId] = useState<OpsBatch["id"]>(() => [...OPS_BATCHES].filter((b) => b.tier === "approval").sort((x, y) => y.approveValue - x.approveValue)[0].id)
@@ -106,6 +110,43 @@ function Michelle() {
     <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <MichelleHeader />
+        <div className="px-10 pt-5">
+          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-25 p-1">
+            {(
+              [
+                ["business", "Business view"],
+                ["ops", "Ops view"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setView(id)}
+                className={cn(
+                  "rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  view === id ? "bg-white text-slate-950 shadow-xs ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-800",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {view === "business" ? (
+          <>
+            <BusinessHero />
+            <BusinessView
+              onOpenOps={(batchId) => {
+                // A fix that's already drafted opens in the Ops view.
+                setView("ops")
+                selectBatch(OPS_BATCHES.find((b) => b.id === batchId)?.id ?? OPS_BATCHES.find((b) => batchId.startsWith(b.id))?.id ?? selectedId)
+                scrollToQueue()
+              }}
+            />
+            <ChatThread />
+          </>
+        ) : (
+          <>
         <OpsProgress celebrate={celebrate} />
         <div ref={queueRef} className="grid grid-cols-[340px_minmax(0,1fr)]">
           <div className="border-r border-slate-200 bg-white">
@@ -131,6 +172,8 @@ function Michelle() {
         </div>
         <InboxChat />
         <ChatThread />
+          </>
+        )}
         <OpsDelivered />
         {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
         <div className="flex justify-end px-10 pb-24 opacity-50 hover:opacity-100">

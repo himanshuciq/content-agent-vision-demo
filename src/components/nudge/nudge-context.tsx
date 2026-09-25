@@ -16,7 +16,11 @@ interface StoredState {
   /** Review policy and knowledge from the settings page; absent = defaults. */
   policy?: Policy
   knowledge?: KnowledgeEntry[]
+  /** How the Business view ranks top SKUs; set per customer in Settings. */
+  businessSort?: BusinessSort
 }
+
+export type BusinessSort = "gap" | "sales"
 
 interface NudgeContextValue extends StoredState {
   nudge: (key: NudgeKey) => void
@@ -34,6 +38,8 @@ interface NudgeContextValue extends StoredState {
   /** The period every page shows (Claire's, Mike's and Michelle's switches share it). Not stored: a reload starts on the quarter. */
   period: Period
   setPeriod: (p: Period) => void
+  businessSort: BusinessSort
+  setBusinessSort: (s: BusinessSort) => void
 }
 
 const EMPTY_STATE: StoredState = { nudged: {}, approved: {} }
@@ -137,6 +143,8 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
         resetDemo,
         period,
         setPeriod,
+        businessSort: state.businessSort ?? "gap",
+        setBusinessSort: (businessSort) => update((prev) => ({ ...prev, businessSort })),
       }}
     >
       {children}

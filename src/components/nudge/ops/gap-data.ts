@@ -99,6 +99,64 @@ const noir: GapNode = {
   ],
 }
 
+const linen: GapNode = {
+  id: "sku-linen",
+  name: "Coastal Linen Large Jar, 22 oz",
+  level: "SKU",
+  asin: "B00FLYWNYQ",
+  lastWeek: { sales: 0.0496, plan: 0.0482 },
+  wtd: 0.0301,
+  eow: { projected: 0.0512, plan: 0.049 },
+  equation: { traffic: 4, conversion: 2, price: 0, sales: 6 },
+  drivers: [{ title: "Halloween deal running since Oct 1", value: 0.0014, tag: "Live", points: ["Deal badge showing", "Conversion +2%"] }],
+  recommendations: [{ title: "Keep it: no change needed", points: ["Watch the deal badge through Oct 31"], action: { kind: "watch", label: "Watch the badge" } }],
+}
+
+const cedar: GapNode = {
+  id: "sku-cedar",
+  name: "Cedar & Smoke Jar, 18 oz",
+  level: "SKU",
+  asin: "B09HWCD118",
+  lastWeek: { sales: 0.041, plan: 0.0452 },
+  wtd: 0.0228,
+  eow: { projected: 0.04, plan: 0.046 },
+  equation: { traffic: -8, conversion: -3, price: 0, sales: -11 },
+  drivers: [{ title: "Lost the buy box to WickWorks", value: -0.0042, tag: "Live", points: ["WickWorks below your MAP floor", "Part of the hero MAP escalation"] }],
+  recommendations: [{ title: "Included in the MAP escalation", points: ["Hero SKU, reviewed one by one"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } }],
+}
+
+const tinTrio: GapNode = {
+  id: "sku-tins",
+  name: "Travel Tin Trio",
+  level: "SKU",
+  asin: "B0ATT30313",
+  lastWeek: { sales: 0.0214, plan: 0.0231 },
+  wtd: 0.0118,
+  eow: { projected: 0.0208, plan: 0.0233 },
+  equation: { traffic: -5, conversion: -3, price: 0, sales: -8 },
+  drivers: [
+    { title: "Shipping 3.4 days slower than Prime", value: -0.001, tag: "Worth watching", points: ["Slower in 8 of 12 ZIPs"] },
+    { title: "Lost the buy box on 9 of 12 crawls", value: -0.0007, tag: "Live", points: ["CandleDepot below MAP"] },
+  ],
+  recommendations: [{ title: "Send the core MAP escalation", points: ["Core SKU, sends in bulk"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox" } }],
+}
+
+const citrusMini: GapNode = {
+  id: "sku-citrus",
+  name: "Bright Citrus Mini Jar, 8 oz",
+  level: "SKU",
+  asin: "B0BCM08080",
+  lastWeek: { sales: 0.0186, plan: 0.0224 },
+  wtd: 0.0121,
+  eow: { projected: 0.0212, plan: 0.0226 },
+  equation: { traffic: -12, conversion: -6, price: 0, sales: -17 },
+  drivers: [
+    { title: "Out of stock Oct 2–4", value: -0.0026, tag: "Resolved", points: ["PO landed Oct 5"] },
+    { title: "Offer suppressed since Oct 6", value: -0.0012, tag: "Live", points: ["900 units at the DC", "Page unavailable in 64% of crawls"] },
+  ],
+  recommendations: [{ title: "Reinstate the suppressed offer", points: ["Drafted in your ops queue"], action: { kind: "inbox", label: "Open the fix", batchId: "oos" } }],
+}
+
 const jar: GapNode = {
   id: "cat-jar",
   name: "Jar candles",
@@ -116,8 +174,8 @@ const jar: GapNode = {
     { title: "Enforce MAP on the 4 hero SKUs", points: ["Drafted, with crawl evidence"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } },
     { title: "Get the Halloween content live", points: ["Nudge Mike: $660K one approval away"], action: { kind: "watch", label: "Tell me when it's live" } },
   ],
-  children: [amber, noir],
-  more: 38,
+  children: [amber, noir, linen],
+  more: 37,
 }
 
 const gift: GapNode = {
@@ -142,6 +200,8 @@ const tins: GapNode = {
   equation: { traffic: -2, conversion: -1, price: 0, sales: -3 },
   drivers: [{ title: "Shipping slower than Prime on 4 SKUs", value: -0.01, tag: "Worth watching", points: ["2.5 days slower in 8 ZIPs"] }],
   recommendations: [{ title: "Flag to your 3PL", points: ["Drafted in your inbox"], action: { kind: "inbox", label: "Open the shipping fix", batchId: "shipping" } }],
+  children: [tinTrio],
+  more: 11,
 }
 
 const aurelle: GapNode = {
@@ -174,6 +234,8 @@ const hearthwood: GapNode = {
   equation: { traffic: -2, conversion: 0, price: 0, sales: -2 },
   drivers: [{ title: "Cedar & Smoke lost the buy box", value: -0.02, tag: "Live", points: ["Part of the MAP escalation"] }],
   recommendations: [{ title: "Included in the MAP escalation", points: ["Hero SKU, reviewed one by one"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } }],
+  children: [cedar],
+  more: 23,
 }
 
 const bright: GapNode = {
@@ -186,6 +248,8 @@ const bright: GapNode = {
   equation: { traffic: -4, conversion: -3, price: 0, sales: -7 },
   drivers: [{ title: "2 SKUs out of stock Oct 2–4", value: -0.04, tag: "Resolved", points: ["PO landed Oct 5", "Weeks of cover now 3.2"] }],
   recommendations: [{ title: "Keep cover above 3 weeks into Black Friday", points: ["Ally for Ops drafts the PO expedite"], action: { kind: "play", label: "Launch the stock play", playId: "bf-stock" } }],
+  children: [citrusMini],
+  more: 17,
 }
 
 export const GAP_TREE: GapNode = {
@@ -222,3 +286,6 @@ export function pathTo(id: string, n: GapNode = GAP_TREE, trail: string[] = []):
     if (p) return p
   }
 }
+
+/** Every node at one grain (the Business list's "Group by"). */
+export const nodesAt = (level: "SKU" | "Category" | "Brand") => flatten().filter((n) => n.level === level)

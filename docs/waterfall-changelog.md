@@ -249,3 +249,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Issue pane: what Ally found (skills), drafted email, then the action: core "Send · N SKUs" with the no-hero line and "Or review all N one by one", hero "Review N SKUs"; "Review sample SKU" opens one SKU inline with the same next step.
 - SKU pane (`OpsSkuPane`): back to the issue, SKU header, gap to plan for that SKU, evidence; hero footer "Looks right · next SKU" until all are checked, then Send; core footer sends all.
 - "Review N SKUs" opens the first SKU, expands the list and scrolls to the queue. The rail's Issues / Brand & category toggle is removed; the Business view replaces it next.
+
+## Michelle: Business view | Ops view; business list sorted by gap (setting)
+- Page toggle: Business view (default) and Ops view. Business hero is forward-looking (Amazon projected landing vs plan, work in flight by lever, this week vs plan).
+- `BusinessView`: SKU | Category | Brand rows from the gap data: last week vs plan, this week projected, why (top driver, tagged), work in flight read from the queues (ops issues containing the SKU, content batches containing it, with owner and status in its own bucket). A row opens causes, what to do (opens the ops item, launches a play, or links to Mike's queue) and "Run gap-to-plan analysis" inline.
+- Sort: gap to plan by default; Settings → Business view switches to sales (`businessSort` in the shared state).

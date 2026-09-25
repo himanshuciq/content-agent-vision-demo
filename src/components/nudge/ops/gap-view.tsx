@@ -102,7 +102,7 @@ function Steps() {
   )
 }
 
-function ActionButton({ action, onInbox }: { action: GapAction; onInbox: (batchId: string) => void }) {
+export function ActionButton({ action, onInbox }: { action: GapAction; onInbox: (batchId: string) => void }) {
   const { launch, isLaunched } = useLaunch()
   const play = action.kind === "play" ? playById(action.playId) : undefined
   const done = play && isLaunched(play)
