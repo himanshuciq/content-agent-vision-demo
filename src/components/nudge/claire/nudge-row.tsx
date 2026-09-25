@@ -105,7 +105,7 @@ export function NudgeRow({
                 nudge === "hover" && "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
               )}
             >
-              {row.weekly ? "Nudge again" : `Nudge ${row.analystName}`}
+              Nudge
             </button>
           ))}
       </div>

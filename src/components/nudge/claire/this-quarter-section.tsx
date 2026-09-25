@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BANKED_OTHER, INFLIGHT, TEAM_TIER, fmtValue } from "../data"
 import { CONTENT_BANKED_Q3, OPS_BANKED_Q3 } from "../delivered-content-data"
@@ -34,9 +34,13 @@ function ExpandableRow({ name, data, open, onToggle, children }: { name: string;
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onToggle()}
         className={cn(DELIVERED_GRID, "cursor-pointer px-6 py-3.5 hover:bg-slate-50")}
       >
-        <RowLabel name={name} note={data.did} top />
+        {/* Disclosure at the leading edge, same as the area table above. */}
+        <div className="flex min-w-0 items-center gap-1">
+          <ChevronRight className={cn("size-4 shrink-0 text-slate-400 transition-transform", open && "rotate-90")} />
+          <RowLabel name={name} note={data.did} top />
+        </div>
         <ValueCells delivered={data.delivered} promised={data.promised} strong projectedFirst />
-        <ChevronDown className={cn("size-4 justify-self-end text-slate-400 transition-transform", open && "rotate-180")} />
+        <span />
       </div>
       {open && <div className="border-t border-slate-100 bg-slate-25 px-6 py-5">{children}</div>}
     </div>
@@ -83,7 +87,7 @@ export function ThisQuarterSection() {
               <ContentWaterfall data={d.data} order={d.order} totalLabel={AGENT_LABEL[agent]} barClass={d.barClass} teamRow={d.teamRow} resultsHref={d.resultsHref} />
             </ExpandableRow>
           ) : (
-            bucket && <DeliveredSummaryRow key={agent} bucket={bucket} projectedFirst />
+            bucket && <DeliveredSummaryRow key={agent} bucket={bucket} projectedFirst indent />
           )
         })}
       </div>

@@ -141,3 +141,11 @@ Each row is a waterfall change to port to `/claire` if we keep it.
   - each area's open money as a stacked bar in the bridge's colors, with the three amounts under it
   - values on the same edge as the other tables
   - the old AreaView stays on /claire
+- **Mike and Michelle inbox rail redesigned (shared `mike/rail.tsx`):**
+  - a white rail with a small colored dot per bucket instead of tinted headers and side bars
+  - a shared deadline said once in the group header ("Expires Oct 8 · 18 days"), with an item showing its own only when it differs
+  - a neutral selected card, and "Approve all" as a quiet text action
+  - one meta line per item ("378 SKUs ▾" · state)
+- **Claire:**
+  - the area table's nudge now reads "Nudge", and stage rows say "Nudge" (was "Nudge again")
+  - disclosure chevrons moved to the leading edge in the area table and "This quarter so far", with media indented to line up

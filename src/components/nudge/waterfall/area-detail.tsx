@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, ChevronDown } from "lucide-react"
+import { Check, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TIER_GRID } from "../claire/nudge-tier"
 import { AGENT_DOT } from "../agent-style"
@@ -56,6 +56,8 @@ function AreaGroup({ agent, buckets, value }: { agent: AgentId; buckets: { label
         className={cn(TIER_GRID, "cursor-pointer py-3.5 outline-none")}
       >
         <span className="flex items-center gap-2.5 text-sm">
+          {/* Disclosure at the leading edge, so the right edge holds only the value and the nudge. */}
+          <ChevronRight className={cn("-ml-1 size-4 text-slate-400 transition-transform", open && "rotate-90")} />
           <span className={`size-2 rounded-sm ${AGENT_DOT[agent]}`} />
           <span className="font-medium text-slate-950">{AGENT_LABEL[agent]}</span>
           {owner && <span className="text-slate-500">{owner}</span>}
@@ -77,16 +79,16 @@ function AreaGroup({ agent, buckets, value }: { agent: AgentId; buckets: { label
                 }}
                 className={NUDGE_BTN}
               >
-                Nudge {owner}
+                Nudge
               </button>
             ))}
         </div>
-        <ChevronDown className={cn("size-4 justify-self-end text-slate-400 transition-transform", open && "rotate-180")} />
+        <span />
       </div>
       {open && (
         <div className="pb-2">
           {buckets.map((b) => (
-            <div key={b.label} className={cn(TIER_GRID, "border-t border-slate-100 py-3 pl-4.5")}>
+            <div key={b.label} className={cn(TIER_GRID, "border-t border-slate-100 py-3 pl-[42px]")}>
               <div className="grid grid-cols-[168px_minmax(0,1fr)] items-start gap-4">
                 <div>
                   <div className="text-sm text-slate-950">{b.label}</div>

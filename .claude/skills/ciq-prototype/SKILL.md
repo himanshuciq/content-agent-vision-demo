@@ -92,11 +92,15 @@ Full table in the project's `design-specs.md` under "Number and Color Rules".
   - no vertical rules or zebra striping; hairline dividers between rows
   - status shown as a small dot plus text, not a pill
   - values line up at the same x across sibling tables
-- **Selection:** a soft tint in the group's own color. No focus outline after a mouse click (`focus-visible` only), and no double borders.
+- **Selection:** a soft neutral card (`bg-slate-100` with a hairline ring). No focus outline after a mouse click (`focus-visible` only), and no double borders.
 - **Charts:**
   - earn their place; execs dislike new visualization types, so prefer a headline number
   - a bridge or waterfall has a plan line and gray totals
   - comparisons use a filled track with a benchmark tick, so the gap reads without math
+- **Color is a hint, never a fill.** Mark a group with a small dot in its bucket color. No tinted headers, no colored side bars, no chips on tinted backgrounds. One strong color per area at most.
+- **Say a shared fact once.** A deadline every item shares goes in the group header as plain amber text ("Expires Oct 8 · 18 days"), not as a chip on each item.
+- **Disclosure arrows at the leading edge** (a chevron before the name that rotates when open), so the right edge holds only values and actions. Rows without one are indented to line up.
+- **Labels don't repeat the row.** Write "Nudge", not "Nudge Mike", when the row already names Mike.
 - **Floating Ask Ally bar** on every page, with page-specific questions answered from that page's numbers. It collapses on outside click. Leave bottom padding so it doesn't cover content.
 - **Responsive:** check at ~1300px and at a narrow ~760px pane. On narrow widths, descriptions stack under names instead of squeezing columns.
 
