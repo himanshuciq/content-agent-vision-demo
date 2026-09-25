@@ -7,6 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenu
 import { BUSINESS, INFLIGHT, fmtBiz } from "../data"
 import { useLive } from "../live-model"
 import { SettingsGear } from "../settings-gear"
+import { EmailPdfButton } from "./email-pdf-button"
+import { TeamBell } from "./team-bell"
 import type { Period } from "../types"
 
 const PERIOD_WORDS: Record<Period, string> = { week: "this week", month: "this month", quarter: "this quarter", year: "this year" }
@@ -64,7 +66,11 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <SettingsGear />
+        <div className="flex shrink-0 items-center gap-2">
+          <EmailPdfButton period={period} />
+          <TeamBell />
+          <SettingsGear />
+        </div>
       </div>
 
       {/* Fact, then the gap, then what closes it. The fact line is the same size as the first line on Mike's and Michelle's pages. */}

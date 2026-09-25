@@ -72,7 +72,7 @@ export function useSlackNudgeToast() {
           }}
         />
       ),
-      { position: "top-right", duration: 8000 },
+      { position: "bottom-right", duration: 8000 },
     )
   }
 }

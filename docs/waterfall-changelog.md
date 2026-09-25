@@ -182,3 +182,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - "Halloween moments" → "Halloween jar candles" (event + category); Slack nudge batch name to match.
 - `Batch.nudgeKey`: the source line reads "Emailed Monday 8:00 AM" until Claire nudges, then "Nudged by Claire, just now".
 - Mike's Ask Ally "approve first" answer updated to hero first, then core.
+
+## Claire's top line: email PDF, team bell, reset on load
+- Opening or reloading /claire-waterfall resets the demo (nudges, approvals, policy). A module-scope flag keeps in-app navigation from resetting. `resetDemo` clears storage synchronously so the provider's mount read can't restore old state.
+- Weekly banner overlay removed from /claire-waterfall (kept on frozen /claire). New `TeamBell`: bell with a count of owners not started and not nudged; panel "This week" with the email line, who started, who hasn't (with Nudge), Auto-send toggle.
+- Mail icon (`EmailPdfButton`) left of the bell downloads the summary PDF.
+- `exec-pdf.ts` rebuilt from the live model to mirror the page, fully expanded: hero sentences, the bridge chart against plan, every stage's rows with this week's status, open opportunity by area and bucket, this quarter so far with each lever's breakdown and bullets. Takes `{ approved, nudged, policy }`.
+- Total opportunity drill-down now reads the review policy. Slack popup moved to bottom-right so it doesn't cover the bell panel.

@@ -107,6 +107,12 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
     !notifCleared && MIKE_NUDGE_KEYS.some((key) => state.nudged[key])
 
   const resetDemo = useCallback(() => {
+    // Cleared right away, not inside the state update, so a read of storage in the same tick sees the reset.
+    try {
+      window.localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      // Best effort only.
+    }
     update(() => EMPTY_STATE)
     setNotifCleared(false)
   }, [update])

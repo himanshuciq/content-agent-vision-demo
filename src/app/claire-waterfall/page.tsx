@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
-import { WeeklyBanner } from "@/components/nudge/claire/weekly-banner"
 import { BusinessHero } from "@/components/nudge/claire/business-hero"
 import { WaterfallChart } from "@/components/nudge/waterfall/waterfall-chart"
 import type { WaterfallSelection } from "@/components/nudge/waterfall/waterfall-chart"
@@ -12,7 +11,11 @@ import { StageDetail } from "@/components/nudge/waterfall/stage-detail"
 import { ThisQuarterSection } from "@/components/nudge/claire/this-quarter-section"
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
 import { useLive } from "@/components/nudge/live-model"
+import { useNudge } from "@/components/nudge/nudge-context"
 import type { Period } from "@/components/nudge/types"
+
+/** Module scope survives moves between pages, not a reload: so only a fresh load of this page resets the demo. */
+let resetThisLoad = false
 
 /**
  * Alternate view of the same buckets as /claire, rendered as a bridge to plan
@@ -25,12 +28,20 @@ export default function ClaireWaterfallPage() {
   const [selectedId, setSelectedId] = useState<WaterfallSelection>("approval")
 
   const { stages } = useLive()
+  const { resetDemo } = useNudge()
+
+  // Opening or reloading Claire's page starts the demo over (nudges, approvals, policy).
+  // Coming back from Mike's or Michelle's page keeps the story moving.
+  useEffect(() => {
+    if (resetThisLoad) return
+    resetThisLoad = true
+    resetDemo()
+  }, [resetDemo])
   const selected = stages.find((s) => s.id === selectedId) ?? stages[0]
 
   return (
     <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
-        <WeeklyBanner overlay />
         <BusinessHero period={period} onPeriodChange={setPeriod} />
 
         <div className="px-12 pt-1 pb-3">

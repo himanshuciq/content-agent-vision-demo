@@ -161,9 +161,12 @@ function AutopilotNextAnswer({ withCompare }: { withCompare: boolean }) {
 
 /** Builds the one-page PDF the Monday email carries, for an extra send. */
 function EmailAnswer() {
+  const { approved, nudged, policy } = useNudge()
   const [done, setDone] = useState(false)
   useEffect(() => {
-    downloadExecSummary("quarter").then(() => setDone(true))
+    downloadExecSummary("quarter", { approved, nudged, policy }).then(() => setDone(true))
+    // Built once, from the state when asked.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return <p>{done ? "Summary PDF downloaded. Attach it to your email, or forward Monday's." : "Building the summary PDF…"}</p>
 }
