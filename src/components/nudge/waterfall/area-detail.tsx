@@ -1,110 +1,144 @@
 "use client"
 
+import { useState } from "react"
+import { Check, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { TIER_GRID } from "../claire/nudge-tier"
 import { AGENT_DOT } from "../agent-style"
-import { BUSINESS, fmtBiz } from "../data"
+import { tierView } from "../data"
 import { useLive } from "../live-model"
-import { money, ownerOf, sum } from "../model"
-import type { Tier } from "../model"
 import { useNudge } from "../nudge-context"
-import { AGENT_LABEL, type AgentId } from "../types"
-
-// Same trailing columns as the other stage tables (value 100px, action 140px, 20px), so values line up.
-const GRID = "grid grid-cols-[minmax(0,1fr)_340px_100px_140px_20px] items-center gap-4"
-
-/** The bridge's colors, so each area's bar reads as the same buckets as the chart above it. */
-const BUCKETS: { tier: Tier; label: string; bar: string }[] = [
-  { tier: "approval", label: "One approval away", bar: "bg-brand-500" },
-  { tier: "input", label: "Needs your team", bar: "bg-warning-500" },
-  { tier: "autopilot", label: "On autopilot", bar: "bg-info-500" },
-]
+import { useFireNudge } from "../use-fire-nudge"
+import { AGENT_LABEL, type AgentId, type NudgeKey, type TierRow } from "../types"
 
 /** Content first for the demo, then the rest. */
 const ORDER: AgentId[] = ["content", "ops", "media"]
 
+const BUCKETS = [
+  { tier: "approval", label: "One approval away" },
+  { tier: "input", label: "Needs your team" },
+  { tier: "autopilot", label: "On autopilot" },
+] as const
+
+/** The same outline button as the row nudges in the stage tables. */
+const NUDGE_BTN =
+  "whitespace-nowrap rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-xs transition-colors hover:border-brand-300 hover:text-brand-700"
+
+function Status({ row, effort }: { row: TierRow; effort: string }) {
+  const w = row.weekly
+  if (!w) return <span className="text-slate-500">{effort}</span>
+  if (w.state === "done") return <span className="font-medium text-success-700">{w.progress}</span>
+  if (w.state === "in-progress") return <span className="font-medium text-info-700">In progress · {w.progress}</span>
+  return <span className="text-slate-500">Emailed Mon · not started</span>
+}
+
+function AreaGroup({ agent, buckets, value }: { agent: AgentId; buckets: { label: string; effort: string; row: TierRow }[]; value: string }) {
+  const [open, setOpen] = useState(false)
+  const { nudged, nudgeMany } = useNudge()
+  const { sendSlack } = useFireNudge()
+  const owner = buckets.find((b) => b.row.analystName)?.row.analystName
+  // Nudge the owner only for buckets they haven't started, same rule as the stage tables.
+  const toNudge = buckets.map((b) => b.row).filter((r) => r.nudgeKey && r.weekly?.state === "not-started")
+  const allNudged = toNudge.length > 0 && toNudge.every((r) => nudged[r.nudgeKey!])
+
+  function nudgeOwner() {
+    nudgeMany(toNudge.map((r) => r.nudgeKey!) as NudgeKey[])
+    toNudge.forEach(sendSlack)
+  }
+
+  return (
+    <div className="border-t border-slate-100 first:border-t-0">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpen((o) => !o)}
+        className={cn(TIER_GRID, "cursor-pointer py-3.5 outline-none")}
+      >
+        <span className="flex items-center gap-2.5 text-sm">
+          <span className={`size-2 rounded-sm ${AGENT_DOT[agent]}`} />
+          <span className="font-medium text-slate-950">{AGENT_LABEL[agent]}</span>
+          {owner && <span className="text-slate-500">{owner}</span>}
+        </span>
+        <span className="text-right font-mono text-[15px] font-semibold text-slate-950 tabular-nums">{value}</span>
+        <div className="justify-self-end">
+          {toNudge.length > 0 &&
+            (allNudged ? (
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success-700">
+                <Check className="size-4" />
+                Nudged today
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  nudgeOwner()
+                }}
+                className={NUDGE_BTN}
+              >
+                Nudge {owner}
+              </button>
+            ))}
+        </div>
+        <ChevronDown className={cn("size-4 justify-self-end text-slate-400 transition-transform", open && "rotate-180")} />
+      </div>
+      {open && (
+        <div className="pb-2">
+          {buckets.map((b) => (
+            <div key={b.label} className={cn(TIER_GRID, "border-t border-slate-100 py-3 pl-4.5")}>
+              <div className="grid grid-cols-[168px_minmax(0,1fr)] items-start gap-4">
+                <div>
+                  <div className="text-sm text-slate-950">{b.label}</div>
+                  <div className="mt-0.5 text-xs">
+                    <Status row={b.row} effort={b.effort} />
+                  </div>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-500">{b.row.description}</p>
+              </div>
+              <span className="text-right font-mono text-sm text-slate-700 tabular-nums">{b.row.value}</span>
+              <span />
+              <span />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /**
- * The "Total opportunity" drill-down: the open money by area, each split into the
- * bridge's three buckets on one scale, so the biggest area and what it's made of
- * read at a glance. Live: it shrinks as the team acts.
+ * The "Total opportunity" drill-down, same content as before (each area opening to
+ * its buckets, a nudge for its owner), laid out like the other stage tables: a title
+ * bar with the total, column headers, hairline rows, values on one edge. Live.
  */
 export function AreaDetail() {
-  const { snapshot, open, pace } = useLive()
+  const { open } = useLive()
   const { approved } = useNudge()
-  const openItems = snapshot.items.filter((i) => !approved[i.id])
-
-  const rows = ORDER.map((lever) => {
-    const items = openItems.filter((i) => i.lever === lever)
-    return {
-      lever,
-      owner: ownerOf(snapshot, lever)?.name,
-      total: sum(items),
-      parts: BUCKETS.map((b) => ({ ...b, value: sum(items.filter((i) => i.tier === b.tier)) })),
-    }
-  })
-  const max = Math.max(...rows.map((r) => r.total), 0.001)
-  const landing = pace("quarter") + open.total
+  const views = BUCKETS.map((b) => ({ ...b, view: tierView(b.tier, approved) }))
 
   return (
     <div className="mt-6 overflow-hidden rounded-xl border border-slate-200">
-      <div className={cn(GRID, "border-b border-slate-100 bg-slate-25 px-6 py-4")}>
-        <div className="col-span-2 min-w-0">
-          <div className="text-lg font-semibold text-slate-950">Open opportunity by area</div>
-          <div className="mt-0.5 text-sm text-slate-500">
-            <span className="font-mono font-semibold text-slate-950">{fmtBiz(pace("quarter"))}</span> current run rate +{" "}
-            <span className="font-mono font-semibold text-slate-950">{open.totalLabel}</span> open ={" "}
-            <span className="font-mono font-semibold text-slate-950">{fmtBiz(landing)}</span>, against a{" "}
-            <span className="font-mono font-semibold text-slate-950">{fmtBiz(BUSINESS.quarter.plan)}</span> plan.
-          </div>
-        </div>
+      <div className={`${TIER_GRID} border-b border-slate-100 bg-slate-25 px-6 py-4`}>
+        <span className="text-lg font-semibold text-slate-950">Open opportunity by area</span>
         <span className="text-right font-mono text-[15px] font-bold text-slate-950 tabular-nums">{open.totalLabel}</span>
-        <div />
-        <div />
+        <span />
+        <span />
       </div>
-
-      <div className={cn(GRID, "px-6 pt-3 pb-1 text-xs font-medium text-slate-500")}>
+      <div className={`${TIER_GRID} px-6 pt-3 pb-1 text-xs font-medium text-slate-500`}>
         <span>Area</span>
-        <span className="flex gap-x-3 whitespace-nowrap">
-          {BUCKETS.map((b) => (
-            <span key={b.tier} className="inline-flex items-center gap-1.5">
-              <span className={cn("size-2 rounded-full", b.bar)} />
-              {b.label}
-            </span>
-          ))}
-        </span>
         <span className="text-right">Value</span>
         <span />
         <span />
       </div>
-
       <div className="px-6 pb-1.5">
-        {rows.map((r) => (
-          <div key={r.lever} className={cn(GRID, "border-t border-slate-100 py-3.5 first:border-t-0")}>
-            <span className="flex items-center gap-2.5 text-sm">
-              <span className={`size-2 rounded-sm ${AGENT_DOT[r.lever]}`} />
-              <span className="font-medium text-slate-950">{AGENT_LABEL[r.lever]}</span>
-              {r.owner && <span className="text-slate-500">{r.owner}</span>}
-            </span>
-            <div>
-              <div className="flex h-2 gap-0.5" style={{ width: `${(r.total / max) * 100}%` }}>
-                {r.parts
-                  .filter((p) => p.value > 0)
-                  .map((p) => (
-                    <div key={p.tier} title={`${p.label} ${money(p.value)}`} className={cn("h-full rounded-full", p.bar)} style={{ flex: `${p.value} 1 0` }} />
-                  ))}
-              </div>
-              <div className="mt-1.5 flex gap-3 font-mono text-xs text-slate-500 tabular-nums">
-                {r.parts.map((p) => (
-                  <span key={p.tier} className="inline-flex items-center gap-1">
-                    <span className={cn("size-1.5 rounded-full", p.bar)} />
-                    {p.value > 0 ? money(p.value) : "—"}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <span className="text-right font-mono text-[15px] font-semibold text-slate-950 tabular-nums">{r.total > 0 ? money(r.total) : "—"}</span>
-            <span />
-            <span />
-          </div>
+        {ORDER.map((agent) => (
+          <AreaGroup
+            key={agent}
+            agent={agent}
+            value={open.byArea.find((a) => a.agent === agent)?.value ?? "—"}
+            buckets={views.flatMap((v) => v.view.rows.filter((r) => r.agent === agent).map((row) => ({ label: v.label, effort: v.tier === "autopilot" ? "Already scheduled" : v.view.effort, row })))}
+          />
         ))}
       </div>
     </div>
