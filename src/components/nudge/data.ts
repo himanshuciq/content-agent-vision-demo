@@ -458,9 +458,10 @@ export const BUSINESS: Record<Period, { soFar: number; pace: number; plan: numbe
   year: { soFar: 125, pace: 168, plan: 175 },
 }
 
-/** $M for business numbers: whole millions from $10M up, one decimal below. */
+/** $M for business numbers: whole millions when whole, else one decimal, so parts always add up on screen ($40.5M + $4.5M = $45M). */
 export function fmtBiz(v: number): string {
-  return v >= 10 || Number.isInteger(v) ? `$${Math.round(v)}M` : `$${v.toFixed(1)}M`
+  const r = Math.round(v * 10) / 10
+  return Number.isInteger(r) ? `$${r}M` : `$${r.toFixed(1)}M`
 }
 
 /** In-flight business context shown in the status strip — how the current period is tracking. */

@@ -6,13 +6,22 @@ import { cn } from "@/lib/utils"
 import { BANKED_OTHER, INFLIGHT, TEAM_TIER, fmtValue } from "../data"
 import { CONTENT_BANKED_Q3, OPS_BANKED_Q3 } from "../delivered-content-data"
 import type { ContentDelivered } from "../delivered-content-data"
+import { AGENT_LABEL } from "../types"
+import type { AgentId, TierRow } from "../types"
 import { ContentWaterfall } from "./content-waterfall"
 import { DELIVERED_GRID, DeliveredHeader, RowLabel, ValueCells } from "./delivered/columns"
 import { DeliveredSummaryRow } from "./delivered/delivered-summary-row"
 
-const OPS_ORDER = ["buy-box", "promo-badge", "shipping-speed"]
-/** Ops' owner row: Nudge team on an ops bullet nudges Michelle. */
-const OPS_TEAM_ROW = TEAM_TIER.rows.find((r) => r.agent === "ops")!
+/** Levers whose delivered value has a breakdown by type of work. Media has none yet, so it stays a summary row. */
+const DRILLDOWN: Partial<Record<AgentId, { data: ContentDelivered; order?: string[]; barClass?: string; teamRow?: TierRow; resultsHref?: string }>> = {
+  content: { data: CONTENT_BANKED_Q3, resultsHref: "/content-results?period=qtd" },
+  ops: {
+    data: OPS_BANKED_Q3,
+    order: ["buy-box", "promo-badge", "shipping-speed"],
+    barClass: "bg-info-500",
+    teamRow: TEAM_TIER.rows.find((r) => r.agent === "ops"),
+  },
+}
 
 /** A delivered row that opens to its agent's waterfall. Content and ops work the same way. */
 function ExpandableRow({ name, data, open, onToggle, children }: { name: string; data: ContentDelivered; open: boolean; onToggle: () => void; children: React.ReactNode }) {
@@ -40,8 +49,8 @@ function ExpandableRow({ name, data, open, onToggle, children }: { name: string;
  * type; each bar shows its 2–3 bullets. Deeper detail is the results link.
  */
 export function ThisQuarterSection() {
-  const [open, setOpen] = useState<"content" | "ops" | null>(null)
-  const toggle = (id: "content" | "ops") => setOpen((o) => (o === id ? null : id))
+  const [open, setOpen] = useState<AgentId | null>(null)
+  const toggle = (id: AgentId) => setOpen((o) => (o === id ? null : id))
   const c = CONTENT_BANKED_Q3
   const projected = c.promised + BANKED_OTHER.reduce((s, b) => s + b.promised, 0)
   const delivered = c.delivered + BANKED_OTHER.reduce((s, b) => s + b.delivered, 0)
@@ -65,18 +74,18 @@ export function ThisQuarterSection() {
 
       <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white">
         <DeliveredHeader projectedFirst />
-        <ExpandableRow name="Content" data={c} open={open === "content"} onToggle={() => toggle("content")}>
-          <ContentWaterfall data={c} resultsHref="/content-results?period=qtd" />
-        </ExpandableRow>
-        {BANKED_OTHER.map((b) =>
-          b.agent === "ops" ? (
-            <ExpandableRow key={b.agent} name="Ops" data={OPS_BANKED_Q3} open={open === "ops"} onToggle={() => toggle("ops")}>
-              <ContentWaterfall data={OPS_BANKED_Q3} order={OPS_ORDER} totalLabel="Ops" barClass="bg-info-500" teamRow={OPS_TEAM_ROW} />
+        {(["content", ...BANKED_OTHER.map((b) => b.agent)] as AgentId[]).map((agent) => {
+          const d = DRILLDOWN[agent]
+          const bucket = BANKED_OTHER.find((b) => b.agent === agent)
+          // Any lever with a breakdown opens to its waterfall; the rest are a summary row.
+          return d ? (
+            <ExpandableRow key={agent} name={AGENT_LABEL[agent]} data={d.data} open={open === agent} onToggle={() => toggle(agent)}>
+              <ContentWaterfall data={d.data} order={d.order} totalLabel={AGENT_LABEL[agent]} barClass={d.barClass} teamRow={d.teamRow} resultsHref={d.resultsHref} />
             </ExpandableRow>
           ) : (
-            <DeliveredSummaryRow key={b.agent} bucket={b} projectedFirst />
-          ),
-        )}
+            bucket && <DeliveredSummaryRow key={agent} bucket={bucket} projectedFirst />
+          )
+        })}
       </div>
     </section>
   )

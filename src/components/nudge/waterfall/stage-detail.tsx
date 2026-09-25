@@ -67,8 +67,8 @@ export function StageDetail({ stage }: { stage: WaterfallStage }) {
       {stage.rows.length > 0 ? (
         <div className="px-6 pb-1.5">
           {stage.rows.map((row, i) => (
-            // Content (Mike) is the one owner still to act, so his nudge stays visible; the others have started.
-            <NudgeRow key={i} row={row} grid={TIER_GRID} statusColumn nudge={row.agent === "content" ? "always" : "none"} />
+            // Nudge whoever hasn't started; anyone already on it (or done) doesn't need one.
+            <NudgeRow key={i} row={row} grid={TIER_GRID} statusColumn nudge={row.weekly?.state === "not-started" ? "always" : "none"} />
           ))}
         </div>
       ) : (

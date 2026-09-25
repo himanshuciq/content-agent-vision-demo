@@ -122,3 +122,14 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - "What the agent changed" → "What Ally changed".
 - Progress bar shows the total at the right ("$2.02M this quarter") alongside the pieces ($520K banked · $1.5M open). **Shared data:** content now totals exactly $1.5M — retail readiness batch $180K → $140K; Claire team-tier content row $0.6M → $560K (team tier still rounds to $2.2M).
 - Mike and Michelle: batch values and group totals are signed ("+$500K", "One approval away · +$740K") so they read as projected incremental value, not revenue. Detail header says "projected incremental sales" (ops: "projected leakage prevented"). Values stay black until approved, then turn green.
+
+## Data model and live loop (no more hard-coding)
+- **One table of work items** (`data.ts` → `getSnapshot()`, logic in `model.ts`): content, ops and media items with lever, bucket, value, SKUs, deadline date, urgency. James's media items are seeded (no page yet).
+  - Everything is derived from it: Claire's tier rows, totals, bridge values, the split by area, "$X expires in N days" (days from the date and the demo's as-of date), nudge targets, and Mike's approval total.
+- **Status is derived:** seeded weekly activity merged with this session's actions. Anyone who approves becomes "In progress · 1 of 2 approved", then "All approved".
+  - **Nudge buttons show only for owners who haven't started.** This replaces the rule that was keyed to Mike.
+  - The weekly banner, Mike's bell (what was actually nudged), Michelle's "losing the sale" (the `urgent` flag) and Mike's "All of it expires" (true only if every open item has the deadline) are all derived.
+- **Claire's page is live** (`live-model.ts`, `useLive()`). When Mike or Michelle act, the hero ("tracking to", gap, pipeline), the split by area, "45 min unlocks", the expiry line, the bridge and the stage rows all update. Approved value moves into the current run rate.
+- **The "This quarter so far" drill-down is data-driven.** Any lever with a breakdown opens; media has none yet.
+- **Formats:** money uses K below $1M (for example $0.56M → $560K, and /claire's $0.9M → $900K). Business numbers keep one decimal when they aren't whole, so the parts add up on screen.
+- **Shared data:** media team work is $1.04M (was a typed $1.0M) so the team bucket really sums to $2.2M.

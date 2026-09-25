@@ -11,8 +11,7 @@ import { AreaView } from "@/components/nudge/claire/area-view"
 import { StageDetail } from "@/components/nudge/waterfall/stage-detail"
 import { ThisQuarterSection } from "@/components/nudge/claire/this-quarter-section"
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
-import { WATERFALL_STAGES } from "@/components/nudge/data"
-import type { WaterfallStage } from "@/components/nudge/data"
+import { useLive } from "@/components/nudge/live-model"
 import type { Period } from "@/components/nudge/types"
 
 /**
@@ -25,7 +24,8 @@ export default function ClaireWaterfallPage() {
   const [period, setPeriod] = useState<Period>("quarter")
   const [selectedId, setSelectedId] = useState<WaterfallSelection>("approval")
 
-  const selected = WATERFALL_STAGES.find((s) => s.id === selectedId) ?? WATERFALL_STAGES[0]
+  const { stages } = useLive()
+  const selected = stages.find((s) => s.id === selectedId) ?? stages[0]
 
   return (
     <PageShell className="bg-slate-50">

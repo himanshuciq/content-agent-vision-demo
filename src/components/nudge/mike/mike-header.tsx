@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useNudge } from "../nudge-context"
-import { findBatch } from "../data"
+import { NUDGE_TARGETS } from "../data"
+import type { NudgeKey } from "../types"
 
 const Dot = () => <span className="text-slate-300">·</span>
 const Num = ({ children }: { children: React.ReactNode }) => <span className="font-mono font-semibold text-slate-950">{children}</span>
@@ -17,8 +18,9 @@ const Up = ({ children }: { children: React.ReactNode }) => <span className="fon
 
 /** Mike's top line, shaped like Claire's: greeting, quarter, how his content is doing. Then the bell that ties back to Claire's nudge. */
 export function MikeHeader() {
-  const { mikeNotified, clearNotification } = useNudge()
-  const nudgedBatch = findBatch("halloween")
+  const { mikeNotified, clearNotification, nudged } = useNudge()
+  // What Claire actually nudged Mike about, from the nudges sent (not a fixed batch).
+  const nudgedTargets = (Object.keys(NUDGE_TARGETS) as NudgeKey[]).filter((k) => nudged[k] && NUDGE_TARGETS[k]?.recipient === "mike").map((k) => NUDGE_TARGETS[k]!)
 
   return (
     <header className="flex items-start justify-between gap-6 px-10 pt-8">
@@ -62,9 +64,11 @@ export function MikeHeader() {
                 </span>
                 <span>
                   <span className="block text-sm font-semibold text-slate-950">Claire nudged you</span>
-                  <span className="mt-0.5 block text-sm text-slate-500">
-                    {nudgedBatch.name} · {nudgedBatch.value}, {nudgedBatch.skus} SKUs
-                  </span>
+                  {nudgedTargets.map((t) => (
+                    <span key={t.batchName} className="mt-0.5 block text-sm text-slate-500">
+                      {t.batchName} · {t.value}, {t.skus} SKUs
+                    </span>
+                  ))}
                 </span>
               </DropdownMenuItem>
             ) : (

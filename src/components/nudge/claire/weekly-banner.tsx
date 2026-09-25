@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Check, Mail, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { APPROVAL_TIER } from "../data"
+import { useLive } from "../live-model"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
 
@@ -17,6 +17,7 @@ import { useFireNudge } from "../use-fire-nudge"
 export function WeeklyBanner({ overlay = false }: { overlay?: boolean }) {
   const { nudged } = useNudge()
   const { fire } = useFireNudge()
+  const live = useLive()
   const [autoSend, setAutoSend] = useState(true)
   const [sentManually, setSentManually] = useState(false)
   const [showSetting, setShowSetting] = useState(false)
@@ -32,10 +33,13 @@ export function WeeklyBanner({ overlay = false }: { overlay?: boolean }) {
   if (dismissed) return null
 
   const sent = autoSend || sentManually
-  const rows = APPROVAL_TIER.rows.filter((r) => r.weekly)
-  const inProgress = rows.filter((r) => r.weekly?.state === "in-progress")
+  const rows = live.approval.rows.filter((r) => r.weekly)
+  const inProgress = rows.filter((r) => r.weekly?.state !== "not-started")
   const notStarted = rows.filter((r) => r.weekly?.state === "not-started")
-  const names = (list: typeof rows) => list.map((r) => r.analystName).join(" and ")
+  const names = (list: typeof rows) => {
+    const n = list.map((r) => r.analystName)
+    return n.length > 1 ? `${n.slice(0, -1).join(", ")} and ${n[n.length - 1]}` : n.join("")
+  }
 
   return (
     <div

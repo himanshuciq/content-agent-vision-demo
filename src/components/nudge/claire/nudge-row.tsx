@@ -50,7 +50,9 @@ export function NudgeRow({
           </div>
           {row.weekly && (
             <div className={cn("mt-1 ml-4.5 text-xs", statusColumn && "lg:hidden")}>
-              {row.weekly.state === "in-progress" ? (
+              {row.weekly.state === "done" ? (
+                <span className="font-medium text-success-700">{row.weekly.progress}</span>
+              ) : row.weekly.state === "in-progress" ? (
                 <span className="font-medium text-info-700">In progress · {row.weekly.progress}</span>
               ) : (
                 <span className="text-slate-500">Emailed Mon · not started</span>
@@ -71,7 +73,9 @@ export function NudgeRow({
         <p className="text-sm leading-relaxed text-slate-600">{row.description}</p>
         {statusColumn && (
           <div className="hidden pt-0.5 text-sm lg:block">
-            {row.weekly?.state === "in-progress" ? (
+            {row.weekly?.state === "done" ? (
+              <span className="font-medium text-success-700">{row.weekly.progress}</span>
+            ) : row.weekly?.state === "in-progress" ? (
               <span className="font-medium text-info-700">In progress · {row.weekly.progress}</span>
             ) : row.weekly ? (
               <span className="text-slate-500">Emailed Mon · not started</span>

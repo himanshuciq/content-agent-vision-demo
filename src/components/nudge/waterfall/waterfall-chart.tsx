@@ -1,8 +1,9 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { BUSINESS, WATERFALL_STAGES, fmtBiz, fmtM } from "../data"
+import { BUSINESS, fmtBiz, fmtM } from "../data"
 import type { WaterfallStage } from "../data"
+import { useLive } from "../live-model"
 
 const CHART_HEIGHT = 300
 /** Fixed so every column is the same total height — otherwise items-end floats the bars to different baselines. */
@@ -36,12 +37,10 @@ interface Column {
 const frac = (v: number) => (v - AXIS_MIN) / (AXIS_MAX - AXIS_MIN)
 
 /** Current run rate → + each open bucket → where Ally takes you, against the plan line. */
-function buildColumns(): Column[] {
-  const { pace } = BUSINESS.quarter
+function buildColumns(stages: WaterfallStage[], pace: number): Column[] {
   let acc = pace
-  const steps = WATERFALL_STAGES.map((s) => {
-    // Autopilot's effort is none, so say what that means instead of "0 min".
-    const sub = s.id === "autopilot" ? "Already scheduled, no action required" : s.effort
+  const steps = stages.map((s) => {
+    const sub = s.caption ?? s.effort
     const col = { key: s.id, label: s.label, sub, valueLabel: `+${fmtM(s.value)}`, start: acc, end: acc + s.value, selectable: true }
     acc += s.value
     return col
@@ -64,7 +63,8 @@ interface WaterfallChartProps {
  * the detail panel below shows the line items or the split by area.
  */
 export function WaterfallChart({ selectedId, onSelect }: WaterfallChartProps) {
-  const columns = buildColumns()
+  const { stages, pace } = useLive()
+  const columns = buildColumns(stages, pace("quarter"))
   const { plan } = BUSINESS.quarter
   const planTop = PAD_TOP + (1 - frac(plan)) * CHART_HEIGHT
 

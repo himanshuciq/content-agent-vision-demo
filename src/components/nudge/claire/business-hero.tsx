@@ -4,7 +4,8 @@ import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { APPROVAL_TIER, BUSINESS, DEADLINE, INFLIGHT, OPEN_BY_AREA, OPEN_TOTAL, fmtBiz } from "../data"
+import { BUSINESS, INFLIGHT, fmtBiz } from "../data"
+import { useLive } from "../live-model"
 import type { Period } from "../types"
 
 const PERIOD_WORDS: Record<Period, string> = { week: "this week", month: "this month", quarter: "this quarter", year: "this year" }
@@ -23,7 +24,8 @@ const PERIODS: { id: Period; label: string }[] = [
  */
 export function BusinessHero({ period, onPeriodChange }: { period: Period; onPeriodChange: (p: Period) => void }) {
   const [open, setOpen] = useState(false)
-  const b = BUSINESS[period]
+  const live = useLive()
+  const b = { ...BUSINESS[period], pace: live.pace(period) }
   const gap = b.plan - b.pace
 
   return (
@@ -71,12 +73,12 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
           That&apos;s <span className="font-mono">{fmtBiz(gap)}</span> short of your <span className="font-mono">{fmtBiz(b.plan)}</span> plan.
         </span>
         <span className="block">
-          We have <span className="font-mono text-brand-600">{OPEN_TOTAL}</span> in the pipeline to close it.
+          We have <span className="font-mono text-brand-600">{live.open.totalLabel}</span> in the pipeline to close it.
         </span>
       </h1>
 
       <div className="mt-2 text-base text-slate-500">
-        {OPEN_BY_AREA.map((a, i) => (
+        {live.open.byArea.map((a, i) => (
           <span key={a.agent}>
             {i > 0 && <span className="text-slate-300"> · </span>}
             <span className="font-semibold text-slate-700">{a.value}</span> in {a.agent}
@@ -85,13 +87,16 @@ export function BusinessHero({ period, onPeriodChange }: { period: Period; onPer
       </div>
       <div className="mt-3 text-xl font-semibold">
         <span className="text-brand-600">
-          {APPROVAL_TIER.effort} of your team&apos;s time unlocks {APPROVAL_TIER.value}
+          {live.approval.effort} of your team&apos;s time unlocks {live.approval.value}
         </span>
-        <span className="text-slate-300"> · </span>
-        <span className="text-warning-600">
-          {DEADLINE.expiring}
-          {" "}expires in {DEADLINE.days} days
-        </span>
+        {live.deadline && (
+          <>
+            <span className="text-slate-300"> · </span>
+            <span className="text-warning-600">
+              {live.deadline.expiring} expires in {live.deadline.days} days
+            </span>
+          </>
+        )}
       </div>
     </section>
   )

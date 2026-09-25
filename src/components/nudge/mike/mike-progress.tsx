@@ -1,7 +1,8 @@
 "use client"
 
 import { PublishConfetti } from "@/components/home/publish-confetti"
-import { BATCHES, DEADLINE } from "../data"
+import { AS_OF, BATCHES } from "../data"
+import { daysUntil } from "../model"
 import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
 import { useNudge } from "../nudge-context"
 import { SplitBar } from "./split-bar"
@@ -34,6 +35,15 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
   const left = approvalBatches.filter((b) => !approved[b.id]).reduce((sum, b) => sum + money(b.value), 0)
   // The bar is the quarter's content: banked so far, what Mike just approved, and what's still open.
   const total = BATCHES.reduce((sum, b) => sum + money(b.value), 0)
+  // "All of it expires" only when every open batch one approval away carries a deadline.
+  const pending = approvalBatches.filter((b) => !approved[b.id])
+  const dated = pending.filter((b) => b.deadline)
+  const soonest = dated.map((b) => b.deadline!).sort()[0]
+  const expiry = soonest && {
+    all: dated.length === pending.length,
+    value: dated.filter((b) => b.deadline === soonest).reduce((s, b) => s + money(b.value), 0),
+    days: daysUntil(soonest, AS_OF),
+  }
   const open = total - actedValue
 
   return (
@@ -46,7 +56,12 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
           {left > 0.005 ? (
             <>
               <span className="font-mono">{fmt(left)}</span> {doneValue > 0 ? "still" : "is"} one approval from live.{" "}
-              <span className="text-warning-600">All of it expires in {DEADLINE.days} days.</span>
+              {expiry && (
+                <span className="text-warning-600">
+                  {expiry.all ? "All of it" : <span className="font-mono">{fmt(expiry.value)}</span>}
+                  {expiry.all ? "" : " of it"} expires in {expiry.days} days.
+                </span>
+              )}
             </>
           ) : (
             "Everything one approval away is live."

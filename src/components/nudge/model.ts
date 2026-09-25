@@ -119,7 +119,8 @@ export function tierRows(snap: Snapshot, tier: Tier, acted: Acted = {}, levers: 
       agent: lever,
       analystName: tier === "autopilot" ? "" : (owner?.name ?? ""),
       description: cfg.describe[lever] ?? "",
-      value: money(sum(open)),
+      // Nothing left open: the status says why, so the value is a dash rather than "$0K".
+      value: open.length ? money(sum(open)) : "—",
     }
     if (tier !== "autopilot") {
       row.nudgeKey = `${TIER_NUDGE_KEY[tier]}-${lever}` as TierRow["nudgeKey"]

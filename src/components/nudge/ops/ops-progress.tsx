@@ -12,7 +12,6 @@ function fmt(v: number) {
 /** "$720K" → 0.72 ($M). */
 const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith("K") ? 1000 : 1)
 const BANKED = OPS_BANKED_Q3.delivered
-const URGENT = OPS_BATCHES.find((b) => b.id === "buybox")!
 
 interface Celebrate {
   value: number
@@ -32,6 +31,8 @@ export function OpsProgress({ celebrate }: { celebrate: Celebrate | null }) {
   const actedValue = OPS_BATCHES.filter((b) => b.tier !== "autopilot" && approved[b.id]).reduce((sum, b) => sum + b.approveValue, 0)
   const left = approvalBatches.filter((b) => !approved[b.id]).reduce((sum, b) => sum + money(b.value), 0)
   const total = OPS_BATCHES.reduce((sum, b) => sum + money(b.value), 0)
+  // Whatever is flagged urgent and still open, not a fixed batch.
+  const urgent = approvalBatches.filter((b) => b.urgent && !approved[b.id]).reduce((sum, b) => sum + money(b.value), 0)
   const open = total - actedValue
 
   return (
@@ -44,11 +45,11 @@ export function OpsProgress({ celebrate }: { celebrate: Celebrate | null }) {
           {left > 0.005 ? (
             <>
               <span className="font-mono">{fmt(left)}</span> {doneValue > 0 ? "still" : "is"} one approval from live.
-              {!approved[URGENT.id] && (
+              {urgent > 0 && (
                 <>
                   {" "}
                   <span className="text-warning-600">
-                    <span className="font-mono">{URGENT.value}</span> of it is losing the sale right now.
+                    <span className="font-mono">{fmt(urgent)}</span> of it is losing the sale right now.
                   </span>
                 </>
               )}
