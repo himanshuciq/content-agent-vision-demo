@@ -25,6 +25,23 @@ const SEGMENTS: Segment[] = [
 const MARKET_GROWTH = 7 // category growth, splits the chart left/right
 const SHARE_SPLIT = 12 // splits high/low share
 
+/** Card copy is bullets of fragments, never sentences: a label, a number, a few words. */
+function Points({ items }: { items: React.ReactNode[] }) {
+  return (
+    <ul className="mt-3 flex flex-col gap-1.5 text-sm text-slate-700">
+      {items.map((it, i) => (
+        <li key={i} className="flex gap-2">
+          <span className="mt-[7px] size-1 shrink-0 rounded-full bg-slate-400" />
+          <span>{it}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+const Num = ({ children, bad }: { children: React.ReactNode; bad?: boolean }) => (
+  <span className={cn("font-mono font-semibold", bad ? "text-error-600" : "text-slate-950")}>{children}</span>
+)
+
 const CARD = "flex flex-col rounded-xl border border-slate-200 bg-white p-5 transition-colors hover:border-brand-300"
 
 /* ------------------------------------------------------------------------- */
@@ -144,10 +161,16 @@ function HomeCards({ onOpen }: { onOpen: () => void }) {
           <div className="mt-2 rounded-lg bg-slate-25 px-2 py-1">
             <MarketMap compact selected="soy" />
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">
-            Clean-burn soy grew <span className="font-mono font-semibold text-slate-950">22%</span>. You hold{" "}
-            <span className="font-mono font-semibold text-slate-950">4%</span> of it.
-          </p>
+          <Points
+            items={[
+              <>
+                Clean-burn soy <Num>+22%</Num>, fastest-growing
+              </>,
+              <>
+                Your share <Num>4%</Num>
+              </>,
+            ]}
+          />
           <span className="mt-auto pt-4 text-[15px] font-semibold text-brand-700">Win share in clean-burn soy →</span>
           <span className="mt-0.5 text-xs text-slate-500">
             About <span className="font-mono">+$340K</span> a year
@@ -172,7 +195,14 @@ function HomeCards({ onOpen }: { onOpen: () => void }) {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">Brightwick cut gift-set prices 20% and took most sponsored slots on gift terms.</p>
+          <Points
+            items={[
+              <>
+                Your gift sets now <Num>25%</Num> above Brightwick
+              </>,
+              <>Your branded terms still hold</>,
+            ]}
+          />
           <span className="mt-auto pt-4 text-[15px] font-semibold text-brand-700">Respond to Brightwick&apos;s price cut →</span>
           <span className="mt-0.5 text-xs text-slate-500">
             <span className="font-mono text-error-600">−$180K</span> at risk this quarter
@@ -200,10 +230,18 @@ function HomeCards({ onOpen }: { onOpen: () => void }) {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">
-            Last Black Friday you ran no deal on <span className="font-mono font-semibold text-slate-950">6</span> strong SKUs and lost the top sponsored slots to
-            Brightwick. That cost <span className="font-mono font-semibold text-error-600">−$420K</span>. This year: 3 risks, stock and deals not set.
-          </p>
+          <Points
+            items={[
+              <>
+                Last year <Num bad>−$420K</Num>
+              </>,
+              <>
+                No deal on <Num>6</Num> strong SKUs
+              </>,
+              <>Top sponsored slots lost to Brightwick</>,
+              <>This year: stock and deals not set</>,
+            ]}
+          />
           <span className="mt-auto pt-4 text-[15px] font-semibold text-brand-700">Get ready for Black Friday →</span>
           <span className="mt-0.5 text-xs text-slate-500">
             <span className="font-mono">$1.1M</span> at stake
@@ -218,11 +256,14 @@ function HomeCards({ onOpen }: { onOpen: () => void }) {
 /* Market view + chat panel                                                    */
 /* ------------------------------------------------------------------------- */
 
-const PLAYS: Record<string, { plays: { who: string; what: string; value: string }[]; read: string; leader: string; price: string }> = {
+const PLAYS: Record<string, { plays: { who: string; what: string; value: string }[]; points: string[] }> = {
   soy: {
-    read: "Growing 3× the category and you're barely in it. Shoppers search \"clean burn\", \"non-toxic\" and \"soy\"; your PDPs don't say it.",
-    leader: "Brightwick 31% · Lumen & Co 18%",
-    price: "Your $/oz is 18% above the segment median, on the only 8 oz pack.",
+    points: [
+      "Growing 3× the category",
+      "Shoppers search \"clean burn\", \"non-toxic\", \"soy\"; your PDPs don't",
+      "Leaders: Brightwick 31%, Lumen & Co 18%",
+      "Your $/oz 18% above median; one 8 oz pack",
+    ],
     plays: [
       { who: "Ally for Content", what: "Rewrite 11 PDPs for clean-burn query language", value: "+$140K" },
       { who: "Ally for Media", what: "Bid the clean-burn term cluster (+$12K a month)", value: "+$95K" },
@@ -279,13 +320,7 @@ function MarketView({ onBack }: { onBack: () => void }) {
             </div>
             {detail ? (
               <div className="flex flex-1 flex-col gap-3 px-5 py-4 text-sm">
-                <p className="leading-relaxed text-slate-700">{detail.read}</p>
-                <div className="text-slate-500">
-                  <span className="font-medium text-slate-700">Leaders:</span> {detail.leader}
-                </div>
-                <div className="text-slate-500">
-                  <span className="font-medium text-slate-700">Price pack:</span> {detail.price}
-                </div>
+                <Points items={detail.points} />
                 <div className="mt-1 text-xs font-medium text-slate-500">What Ally can do</div>
                 {detail.plays.map((p) => (
                   <div key={p.what} className="flex items-start justify-between gap-3 border-t border-slate-100 pt-2.5">

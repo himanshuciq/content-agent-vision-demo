@@ -348,3 +348,13 @@ app/
 - When new Figma variables are published, update `globals.css` `@theme` block and this file.
 - Components (buttons, inputs, cards, etc.) will be documented in a separate `component-specs.md` once the component library is ready.
 - Dark mode is fully wired — toggle the `.dark` class on `<html>` to activate.
+
+
+## Card copy: bullets, not sentences
+
+Cards, widgets and side panels use short bullets of fragments, one fact each, with the number in mono. Full sentences are reserved for the exec hero (it's spoken) and for chat answers. Example, Black Friday card:
+
+- Last year **−$420K**
+- No deal on **6** strong SKUs
+- Top sponsored slots lost to Brightwick
+- This year: stock and deals not set

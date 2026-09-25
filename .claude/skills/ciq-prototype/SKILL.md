@@ -107,6 +107,7 @@ Full table in the project's `design-specs.md` under "Number and Color Rules".
 ## 5. Copy voice
 
 - **Product copy only.** Every line carries a number, a label, a status or an action. No subtitles that describe what a section does ("Where we beat the plan and where we missed…" was rejected as AI fluff).
+- **Bullets, not sentences, on cards and panels.** Card and widget copy is a short list of fragments: a label, a number, a few words ("Last year −$420K", "No deal on 6 strong SKUs"). No full sentences, no "That cost…", no run-ons joined by commas. If a line needs a verb and a clause, it belongs in chat or a detail view, not on a card. The exec hero is the one place full sentences are used, because it's spoken.
 - **A person speaking, not a dashboard.** Exec hero order: fact, then the gap (the fear), then the reassurance.
   - "You're tracking to $40M in sales this quarter."
   - "That's $5M short of your $45M plan."
