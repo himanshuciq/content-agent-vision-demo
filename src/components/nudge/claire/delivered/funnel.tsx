@@ -6,10 +6,6 @@ import type { FunnelRow } from "../../delivered-content-data"
 
 const GRID = "grid grid-cols-[minmax(0,1fr)_88px_150px] items-center gap-4"
 
-function scrollToAutopilot() {
-  document.getElementById("autopilot-compare")?.scrollIntoView({ behavior: "smooth", block: "center" })
-}
-
 /** Promised → what didn't go live → stockouts → expected → delivered, then the one number content owns. */
 export function Funnel({ rows }: { rows: FunnelRow[] }) {
   const expected = rows.find((r) => r.tone === "sub")?.value ?? 0
@@ -44,15 +40,6 @@ export function Funnel({ rows }: { rows: FunnelRow[] }) {
             {fmtValue(Math.abs(r.value))}
           </div>
           <div className="justify-self-end">
-            {r.action === "autopilot" && (
-              <button
-                type="button"
-                onClick={scrollToAutopilot}
-                className="rounded-md border border-brand-200 bg-white px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-brand-700 hover:bg-brand-50"
-              >
-                Increase autopilot
-              </button>
-            )}
           </div>
         </div>
       ))}

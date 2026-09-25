@@ -208,3 +208,7 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Bridge: plan and run rate for the period, axis start derived (90% of the lower, rounded), steps under $1M in K.
 - `delivered-periods.ts`: `DELIVERED[period]` (week, October = Q4 so far, FY26) for content, ops, media; Claire's section, Mike's and Michelle's sections, the progress bars' banked value, the PDF and Ask Ally all read it. Q3 data stays for the results page, relabeled "Last quarter".
 - `fmtBiz` reads K under $1M; the expiry line hides when the deadline falls after the period.
+
+## Inbox order and delivered bullets
+- Mike's and Michelle's rails: bands by ease (group order), items by value within a band. Mike's page opens on the top approval item (Halloween jar candles · Hero, +$240K).
+- Removed "Increase autopilot" from delivered bullets (content waterfall) and funnel rows. It stays on Claire's On autopilot rows.

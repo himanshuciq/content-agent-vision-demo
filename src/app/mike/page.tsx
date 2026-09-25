@@ -25,7 +25,11 @@ import type { Batch } from "@/components/nudge/types"
 export default function MikePage() {
   const { approve, policy } = useNudge()
   const batches = contentBatches(policy)
-  const [selectedId, setSelectedId] = useState<Batch["id"]>("halloween")
+  // Open on the top of the inbox: the most valuable item one approval away (same order as the rail).
+  const [selectedId, setSelectedId] = useState<Batch["id"]>(() => {
+    const top = batches.filter((b) => b.tier === "approval").sort((x, y) => y.approveValue - x.approveValue)[0]
+    return top?.id ?? batches[0].id
+  })
   const [selectedSkuId, setSelectedSkuId] = useState<string | null>(null)
   const [expandedBatchId, setExpandedBatchId] = useState<Batch["id"] | null>(null)
   const [celebrate, setCelebrate] = useState<{ value: number; skus: number } | null>(null)

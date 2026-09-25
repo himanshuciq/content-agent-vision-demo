@@ -32,7 +32,8 @@ export function BatchList({ selectedId, selectedSkuId, expandedBatchId, onToggle
   return (
     <div className="border-r border-slate-200 bg-white">
       {GROUPS.map((g, gi) => {
-        const batches = all.filter((b) => b.tier === g.tier)
+        // Bands run by ease (the group order); within a band, the most value first.
+        const batches = all.filter((b) => b.tier === g.tier).sort((x, y) => money(y.value) - money(x.value))
         const pending = batches.filter((b) => !approved[b.id])
         // Approve all can't claim the SKUs the policy says need a one-by-one review.
         const bulk = pending.filter((b) => b.mode !== "each")

@@ -22,7 +22,8 @@ export function OpsBatchList({ selectedId, onSelect, onApproveAll }: OpsBatchLis
   return (
     <div className="border-r border-slate-200 bg-white">
       {GROUPS.map((g, gi) => {
-        const batches = OPS_BATCHES.filter((b) => b.tier === g.tier)
+        // Bands run by ease (the group order); within a band, the most value first.
+        const batches = OPS_BATCHES.filter((b) => b.tier === g.tier).sort((x, y) => money(y.value) - money(x.value))
         const pending = batches.filter((b) => !approved[b.id])
         return (
           <RailGroup

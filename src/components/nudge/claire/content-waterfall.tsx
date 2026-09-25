@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Sparkles } from "lucide-react"
-import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { TEAM_TIER, fmtValue } from "../data"
 import { useNudge } from "../nudge-context"
@@ -95,15 +94,6 @@ function BulletCard({
               <Figures text={b.text} tone={b.tone} />
             </span>
             {/* Pinned over the empty end of the bullet's last line, so hiding it costs no width. */}
-            {b.action === "autopilot" && (
-              <button
-                type="button"
-                onClick={() => toast.success("Autopilot on for content approvals", { position: "top-right" })}
-                className={HOVER_BTN}
-              >
-                Increase autopilot
-              </button>
-            )}
             {b.action === "nudge-team" &&
               canNudge &&
               (teamNudged ? (
