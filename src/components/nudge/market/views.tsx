@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, Sparkles } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtBiz, fmtValue } from "../data"
 import { COMPETITORS, MARKET, NEXT_EVENT, SEGMENTS, TOP_COMPETITOR, TOP_SEGMENT } from "../market"
 import { Num, Points } from "../points"
-import { AllyPanel } from "./ally-panel"
-import type { PanelContext } from "./ally-panel"
+import { useChat, useChatSource } from "../chat/inline-chat"
+import { AnswerCard, aboutLabel, answerFor, suggestions } from "./answers"
+import type { PanelContext } from "./answers"
+import { CompetitorShares, ShareTrend } from "./answer-visuals"
 import { ReadinessDot } from "./grow-cards"
 import type { GrowView } from "./grow-cards"
 import { MarketMap } from "./market-map"
@@ -15,29 +17,55 @@ import { PlayList } from "./plays"
 
 const BOX = "rounded-xl border border-slate-200 bg-white"
 
-/** A view that opens from a "Grow beyond plan" card: back to home, the content, and Ally beside it. */
-function Shell({ eyebrow, title, sub, context, onBack, children }: { eyebrow: string; title: string; sub: string; context: PanelContext; onBack: () => void; children: React.ReactNode }) {
-  const [chat, setChat] = useState(true)
+/** The picture an answer carries, drawn from the same data as the view. */
+function visualFor(ctx: PanelContext, kind?: "competitors" | "trend") {
+  if (ctx.kind !== "segment" || !kind) return undefined
+  const s = SEGMENTS.find((x) => x.id === ctx.id)!
+  if (kind === "competitors")
+    return (
+      <CompetitorShares
+        rows={[
+          { name: "Brightwick", share: 31 },
+          { name: "Lumen & Co", share: 18 },
+          { name: "You", share: s.share, you: true },
+          { name: "Everyone else", share: 100 - 31 - 18 - s.share },
+        ]}
+      />
+    )
   return (
-    <div className="flex">
-      <div className="min-w-0 flex-1 px-12 pt-8 pb-16">
-        <div className="flex items-center justify-between">
-          <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
-            <ArrowLeft className="size-4" />
-            Back to home
-          </button>
-          {!chat && (
-            <button type="button" onClick={() => setChat(true)} className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-brand-600">
-              <Sparkles className="size-3.5" /> Ask Ally
-            </button>
-          )}
-        </div>
-        <div className="mt-4 font-mono text-xs tracking-wide text-slate-500 uppercase">{eyebrow}</div>
-        <h1 className="mt-2 text-[28px] leading-tight font-bold tracking-tight text-slate-950">{title}</h1>
-        <p className="mt-2 text-base text-slate-500">{sub}</p>
-        <div className="mt-6">{children}</div>
-      </div>
-      {chat && <AllyPanel context={context} onClose={() => setChat(false)} />}
+    <ShareTrend
+      labels={["Q1", "Q2", "Q3", "Q4 so far", "Next Q"]}
+      series={[
+        { name: "Brightwick", values: [24, 26, 28, 31, 33] },
+        { name: "You", values: [4.6, 4.4, 4.2, s.share, s.share], you: true },
+      ]}
+    />
+  )
+}
+
+/** One answer in the page's conversation; a follow-up action asks the next question in the same thread. */
+function ViewAnswer({ ctx, q }: { ctx: PanelContext; q: string }) {
+  const { ask } = useChat()
+  const a = answerFor(ctx, q)
+  return <AnswerCard a={a} visual={visualFor(ctx, a.visual)} onAsk={(next) => ask({ q: next, render: () => <ViewAnswer ctx={ctx} q={next} /> })} />
+}
+
+/** A view that opens from a "Grow beyond plan" card. It tells the Ask Ally bar what it's about, so chips and answers follow the screen. */
+function Shell({ eyebrow, title, sub, context, onBack, children }: { eyebrow: string; title: string; sub: string; context: PanelContext; onBack: () => void; children: React.ReactNode }) {
+  useChatSource(
+    { about: aboutLabel(context), chips: suggestions(context).map((q) => ({ q, render: () => <ViewAnswer ctx={context} q={q} /> })) },
+    JSON.stringify(context),
+  )
+  return (
+    <div className="px-12 pt-8 pb-10">
+      <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
+        <ArrowLeft className="size-4" />
+        Back to home
+      </button>
+      <div className="mt-4 font-mono text-xs tracking-wide text-slate-500 uppercase">{eyebrow}</div>
+      <h1 className="mt-2 text-[28px] leading-tight font-bold tracking-tight text-slate-950">{title}</h1>
+      <p className="mt-2 text-base text-slate-500">{sub}</p>
+      <div className="mt-6">{children}</div>
     </div>
   )
 }

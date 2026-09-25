@@ -12,7 +12,8 @@ import { ThisQuarterSection } from "@/components/nudge/claire/this-quarter-secti
 import { GrowCards } from "@/components/nudge/market/grow-cards"
 import type { GrowView } from "@/components/nudge/market/grow-cards"
 import { GrowViewSwitch } from "@/components/nudge/market/views"
-import { AskAlly } from "@/components/nudge/claire/ask-ally"
+import { Answer, QUESTIONS } from "@/components/nudge/claire/ask-ally-answers"
+import { AskBar, ChatProvider, ChatThread, useChat, useChatSource } from "@/components/nudge/chat/inline-chat"
 import { useLive } from "@/components/nudge/live-model"
 import { useNudge } from "@/components/nudge/nudge-context"
 
@@ -25,17 +26,35 @@ let resetThisLoad = false
  * opens its line items; clicking "Total opportunity" opens the split by area. Same
  * shared nudge state as the tier version.
  */
+/** The home page's questions for the Ask Ally bar (the views register their own). */
+function HomeChat() {
+  useChatSource({ chips: QUESTIONS.map((q) => ({ q, render: () => <div className="max-w-[860px] rounded-2xl bg-white px-5 py-4 text-[15px] leading-relaxed text-slate-700 ring-1 ring-slate-200"><Answer q={q} /></div> })) }, "home")
+  return null
+}
+
 export default function ClaireWaterfallPage() {
+  return (
+    <ChatProvider>
+      <ClaireWaterfall />
+    </ChatProvider>
+  )
+}
+
+function ClaireWaterfall() {
+  const { clear } = useChat()
   const [selectedId, setSelectedId] = useState<WaterfallSelection>("approval")
   // A "Grow beyond plan" view opens over the page; Back returns to the same spot.
   const [grow, setGrow] = useState<GrowView | null>(null)
   const [homeScroll, setHomeScroll] = useState(0)
+  // Each screen starts its own conversation.
   function openGrow(v: GrowView) {
+    clear()
     setHomeScroll(window.scrollY)
     setGrow(v)
     window.scrollTo({ top: 0 })
   }
   function closeGrow() {
+    clear()
     setGrow(null)
     window.setTimeout(() => window.scrollTo({ top: homeScroll }), 0)
   }
@@ -58,7 +77,11 @@ export default function ClaireWaterfallPage() {
       <div className="mx-auto max-w-[1280px] overflow-clip bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <BusinessHero topLineOnly={!!grow} />
         {grow ? (
-          <GrowViewSwitch view={grow} onBack={closeGrow} />
+          <>
+            <GrowViewSwitch view={grow} onBack={closeGrow} />
+            <ChatThread />
+            <div className="pb-28" />
+          </>
         ) : (
           <>
             <div className="px-12 pt-1 pb-3">
@@ -72,14 +95,16 @@ export default function ClaireWaterfallPage() {
 
             <ThisQuarterSection />
             <GrowCards onOpen={openGrow} />
+            <HomeChat />
+            <ChatThread />
             {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
             <div className="flex justify-end px-12 pt-6 pb-24 opacity-50 hover:opacity-100">
               <ResetDemoButton />
             </div>
-            <AskAlly />
           </>
         )}
       </div>
+      <AskBar />
     </PageShell>
   )
 }

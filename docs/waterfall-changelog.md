@@ -219,3 +219,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Claire's page: `GrowCards` after "so far", labels derived from the data (top segment, competitor with most at risk, next event). Each opens a view (`views.tsx`) over the page with the top line only; Back returns to the same scroll.
 - `AllyPanel`: one thread per context (segment, competitor, event), answer contract (verdict, why, if nothing changes, actions, trust), suggested follow-ups, typed questions matched to them. Actions launch plays, ask follow-ups or confirm a watch.
 - Page container `overflow-clip` so the panel can stick. Chat scrolls its own list (newer browsers return a Promise from scrollIntoView).
+
+## Inline chat replaces the side panel (Claire's home and views)
+- `chat/inline-chat.tsx`: `ChatProvider` (thread + current source), `useChatSource(source, key)` (a screen registers what it's about and its chips), `AskBar` (fixed bottom; chips for what's on screen above the input; typed text matches the closest chip; "Clear conversation"), `ChatThread` (answers full width below the page content, scrolls each new answer into view).
+- Views register `{ about, chips }` from the selected segment, competitor or event; answers use the same contract (`market/answers.tsx`) and can carry visuals (`market/answer-visuals.tsx`: competitor shares, share trend with the "if nothing changes" point dashed). Home registers its chips (`QUESTIONS`, answers from `ask-ally-answers`). Opening or leaving a view clears the thread.
+- Stale Q3 copy in Claire's answers now derived: the content chip names the Q4 gap; the invest answer uses the Halloween batch's SKUs and date; "Will I make plan?" reads live run rate, plan and the one-approval value.

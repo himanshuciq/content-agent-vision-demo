@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { ArrowRight, Info, Send, Sparkles, X } from "lucide-react"
+import { ArrowRight, Info } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { fmtValue } from "../data"
@@ -21,25 +20,27 @@ interface Action {
 }
 
 /** The answer contract: verdict, why (and what was ruled out), if we do nothing, next actions, trust. */
-interface Answer {
+export interface Answer {
   verdict: string
   why: string
   ifNothing?: string
+  /** A picture drawn inside the answer. */
+  visual?: "competitors" | "trend"
   actions: Action[]
   trust: string
 }
 
-const aboutLabel = (c: PanelContext) =>
+export const aboutLabel = (c: PanelContext) =>
   c.kind === "segment" ? SEGMENTS.find((s) => s.id === c.id)!.name : c.kind === "competitor" ? COMPETITORS.find((x) => x.id === c.id)!.name : NEXT_EVENT.name
 
 /** Suggested questions per context; typed questions land on the closest one. */
-function suggestions(c: PanelContext): string[] {
+export function suggestions(c: PanelContext): string[] {
   if (c.kind === "segment") return ["Who's taking share here, and what should we do?", "Break this down by competitor", "What if we do nothing?"]
   if (c.kind === "competitor") return ["What did they change, and what should we do?", "Should we match their price?", "Which of our SKUs are hit?"]
   return ["Are we ready, and what's at risk?", "What went wrong last year?", "What should I approve first?"]
 }
 
-function answerFor(c: PanelContext, q: string): Answer {
+export function answerFor(c: PanelContext, q: string): Answer {
   const i = Math.max(0, suggestions(c).indexOf(q))
   if (c.kind === "segment") {
     const s = SEGMENTS.find((x) => x.id === c.id)!
@@ -53,6 +54,7 @@ function answerFor(c: PanelContext, q: string): Answer {
     if (i === 1)
       return {
         verdict: `In ${s.name.toLowerCase()}, Brightwick holds 31% and Lumen & Co 18%. You hold ${s.share}%.`,
+        visual: "competitors",
         why: "Brightwick leads on sponsored slots and the clean-burn wording; Lumen & Co leads on price per ounce. Neither has a 12 oz jar at the median price, which is the gap an NPI brief would fill.",
         actions: [...launch, { label: "Watch this segment weekly", watch: s.name }],
         trust: "Medium confidence: competitor sales are estimated from share and rank.",
@@ -60,6 +62,7 @@ function answerFor(c: PanelContext, q: string): Answer {
     if (i === 2)
       return {
         verdict: `You'd stay near ${s.share}% while the segment adds about $${adds}M next year.`,
+        visual: "trend",
         why: `The segment grows ${s.growth}% against ${MARKET.growth}% for the category, so standing still means losing ground.`,
         actions: launch,
         trust: "Projection from the last 12 months' trend; shown as a direction, not a forecast.",
@@ -139,7 +142,7 @@ function answerFor(c: PanelContext, q: string): Answer {
 }
 
 /** Typed questions land on the suggestion sharing the most words with them. */
-function match(c: PanelContext, text: string) {
+export function match(c: PanelContext, text: string) {
   const words = text.toLowerCase().split(/\W+/).filter((w) => w.length > 3)
   let best = suggestions(c)[0]
   let score = 0
@@ -150,14 +153,19 @@ function match(c: PanelContext, text: string) {
   return best
 }
 
-function AnswerCard({ a, onAsk }: { a: Answer; onAsk: (q: string) => void }) {
+export function AnswerCard({ a, onAsk, visual }: { a: Answer; onAsk: (q: string) => void; visual?: React.ReactNode }) {
   const { launch, isLaunched } = useLaunch()
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl bg-white px-4 py-3.5 text-sm ring-1 ring-slate-200">
-      <p className="font-semibold text-slate-950">{a.verdict}</p>
+    <div className="flex max-w-[860px] flex-col gap-3 rounded-2xl bg-white px-5 py-4 text-[15px] ring-1 ring-slate-200">
+      <p className="text-base font-semibold text-slate-950">{a.verdict}</p>
+      {visual}
       <p className="leading-relaxed text-slate-700">{a.why}</p>
-      {a.ifNothing && <p className="leading-relaxed text-slate-700">If nothing changes: {a.ifNothing}</p>}
-      <div className="mt-1 flex flex-col gap-1.5">
+      {a.ifNothing && (
+        <p className="leading-relaxed text-slate-700">
+          <span className="font-medium text-slate-950">If nothing changes:</span> {a.ifNothing}
+        </p>
+      )}
+      <div className="mt-1 flex flex-wrap gap-2">
         {a.actions.map((act, i) => {
           const done = act.plays?.every(isLaunched)
           return (
@@ -171,7 +179,7 @@ function AnswerCard({ a, onAsk }: { a: Answer; onAsk: (q: string) => void }) {
                 else if (act.watch) toast.success(`Watching ${act.watch}. Ally will tell you Monday if it moves.`, { position: "top-right" })
               }}
               className={cn(
-                "flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                "flex items-center gap-2 rounded-lg px-3.5 py-2 text-left text-sm font-medium transition-colors",
                 done
                   ? "bg-success-50 text-success-700"
                   : i === 0 && act.plays
@@ -192,80 +200,3 @@ function AnswerCard({ a, onAsk }: { a: Answer; onAsk: (q: string) => void }) {
   )
 }
 
-/**
- * Ally beside a view: one thread per context, opened with the first suggested
- * question answered. The context chip shows what it's about; picking another
- * bubble or card switches the thread. Actions change the page (plays land on
- * the bridge and in the owner's inbox).
- */
-export function AllyPanel({ context, onClose }: { context: PanelContext; onClose: () => void }) {
-  const key = JSON.stringify(context)
-  const [threads, setThreads] = useState<Record<string, string[]>>({})
-  const [text, setText] = useState("")
-  const listRef = useRef<HTMLDivElement>(null)
-  const asked = threads[key] ?? [suggestions(context)[0]]
-
-  // Scroll the thread itself to the newest answer, never the page behind it.
-  useEffect(() => {
-    const el = listRef.current
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
-  }, [asked.length, key])
-
-  function ask(q: string) {
-    setThreads((t) => ({ ...t, [key]: [...(t[key] ?? [suggestions(context)[0]]), q] }))
-  }
-
-  const unasked = suggestions(context).filter((q) => !asked.includes(q))
-
-  return (
-    <aside className="sticky top-0 flex h-screen max-h-[calc(100vh-3rem)] w-[380px] shrink-0 flex-col border-l border-slate-200 bg-slate-25">
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-        <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-          <Sparkles className="size-4 text-brand-600" /> Ask Ally
-        </span>
-        <button type="button" onClick={onClose} aria-label="Close Ask Ally" className="text-slate-400 hover:text-slate-700">
-          <X className="size-4" />
-        </button>
-      </div>
-      <div ref={listRef} className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 text-sm">
-        <span className="w-fit rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">About: {aboutLabel(context)}</span>
-        {asked.map((q, i) => (
-          <div key={`${q}-${i}`} className="flex flex-col gap-3">
-            <div className="ml-8 rounded-xl bg-brand-500 px-3.5 py-2.5 text-white">{q}</div>
-            <AnswerCard a={answerFor(context, q)} onAsk={ask} />
-          </div>
-        ))}
-        {unasked.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {unasked.map((q) => (
-              <button key={q} type="button" onClick={() => ask(q)} className="rounded-full bg-white px-3 py-1.5 text-xs text-slate-700 ring-1 ring-slate-200 hover:ring-brand-300">
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      <form
-        className="border-t border-slate-200 p-3"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!text.trim()) return
-          ask(match(context, text))
-          setText("")
-        }}
-      >
-        <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200 focus-within:ring-brand-300">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={`Ask about ${aboutLabel(context).toLowerCase()}`}
-            className="flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
-          />
-          <button type="submit" aria-label="Ask" className="text-brand-500 hover:text-brand-700">
-            <Send className="size-4" />
-          </button>
-        </div>
-      </form>
-    </aside>
-  )
-}

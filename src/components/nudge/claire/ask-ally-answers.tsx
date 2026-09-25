@@ -4,7 +4,9 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ArrowRight, Check } from "lucide-react"
 import { downloadExecSummary } from "../exec-pdf"
-import { APPROVAL_TIER, COMPARE } from "../data"
+import { APPROVAL_TIER, BATCHES, BUSINESS, COMPARE, fmtBiz, fmtValue } from "../data"
+import { useLive } from "../live-model"
+import { shortDate } from "../model"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
 import { CONTENT_BANKED_Q3 } from "../delivered-content-data"
@@ -15,7 +17,8 @@ import { AGENT_LABEL } from "../types"
 export const QUESTIONS = [
   "Where should I invest an additional $1M?",
   "Show me autopilot adoption by team",
-  "Why is content $60K behind projection?",
+  // Named from this quarter's numbers (Q4 FY26 so far), so the chip never disagrees with the page.
+  `Why is content ${fmtValue(DELIVERED.quarter.content.promised - DELIVERED.quarter.content.delivered)} behind projection?`,
   "What can go on autopilot next?",
   "Will I make plan?",
   "Email this summary to my team",
@@ -25,11 +28,13 @@ export const QUESTIONS_Q2 = [QUESTIONS[0], QUESTIONS[1], "Why did content miss b
 export type Question = (typeof QUESTIONS)[number] | (typeof QUESTIONS_Q2)[number]
 
 const cell = "px-3 py-2.5"
+/** This quarter's seasonal batch, for the invest answer. */
+const HALLOWEEN = BATCHES.find((b) => b.deadline)!
 
 function InvestAnswer() {
   const rows = [
     { amount: "$600K", where: "Sponsored ads on the 67 SKUs whose new content won A/B tests", result: "≈ $2.0M sales at $3.40 IROAS, vs your $3.01 average" },
-    { amount: "$400K", where: "Halloween deals on the 384 SKUs in this quarter's batch", result: "≈ $1.1M sales before the Oct 8 cutoff" },
+    { amount: "$400K", where: `Halloween deals on the ${HALLOWEEN.skus} SKUs in this quarter's batch`, result: `≈ $1.1M sales before the ${shortDate(HALLOWEEN.deadline!)} cutoff` },
   ]
   return (
     <div className="flex flex-col gap-3">
@@ -174,11 +179,15 @@ function EmailAnswer() {
 }
 
 function PlanAnswer() {
+  const live = useLive()
+  const { plan } = BUSINESS.quarter
+  const pace = live.pace("quarter")
   return (
     <p>
-      You&apos;re tracking <span className="font-mono font-semibold text-slate-950">95%</span> to plan at $37M quarter to date. The fastest way to close the
-      gap is the <span className="font-mono font-semibold text-slate-950">{APPROVAL_TIER.value}</span> that&apos;s one approval away:{" "}
-      {APPROVAL_TIER.effort} of your team&apos;s time.
+      Not yet. You&apos;re tracking to <span className="font-mono font-semibold text-slate-950">{fmtBiz(pace)}</span> against a{" "}
+      <span className="font-mono font-semibold text-slate-950">{fmtBiz(plan)}</span> plan, <span className="font-mono font-semibold text-slate-950">{fmtBiz(plan - pace)}</span> short. The fastest way to close the
+      gap is the <span className="font-mono font-semibold text-slate-950">{live.approval.value}</span> that&apos;s one approval away: {live.approval.effort} of your
+      team&apos;s time.
     </p>
   )
 }

@@ -1,0 +1,210 @@
+"use client"
+
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { motion } from "framer-motion"
+import { Send, Sparkles } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+/**
+ * Inline chat: one Ask Ally bar at the bottom, chips that follow what's on
+ * screen, and answers that grow into the page below its content, like a
+ * document. The screen on show registers what it's about and its chips
+ * (useChatSource); the thread renders where the page places <ChatThread />.
+ */
+
+export interface Chip {
+  q: string
+  render: () => React.ReactNode
+}
+
+export interface ChatSource {
+  /** Shown on the bar and on each question: "Clean-burn soy". Undefined = the page itself. */
+  about?: string
+  chips: Chip[]
+}
+
+interface Turn {
+  id: number
+  q: string
+  about?: string
+  render: () => React.ReactNode
+}
+
+interface ChatValue {
+  source: ChatSource
+  setSource: (s: ChatSource) => void
+  turns: Turn[]
+  ask: (chip: Chip) => void
+  clear: () => void
+}
+
+const Ctx = createContext<ChatValue | null>(null)
+
+export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const [source, setSource] = useState<ChatSource>({ chips: [] })
+  const [turns, setTurns] = useState<Turn[]>([])
+  const next = useRef(1)
+  const ask = useCallback(
+    (chip: Chip) => setTurns((t) => [...t, { id: next.current++, q: chip.q, about: source.about, render: chip.render }]),
+    [source.about],
+  )
+  return <Ctx.Provider value={{ source, setSource, turns, ask, clear: () => setTurns([]) }}>{children}</Ctx.Provider>
+}
+
+export function useChat() {
+  const c = useContext(Ctx)
+  if (!c) throw new Error("useChat must be used inside ChatProvider")
+  return c
+}
+
+/** A screen says what it's about and which questions fit it; re-run whenever that changes (e.g. a new bubble). */
+export function useChatSource(source: ChatSource, key: string) {
+  const { setSource } = useChat()
+  useEffect(() => {
+    setSource(source)
+    // The key carries what changed; the source object is rebuilt every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, setSource])
+}
+
+/** Typed questions land on the chip sharing the most words with them. */
+function closest(chips: Chip[], text: string): Chip | undefined {
+  const words = text.toLowerCase().split(/\W+/).filter((w) => w.length > 3)
+  let best: Chip | undefined
+  let score = 0
+  for (const c of chips) {
+    const n = words.filter((w) => c.q.toLowerCase().includes(w)).length
+    if (n > score) [best, score] = [c, n]
+  }
+  return best
+}
+
+/** The conversation, full width inside the page, below its content. Scrolls each new answer into view. */
+export function ChatThread({ className }: { className?: string }) {
+  const { turns } = useChat()
+  const lastRef = useRef<HTMLDivElement>(null)
+  const [thinking, setThinking] = useState<number | null>(null)
+
+  useEffect(() => {
+    const last = turns[turns.length - 1]
+    if (!last) return
+    setThinking(last.id)
+    const t = window.setTimeout(() => setThinking(null), 650)
+    const el = lastRef.current
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: "smooth" })
+    return () => window.clearTimeout(t)
+  }, [turns])
+
+  if (!turns.length) return null
+  return (
+    <section className={cn("flex flex-col gap-8 border-t border-slate-200 px-12 pt-8 pb-8", className)} aria-label="Conversation with Ally">
+      {turns.map((t, i) => (
+        <div key={t.id} ref={i === turns.length - 1 ? lastRef : undefined} className="flex flex-col gap-4 scroll-mt-6">
+          <div className="flex items-center justify-end gap-3">
+            {t.about && <span className="text-xs text-slate-500">about {t.about}</span>}
+            <div className="max-w-[640px] rounded-2xl rounded-br-md bg-brand-500 px-4 py-2.5 text-[15px] text-white">{t.q}</div>
+          </div>
+          <div className="flex gap-3">
+            <span className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-50">
+              <Sparkles className="size-3.5 text-brand-600" />
+            </span>
+            <div className="min-w-0 flex-1">
+              {thinking === t.id ? (
+                <div className="flex gap-1.5 py-3" aria-label="Ally is working on it">
+                  {[0, 1, 2].map((d) => (
+                    <motion.span
+                      key={d}
+                      className="size-1.5 rounded-full bg-brand-400"
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 0.9, repeat: Infinity, delay: d * 0.15 }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                  {t.render()}
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+/** The bar: chips for what's on screen (the ones not yet asked), then the input. */
+export function AskBar({ placeholder = "Ask Ally: what can I take from your plate?" }: { placeholder?: string }) {
+  const { source, turns, ask, clear } = useChat()
+  const [text, setText] = useState("")
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const askedHere = new Set(turns.filter((t) => t.about === source.about).map((t) => t.q))
+  const chips = source.chips.filter((c) => !askedHere.has(c.q))
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", onDown)
+    return () => document.removeEventListener("mousedown", onDown)
+  }, [open])
+
+  // Once a conversation starts, the next questions stay visible above the bar.
+  const showChips = (open || turns.length > 0) && chips.length > 0
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
+      <div ref={rootRef} className="pointer-events-auto flex w-full max-w-[760px] flex-col gap-2">
+        {(showChips || turns.length > 0) && (
+          <div className="flex items-end justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {showChips &&
+                chips.map((c) => (
+                  <button
+                    key={c.q}
+                    type="button"
+                    onClick={() => {
+                      ask(c)
+                      setOpen(false)
+                    }}
+                    className="rounded-full border border-slate-200 bg-white/95 px-3 py-1.5 text-sm text-slate-700 shadow-xs backdrop-blur transition-colors hover:border-brand-300 hover:text-brand-700"
+                  >
+                    {c.q}
+                  </button>
+                ))}
+            </div>
+            {turns.length > 0 && (
+              <button type="button" onClick={clear} className="shrink-0 rounded-full bg-white/90 px-3 py-1.5 text-xs text-slate-500 shadow-xs backdrop-blur hover:text-slate-800">
+                Clear conversation
+              </button>
+            )}
+          </div>
+        )}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            const chip = closest(source.chips, text)
+            if (chip) ask(chip)
+            else setOpen(true)
+            setText("")
+          }}
+          className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/90 py-1.5 pr-1.5 pl-4 shadow-pane backdrop-blur transition-colors focus-within:border-brand-300 focus-within:bg-white"
+        >
+          <Sparkles className="size-4 shrink-0 text-brand-600" />
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onFocus={() => setOpen(true)}
+            placeholder={source.about ? `Ask about ${source.about.toLowerCase()}…` : placeholder}
+            className="flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
+          />
+          <button type="submit" aria-label="Ask Ally" className="flex size-8 items-center justify-center rounded-full bg-brand-500 text-white transition-colors hover:bg-brand-600">
+            <Send className="size-4" />
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
