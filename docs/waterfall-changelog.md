@@ -254,3 +254,6 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Page toggle: Business view (default) and Ops view. Business hero is forward-looking (Amazon projected landing vs plan, work in flight by lever, this week vs plan).
 - `BusinessView`: SKU | Category | Brand rows from the gap data: last week vs plan, this week projected, why (top driver, tagged), work in flight read from the queues (ops issues containing the SKU, content batches containing it, with owner and status in its own bucket). A row opens causes, what to do (opens the ops item, launches a play, or links to Mike's queue) and "Run gap-to-plan analysis" inline.
 - Sort: gap to plan by default; Settings → Business view switches to sales (`businessSort` in the shared state).
+
+## Rank urgency first, then dollars (every list)
+- `tierRows` sorts rows by soonest deadline, then open dollars (no fixed lever order); `rankLevers()` does the same for areas (Total opportunity split, PDF). Delivered rows sort by delivered dollars. Rule added to the skill (number rules and audit checklist), design-specs and MISTAKES.

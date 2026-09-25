@@ -113,7 +113,7 @@ export function sharedDeadline(snap: Snapshot, items: WorkItem[]) {
 /** One row per lever that has open items in this bucket, in the order the levers are listed. */
 export function tierRows(snap: Snapshot, tier: Tier, acted: Acted = {}, levers: AgentId[] = ["content", "ops", "media"]): TierRow[] {
   const cfg = snap.tiers[tier]
-  return levers.flatMap((lever) => {
+  const ranked: { row: TierRow; days: number; value: number }[] = levers.flatMap((lever) => {
     const all = snap.items.filter((i) => i.tier === tier && i.lever === lever)
     if (all.length === 0) return []
     const open = all.filter((i) => !acted[i.id])
@@ -131,8 +131,20 @@ export function tierRows(snap: Snapshot, tier: Tier, acted: Acted = {}, levers: 
       row.weekly = statusFor(snap, tier, lever, acted)
       if (deadline) row.deadline = `Expires in ${deadline.days} days`
     }
-    return [row]
+    return [{ row, days: tier !== "autopilot" && deadline ? deadline.days : Infinity, value: sum(open) }]
   })
+  // Rank: what expires first (soonest deadline), then the most dollars. Never a fixed lever order.
+  return ranked.sort((a, b) => a.days - b.days || b.value - a.value).map((r) => r.row)
+}
+
+/** Levers ranked the same way for any list of areas: soonest deadline among open items, then open dollars. */
+export function rankLevers(snap: Snapshot, acted: Acted = {}, levers: AgentId[] = ["content", "ops", "media"]): AgentId[] {
+  const key = (lever: AgentId) => {
+    const open = snap.items.filter((i) => i.lever === lever && !acted[i.id])
+    const d = open.filter((i) => i.deadline).map((i) => daysUntil(i.deadline!, snap.asOf))
+    return { days: d.length ? Math.min(...d) : Infinity, value: sum(open) }
+  }
+  return [...levers].sort((a, b) => key(a).days - key(b).days || key(b).value - key(a).value)
 }
 
 export function tierTotal(snap: Snapshot, tier: Tier, acted: Acted = {}) {

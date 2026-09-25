@@ -22,7 +22,7 @@ const DRILLDOWN: Partial<Record<AgentId, { order?: string[]; barClass?: string; 
     teamRow: TEAM_TIER.rows.find((r) => r.agent === "ops"),
   },
 }
-const ORDER: AgentId[] = ["content", "media", "ops"]
+const LEVERS: AgentId[] = ["content", "media", "ops"]
 
 /** A delivered row that opens to its agent's waterfall. Content and ops work the same way. */
 function ExpandableRow({ name, data, open, onToggle, children }: { name: string; data: ContentDelivered; open: boolean; onToggle: () => void; children: React.ReactNode }) {
@@ -58,6 +58,8 @@ export function ThisQuarterSection() {
   const toggle = (id: AgentId) => setOpen((o) => (o === id ? null : id))
   const { period } = useNudge()
   const d = DELIVERED[period]
+  // Most delivered first: the list ranks by dollars, never a fixed lever order.
+  const ORDER = [...LEVERS].sort((a, b) => leverDelivered(d, b).delivered - leverDelivered(d, a).delivered)
   const projected = ORDER.reduce((s, a) => s + leverDelivered(d, a).promised, 0)
   const delivered = ORDER.reduce((s, a) => s + leverDelivered(d, a).delivered, 0)
   const delta = delivered - projected

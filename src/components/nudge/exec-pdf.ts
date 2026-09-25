@@ -1,4 +1,5 @@
-import { AS_OF, BUSINESS, INFLIGHT, deadlineView, fmtBiz, fmtM, fmtValue, openView, tierView, waterfallStages } from "./data"
+import { AS_OF, BUSINESS, INFLIGHT, deadlineView, fmtBiz, fmtM, fmtValue, getSnapshot, launchedIds, openView, tierView, waterfallStages } from "./data"
+import { rankLevers } from "./model"
 import type { ContentDelivered } from "./delivered-content-data"
 import { DELIVERED, leverDelivered } from "./delivered-periods"
 import type { Acted } from "./model"
@@ -19,7 +20,6 @@ const HAIR: RGB = [226, 232, 240]
 const BAR: Record<string, RGB> = { pace: [203, 213, 225], autopilot: [147, 197, 253], approval: [167, 139, 250], team: [253, 186, 116], total: [100, 116, 139] }
 
 const PERIOD_WORDS: Record<Period, string> = { week: "this week", month: "this month", quarter: "this quarter", year: "this year" }
-const ORDER: AgentId[] = ["content", "ops", "media"]
 
 /** Helvetica in jsPDF has no Unicode minus or arrows: keep the text in its character set. */
 const pdfText = (s: string) => s.replace(/[−–]/g, "-").replace(/→/g, "to").replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
@@ -217,7 +217,8 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
     view: tierView(t, approved, policy, period),
     label: t === "approval" ? "One approval away" : t === "input" ? "Needs your team" : "On autopilot",
   }))
-  ORDER.forEach((agent) => {
+  // Same ranking as the page: soonest deadline, then open dollars.
+  rankLevers(getSnapshot(policy, period, launchedIds(approved)), approved).forEach((agent) => {
     const rows = buckets.flatMap((b) => b.view.rows.filter((r) => r.agent === agent).map((row) => ({ ...b, row })))
     ensure(34 + rows.length * 16)
     rule()
@@ -239,7 +240,7 @@ export async function downloadExecSummary(period: Period, state: ExecState) {
 
   // This quarter so far, every lever opened
   eyebrow(done.label)
-  const LEVERS: AgentId[] = ["content", "media", "ops"]
+  const LEVERS = (["content", "media", "ops"] as AgentId[]).sort((a, b) => leverDelivered(done, b).delivered - leverDelivered(done, a).delivered)
   const projected = LEVERS.reduce((s, a) => s + leverDelivered(done, a).promised, 0)
   const delivered = LEVERS.reduce((s, a) => s + leverDelivered(done, a).delivered, 0)
   const pLabel = `Projected ${fmtValue(projected)}`

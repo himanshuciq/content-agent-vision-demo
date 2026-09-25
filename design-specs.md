@@ -358,3 +358,8 @@ Cards, widgets and side panels use short bullets of fragments, one fact each, wi
 - No deal on **6** strong SKUs
 - Top sponsored slots lost to Brightwick
 - This year: stock and deals not set
+
+
+## Ranking: urgency first, then dollars
+
+Every list ranks rows with a deadline first (soonest first), then the rest by dollars, highest first. Never a fixed order. Example, One approval away: Mike $660K (expires in 18 days), James $560K, Michelle $312K.

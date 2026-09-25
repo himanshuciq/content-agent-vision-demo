@@ -6,14 +6,13 @@ import { cn } from "@/lib/utils"
 import { TIER_GRID } from "../claire/nudge-tier"
 import { AGENT_DOT } from "../agent-style"
 import { tierView } from "../data"
+import { rankLevers } from "../model"
 import { useLive } from "../live-model"
 import { useNudge } from "../nudge-context"
 import { useFireNudge } from "../use-fire-nudge"
 import { OwnerName } from "../owner-name"
 import { AGENT_LABEL, type AgentId, type NudgeKey, type TierRow } from "../types"
 
-/** Content first for the demo, then the rest. */
-const ORDER: AgentId[] = ["content", "ops", "media"]
 
 const BUCKETS = [
   { tier: "approval", label: "One approval away" },
@@ -116,7 +115,7 @@ function AreaGroup({ agent, buckets, value }: { agent: AgentId; buckets: { label
  * bar with the total, column headers, hairline rows, values on one edge. Live.
  */
 export function AreaDetail() {
-  const { open } = useLive()
+  const { open, snapshot } = useLive()
   const { approved, policy, period } = useNudge()
   const views = BUCKETS.map((b) => ({ ...b, view: tierView(b.tier, approved, policy, period) }))
 
@@ -135,7 +134,8 @@ export function AreaDetail() {
         <span />
       </div>
       <div className="px-6 pb-1.5">
-        {ORDER.map((agent) => (
+        {/* Soonest deadline first, then the most open dollars. */}
+        {rankLevers(snapshot, approved).map((agent) => (
           <AreaGroup
             key={agent}
             agent={agent}

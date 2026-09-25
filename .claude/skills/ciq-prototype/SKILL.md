@@ -68,6 +68,8 @@ Don't just agree with him. If a request would contradict numbers elsewhere or hu
 
 ## 3. Number and color rules
 
+- **Rank every list: urgency first, then dollars.** Rows with a deadline come first (soonest first), then everything else by dollars, highest first. Never a fixed order (not "content, ops, media"). Applies to owner rows, areas, inbox items, delivered rows, the PDF and any new list. Derive the order from the data (`tierRows`, `rankLevers`).
+
 Full table in the project's `design-specs.md` under "Number and Color Rules".
 
 - **Losses** carry a real minus (`−`, not `-`) and are red (`text-error-600`): "(−$35K)", "−$60K vs projected".
@@ -128,6 +130,7 @@ Full table in the project's `design-specs.md` under "Number and Color Rules".
 
 ## 6. Design audit checklist (run before every report)
 
+- [ ] Is every list ranked urgency first (soonest deadline), then dollars? No fixed lever order anywhere.
 - [ ] Does any number disagree with another page or with the sum of its parts?
 - [ ] Is any label repeated right next to itself (type = name, count chip + "See all N")?
 - [ ] Do buttons in one row share height, weight and style? Is there one primary?

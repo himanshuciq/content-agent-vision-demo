@@ -13,3 +13,7 @@
 | Assumed the bar could never show a total. | Ask what the concern is before over-applying a rule. |
 | Tested clicks while the browser pane was hidden, so the page never became interactive. | Test with the pane visible, or in a fresh tab. |
 | Nothing was committed for weeks, and a revert took manual work. | Commit each change. |
+
+
+## Fixed lever order instead of ranking (Sep 25, 2026)
+Claire's owner rows were listed content, ops, media, so Media ($560K) sat below Ops ($312K). Rule: rank urgency first (soonest deadline), then dollars, in every list, derived from the data. Now in the skill's number rules and audit checklist.
