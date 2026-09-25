@@ -20,6 +20,8 @@ export interface Chip {
 export interface ChatSource {
   /** Shown on the bar and on each question: "Clean-burn soy". Undefined = the page itself. */
   about?: string
+  /** The object on screen the answers belong under (a row's id); none = the end of the page. */
+  anchor?: string
   chips: Chip[]
 }
 
@@ -27,6 +29,7 @@ interface Turn {
   id: number
   q: string
   about?: string
+  anchor?: string
   render: () => React.ReactNode
 }
 
@@ -34,7 +37,8 @@ interface ChatValue {
   source: ChatSource
   setSource: (s: ChatSource) => void
   turns: Turn[]
-  ask: (chip: Chip) => void
+  /** Ask; the answer goes under `anchor` (defaults to what's on screen). */
+  ask: (chip: Chip, anchor?: string) => void
   clear: () => void
 }
 
@@ -45,8 +49,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [turns, setTurns] = useState<Turn[]>([])
   const next = useRef(1)
   const ask = useCallback(
-    (chip: Chip) => setTurns((t) => [...t, { id: next.current++, q: chip.q, about: source.about, render: chip.render }]),
-    [source.about],
+    (chip: Chip, anchor?: string) =>
+      setTurns((t) => [...t, { id: next.current++, q: chip.q, about: source.about, anchor: anchor ?? source.anchor, render: chip.render }]),
+    [source.about, source.anchor],
   )
   return <Ctx.Provider value={{ source, setSource, turns, ask, clear: () => setTurns([]) }}>{children}</Ctx.Provider>
 }
@@ -79,9 +84,14 @@ function closest(chips: Chip[], text: string): Chip | undefined {
   return best
 }
 
-/** The conversation, full width inside the page, below its content. Scrolls each new answer into view. */
-export function ChatThread({ className }: { className?: string }) {
-  const { turns } = useChat()
+/**
+ * A conversation, rendered where the page puts it. With `anchor`, only the
+ * answers about that object (placed under it); without, the page-level ones
+ * (placed at the end). Scrolls each new answer into view.
+ */
+export function ChatThread({ className, anchor }: { className?: string; anchor?: string }) {
+  const { turns: all } = useChat()
+  const turns = all.filter((t) => t.anchor === anchor)
   const lastRef = useRef<HTMLDivElement>(null)
   const [thinking, setThinking] = useState<number | null>(null)
 
@@ -97,7 +107,10 @@ export function ChatThread({ className }: { className?: string }) {
 
   if (!turns.length) return null
   return (
-    <section className={cn("flex flex-col gap-8 border-t border-slate-200 px-12 pt-8 pb-8", className)} aria-label="Conversation with Ally">
+    <section
+      className={cn(anchor ? "flex flex-col gap-6 pt-2" : "flex flex-col gap-8 border-t border-slate-200 px-12 pt-8 pb-8", className)}
+      aria-label={anchor ? `Conversation about ${anchor}` : "Conversation with Ally"}
+    >
       {turns.map((t, i) => (
         <div key={t.id} ref={i === turns.length - 1 ? lastRef : undefined} className="flex flex-col gap-4 scroll-mt-6">
           <div className="flex items-center justify-end gap-3">
@@ -139,7 +152,7 @@ export function AskBar({ placeholder = "Ask Ally: what can I take from your plat
   const [text, setText] = useState("")
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  const askedHere = new Set(turns.filter((t) => t.about === source.about).map((t) => t.q))
+  const askedHere = new Set(turns.filter((t) => t.about === source.about && t.anchor === source.anchor).map((t) => t.q))
   const chips = source.chips.filter((c) => !askedHere.has(c.q))
 
   useEffect(() => {

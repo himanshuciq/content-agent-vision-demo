@@ -44,6 +44,8 @@ export interface Batch {
   id: string
   /** How this part ships under the review policy; unset on unsplit batches. */
   mode?: import("./policy").ReviewMode
+  /** What the work is, for readers outside the content team ("Halloween title and image update"). */
+  fixName?: string
   /** Why a part is separate, shown after the type: "Hero", "Tail". */
   partLabel?: string
   /** Which of Claire's buckets it sits in, so Mike's inbox groups the same way her page does. */

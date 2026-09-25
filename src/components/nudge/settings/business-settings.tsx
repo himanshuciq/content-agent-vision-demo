@@ -3,36 +3,50 @@
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useNudge } from "../nudge-context"
-import type { BusinessSort } from "../nudge-context"
+import type { BusinessGroup, BusinessSort } from "../nudge-context"
 
 const OPTIONS: { id: BusinessSort; label: string; note: string }[] = [
   { id: "gap", label: "Gap to plan", note: "Furthest behind first: where the money is" },
   { id: "sales", label: "Sales", note: "Top SKUs first, whatever their gap" },
 ]
 
-/** How the Business view ranks its list, set once per customer. */
+const GROUPS: { id: BusinessGroup; label: string; note: string }[] = [
+  { id: "Category", label: "Category", note: "Category managers, or one brand across categories" },
+  { id: "Brand", label: "Brand", note: "Several brands, each with its own owner" },
+]
+
+/** How the Business view ranks its list and which scope it offers, set once per customer. */
 export function BusinessSettings() {
-  const { businessSort, setBusinessSort } = useNudge()
+  const { businessSort, setBusinessSort, businessGroup, setBusinessGroup } = useNudge()
+  return (
+    <div className="flex flex-col gap-6">
+    <Choice title="Rank the Business view by" options={OPTIONS} value={businessSort} onChange={setBusinessSort} />
+    <Choice title="Narrow the Business view by" options={GROUPS} value={businessGroup} onChange={setBusinessGroup} />
+    </div>
+  )
+}
+
+function Choice<T extends string>({ title, options, value, onChange }: { title: string; options: { id: T; label: string; note: string }[]; value: T; onChange: (v: T) => void }) {
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <div className="border-b border-slate-100 bg-slate-25 px-6 py-4">
-        <div className="text-lg font-semibold text-slate-950">Rank the Business view by</div>
+        <div className="text-lg font-semibold text-slate-950">{title}</div>
       </div>
       <div className="px-6 py-2">
-        {OPTIONS.map((o) => (
+        {options.map((o) => (
           <button
             key={o.id}
             type="button"
-            onClick={() => setBusinessSort(o.id)}
-            aria-pressed={businessSort === o.id}
+            onClick={() => onChange(o.id)}
+            aria-pressed={value === o.id}
             className="flex w-full items-center justify-between gap-4 border-t border-slate-100 py-3.5 text-left first:border-t-0"
           >
             <span>
               <span className="block text-[15px] font-semibold text-slate-950">{o.label}</span>
               <span className="block text-sm text-slate-500">{o.note}</span>
             </span>
-            <span className={cn("flex size-5 items-center justify-center rounded-full border", businessSort === o.id ? "border-brand-500 bg-brand-500 text-white" : "border-slate-300")}>
-              {businessSort === o.id && <Check className="size-3" />}
+            <span className={cn("flex size-5 items-center justify-center rounded-full border", value === o.id ? "border-brand-500 bg-brand-500 text-white" : "border-slate-300")}>
+              {value === o.id && <Check className="size-3" />}
             </span>
           </button>
         ))}

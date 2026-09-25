@@ -27,6 +27,7 @@ const expiresChip = (iso: string) => `Expires in ${daysUntil(iso, AS_OF)} days`
 export const BATCHES: Batch[] = [
   {
     id: "halloween",
+    fixName: "Halloween title and image update",
     tier: "approval",
     type: "Seasonal",
     name: "Halloween jar candles",
@@ -64,6 +65,7 @@ export const BATCHES: Batch[] = [
   },
   {
     id: "gifts",
+    fixName: "Halloween gift-set update",
     tier: "approval",
     type: "Seasonal",
     name: "Halloween gift sets",
@@ -99,6 +101,7 @@ export const BATCHES: Batch[] = [
   },
   {
     id: "concepts",
+    fixName: "Halloween creative needed",
     tier: "input",
     type: "Seasonal",
     inputSkus: 245,
@@ -131,6 +134,7 @@ export const BATCHES: Batch[] = [
   },
   {
     id: "readiness",
+    fixName: "Missing attributes for syndication",
     tier: "input",
     type: "Retail readiness",
     inputSkus: 21,
@@ -445,6 +449,8 @@ export interface OpsBatch {
   perDay?: number
   /** Autopilot: what Ally fixes on its own. */
   fixes?: { text: string; count: number }[]
+  /** What the fix is, in words a business reader follows ("MAP escalation to your vendor manager"). */
+  fixName?: string
   /** The skills Ally ran to find and size it, shown as "Found by N skills · Show steps". */
   skills?: { name: string; did: string }[]
   /** SKUs by revenue tier, so the review policy can cut the item (hero reviewed one by one). */
@@ -515,6 +521,7 @@ const withLeakage = (b: OpsBatch): OpsBatch => {
 const OPS_SEED: OpsBatch[] = [
   {
     id: "buybox",
+    fixName: "MAP escalation to your vendor manager",
     perDay: 0.009,
     tier: "approval",
     type: "Buy box",
@@ -562,6 +569,7 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "promo-badge",
+    fixName: "Deal badge fix to your vendor manager",
     skuList: [
       { asin: "B08NF9KBZ4", name: "Aurelle Noir Cherry Large Jar, 22 oz", note: ["Deal live Oct 1–31", "Badge not showing", "$30.40 vs $38.00 list; the 20% off isn't shown"] },
       { asin: "B00FLYWNYQ", name: "Aurelle Coastal Linen Large Jar, 22 oz", note: ["Deal live Oct 1–31", "Badge not showing", "$30.40 vs $38.00 list"] },
@@ -595,6 +603,7 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "deal-page",
+    fixName: "Get the deal onto the deals page",
     skuList: [
       { asin: "B07GR5MSKD", name: "Aurelle Amber Floral Soy Jar, 16 oz", note: ["Deal active", "Not listed on the deals page"] },
       { asin: "B09HWCD118", name: "Hearthwood Cedar & Smoke Jar, 18 oz", note: ["Deal active", "Not listed on the deals page"] },
@@ -622,6 +631,7 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "oos",
+    fixName: "Reinstate the suppressed offer",
     skuList: [
       { asin: "B00FLYWNYQ", name: "Aurelle Coastal Linen Large Jar, 22 oz", note: ["2,400 units at the DC", "Page unavailable in 76% of crawls", "Offer suppressed Sep 30"] },
       { asin: "B0BCM08080", name: "Bright Citrus Mini Jar, 8 oz", note: ["900 units at the DC", "Page unavailable in 64% of crawls"] },
@@ -648,6 +658,7 @@ const OPS_SEED: OpsBatch[] = [
   },
   {
     id: "shipping",
+    fixName: "Flag slow shipping to your 3PL",
     skuList: [
       { asin: "B0ATT30313", name: "Aurelle Travel Tin Trio", note: ["Standard 4.5 days vs Prime 1.1 days", "Slower in 8 of 12 ZIPs"] },
       { asin: "B0BCM08080", name: "Bright Citrus Mini Jar, 8 oz", note: ["Standard 4.2 days vs Prime 1.2 days", "Slower in 6 of 12 ZIPs"] },

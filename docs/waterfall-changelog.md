@@ -257,3 +257,9 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 
 ## Rank urgency first, then dollars (every list)
 - `tierRows` sorts rows by soonest deadline, then open dollars (no fixed lever order); `rankLevers()` does the same for areas (Total opportunity split, PDF). Delivered rows sort by delivered dollars. Rule added to the skill (number rules and audit checklist), design-specs and MISTAKES.
+
+## Business view rethought: scope summary, top SKUs, why last week vs right now, anchored answers
+- Hero follows the period switch (was hard-wired to the quarter).
+- Scope chips ("Where the gap is"): All + categories or brands (Settings → Business view → Narrow by). The scope card says what's wrong in it: causes ranked by dollars with state (Live / Resolved / Worth watching) and the fix in flight. Overall and brand causes are real causes now (sum to the gap), not brand names.
+- Top 5 SKUs behind plan (or by sales), "Show all". Columns: last week vs plan · why last week (state) · this week projected · right now → the fix. `Driver.fix` links each cause to its ops item, content batch or play; fixes are named for a business reader (`fixName`) with owner and status, and every one is a link (ops opens the exact SKU in the Ops view; content opens `/mike?batch=…`; plays launch).
+- Chat: turns carry an `anchor`; `ChatThread anchor` renders them under the object. Opening a row points the bar at it ("Ask about …"), and its analysis appears under the row.

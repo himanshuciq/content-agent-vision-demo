@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
@@ -34,6 +34,13 @@ export default function MikePage() {
   const [expandedBatchId, setExpandedBatchId] = useState<Batch["id"] | null>(null)
   const [celebrate, setCelebrate] = useState<{ value: number; skus: number } | null>(null)
   const queueRef = useRef<HTMLDivElement>(null)
+  // A link from another page ("/mike?batch=halloween") opens on that item.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("batch")
+    if (id && batches.some((b) => b.id === id)) setSelectedId(id)
+    // Once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // A policy change can remove the selected part (e.g. its SKUs moved to autopilot): fall back to the first item.
   const selected = batches.find((b) => b.id === selectedId) ?? batches[0]

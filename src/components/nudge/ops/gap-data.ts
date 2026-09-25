@@ -8,7 +8,12 @@
 
 export type DriverTag = "Live" | "Resolved" | "Worth watching"
 
+/** The work that fixes a live cause: an ops item, a content batch, or a play. */
+export type Fix = { kind: "ops" | "content"; id: string } | { kind: "play"; id: string }
+
 export interface Driver {
+  /** The fix already in flight for it (none when it's resolved or accepted). */
+  fix?: Fix
   title: string
   /** $M of last week's gap it explains (negative = cost). */
   value: number
@@ -71,7 +76,7 @@ const amber: GapNode = {
   eow: { projected: 0.052, plan: 0.066 },
   equation: { traffic: -18, conversion: -12, price: 0, sales: -28 },
   drivers: [
-    { title: "Lost the buy box to CandleDepot from Oct 1", value: -0.0041, tag: "Live", points: ["CandleDepot at $27.50, below your $32 MAP floor", "You won 0 of the last 12 crawls"] },
+    { fix: { kind: "ops", id: "buybox-review" }, title: "Lost the buy box to CandleDepot from Oct 1", value: -0.0041, tag: "Live", points: ["CandleDepot at $27.50, below your $32 MAP floor", "You won 0 of the last 12 crawls"] },
     { title: "Offer suppressed Sep 30 – Oct 1", value: -0.0012, tag: "Resolved", points: ["Unavailable in every crawl both days", "Back in stock since Oct 2"] },
     { title: "Standard delivery 3 days slower than Prime", value: -0.0005, tag: "Worth watching", points: ["4.5 days vs 1.5 days in 8 of 12 ZIPs"] },
   ],
@@ -91,8 +96,8 @@ const noir: GapNode = {
   eow: { projected: 0.051, plan: 0.056 },
   equation: { traffic: -6, conversion: -4, price: 0, sales: -10 },
   drivers: [
-    { title: "Halloween deal badge not showing", value: -0.002, tag: "Live", points: ["20% off isn't shown on the page", "Deal runs to Oct 31"] },
-    { title: "Lost the buy box on 3 of 12 crawls", value: -0.001, tag: "Live", points: ["WickWorks below MAP in Chicago and Miami"] },
+    { fix: { kind: "ops", id: "promo-badge" }, title: "Halloween deal badge not showing", value: -0.002, tag: "Live", points: ["20% off isn't shown on the page", "Deal runs to Oct 31"] },
+    { fix: { kind: "ops", id: "buybox-review" }, title: "Lost the buy box on 3 of 12 crawls", value: -0.001, tag: "Live", points: ["WickWorks below MAP in Chicago and Miami"] },
   ],
   recommendations: [
     { title: "Restore the deal badge", points: ["Drafted to your vendor manager"], action: { kind: "inbox", label: "Open the badge fix", batchId: "promo-badge" } },
@@ -121,7 +126,7 @@ const cedar: GapNode = {
   wtd: 0.0228,
   eow: { projected: 0.04, plan: 0.046 },
   equation: { traffic: -8, conversion: -3, price: 0, sales: -11 },
-  drivers: [{ title: "Lost the buy box to WickWorks", value: -0.0042, tag: "Live", points: ["WickWorks below your MAP floor", "Part of the hero MAP escalation"] }],
+  drivers: [{ fix: { kind: "ops", id: "buybox-review" }, title: "Lost the buy box to WickWorks", value: -0.0042, tag: "Live", points: ["WickWorks below your MAP floor", "Part of the hero MAP escalation"] }],
   recommendations: [{ title: "Included in the MAP escalation", points: ["Hero SKU, reviewed one by one"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } }],
 }
 
@@ -135,8 +140,8 @@ const tinTrio: GapNode = {
   eow: { projected: 0.0208, plan: 0.0233 },
   equation: { traffic: -5, conversion: -3, price: 0, sales: -8 },
   drivers: [
-    { title: "Shipping 3.4 days slower than Prime", value: -0.001, tag: "Worth watching", points: ["Slower in 8 of 12 ZIPs"] },
-    { title: "Lost the buy box on 9 of 12 crawls", value: -0.0007, tag: "Live", points: ["CandleDepot below MAP"] },
+    { fix: { kind: "ops", id: "shipping" }, title: "Shipping 3.4 days slower than Prime", value: -0.001, tag: "Worth watching", points: ["Slower in 8 of 12 ZIPs"] },
+    { fix: { kind: "ops", id: "buybox" }, title: "Lost the buy box on 9 of 12 crawls", value: -0.0007, tag: "Live", points: ["CandleDepot below MAP"] },
   ],
   recommendations: [{ title: "Send the core MAP escalation", points: ["Core SKU, sends in bulk"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox" } }],
 }
@@ -152,7 +157,7 @@ const citrusMini: GapNode = {
   equation: { traffic: -12, conversion: -6, price: 0, sales: -17 },
   drivers: [
     { title: "Out of stock Oct 2–4", value: -0.0026, tag: "Resolved", points: ["PO landed Oct 5"] },
-    { title: "Offer suppressed since Oct 6", value: -0.0012, tag: "Live", points: ["900 units at the DC", "Page unavailable in 64% of crawls"] },
+    { fix: { kind: "ops", id: "oos" }, title: "Offer suppressed since Oct 6", value: -0.0012, tag: "Live", points: ["900 units at the DC", "Page unavailable in 64% of crawls"] },
   ],
   recommendations: [{ title: "Reinstate the suppressed offer", points: ["Drafted in your ops queue"], action: { kind: "inbox", label: "Open the fix", batchId: "oos" } }],
 }
@@ -166,8 +171,8 @@ const jar: GapNode = {
   eow: { projected: 1.33, plan: 1.47 },
   equation: { traffic: -7, conversion: -3, price: 0, sales: -10 },
   drivers: [
-    { title: "Buy box lost on 4 hero SKUs to sellers below MAP", value: -0.082, tag: "Live", points: ["CandleDepot and WickWorks", "Since Oct 1"] },
-    { title: "Halloween content not live on 214 core SKUs", value: -0.038, tag: "Live", points: ["One approval away in Mike's inbox", "Expires in 18 days"] },
+    { fix: { kind: "ops", id: "buybox-review" }, title: "Buy box lost on 4 hero SKUs to sellers below MAP", value: -0.082, tag: "Live", points: ["CandleDepot and WickWorks", "Since Oct 1"] },
+    { fix: { kind: "content", id: "halloween" }, title: "Halloween content not live on 214 core SKUs", value: -0.038, tag: "Live", points: ["One approval away in Mike's inbox", "Expires in 18 days"] },
     { title: "Offers suppressed on 5 SKUs", value: -0.02, tag: "Resolved", points: ["Reinstated Oct 2"] },
   ],
   recommendations: [
@@ -186,7 +191,7 @@ const gift: GapNode = {
   wtd: 0.25,
   eow: { projected: 0.47, plan: 0.5 },
   equation: { traffic: -5, conversion: -2, price: 0, sales: -7 },
-  drivers: [{ title: "Brightwick cut gift-set prices 20%", value: -0.03, tag: "Live", points: ["Took 4 more sponsored slots", "Your share −0.6 pts"] }],
+  drivers: [{ fix: { kind: "play", id: "bw-media" }, title: "Brightwick cut gift-set prices 20%", value: -0.03, tag: "Live", points: ["Took 4 more sponsored slots", "Your share −0.6 pts"] }],
   recommendations: [{ title: "Win back sponsored slots on gift terms", points: ["Ally for Media", "+$60K this quarter"], action: { kind: "play", label: "Launch the media play", playId: "bw-media" } }],
 }
 
@@ -198,7 +203,7 @@ const tins: GapNode = {
   wtd: 0.18,
   eow: { projected: 0.32, plan: 0.33 },
   equation: { traffic: -2, conversion: -1, price: 0, sales: -3 },
-  drivers: [{ title: "Shipping slower than Prime on 4 SKUs", value: -0.01, tag: "Worth watching", points: ["2.5 days slower in 8 ZIPs"] }],
+  drivers: [{ fix: { kind: "ops", id: "shipping" }, title: "Shipping slower than Prime on 4 SKUs", value: -0.01, tag: "Worth watching", points: ["2.5 days slower in 8 ZIPs"] }],
   recommendations: [{ title: "Flag to your 3PL", points: ["Drafted in your inbox"], action: { kind: "inbox", label: "Open the shipping fix", batchId: "shipping" } }],
   children: [tinTrio],
   more: 11,
@@ -213,9 +218,11 @@ const aurelle: GapNode = {
   eow: { projected: 2.12, plan: 2.3 },
   equation: { traffic: -6, conversion: -2, price: 0, sales: -8 },
   drivers: [
-    { title: "Jar candles: buy box and Halloween content", value: -0.14, tag: "Live", points: ["4 hero SKUs lost the buy box", "214 SKUs waiting on approval"] },
-    { title: "Gift sets: Brightwick's price cut", value: -0.03, tag: "Live", points: ["Your share −0.6 pts"] },
-    { title: "Travel tins: shipping speed", value: -0.01, tag: "Worth watching", points: ["Slower than Prime in 8 ZIPs"] },
+    { fix: { kind: "ops", id: "buybox-review" }, title: "Buy box lost on 4 hero jar candles to sellers below MAP", value: -0.082, tag: "Live", points: ["CandleDepot and WickWorks", "Since Oct 1"] },
+    { fix: { kind: "content", id: "halloween" }, title: "Halloween content not live on 214 jar candles", value: -0.038, tag: "Live", points: ["One approval away in Mike's queue"] },
+    { fix: { kind: "play", id: "bw-media" }, title: "Brightwick cut gift-set prices 20%", value: -0.03, tag: "Live", points: ["Your share −0.6 pts"] },
+    { title: "Offers suppressed on 5 jar candles", value: -0.02, tag: "Resolved", points: ["Reinstated Oct 2"] },
+    { fix: { kind: "ops", id: "shipping" }, title: "Travel tins shipping slower than Prime", value: -0.01, tag: "Worth watching", points: ["2.5 days slower in 8 ZIPs"] },
   ],
   recommendations: [
     { title: "Enforce MAP on 4 hero jar candles", points: ["Biggest single cause"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } },
@@ -232,7 +239,7 @@ const hearthwood: GapNode = {
   wtd: 0.44,
   eow: { projected: 0.81, plan: 0.81 },
   equation: { traffic: -2, conversion: 0, price: 0, sales: -2 },
-  drivers: [{ title: "Cedar & Smoke lost the buy box", value: -0.02, tag: "Live", points: ["Part of the MAP escalation"] }],
+  drivers: [{ fix: { kind: "ops", id: "buybox-review" }, title: "Cedar & Smoke lost the buy box", value: -0.02, tag: "Live", points: ["Part of the MAP escalation"] }],
   recommendations: [{ title: "Included in the MAP escalation", points: ["Hero SKU, reviewed one by one"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } }],
   children: [cedar],
   more: 23,
@@ -260,9 +267,12 @@ export const GAP_TREE: GapNode = {
   eow: { projected: 3.5, plan: 3.7 },
   equation: { traffic: -5, conversion: -2, price: 0, sales: -7 },
   drivers: [
-    { title: "Aurelle Candles", value: -0.18, tag: "Live", points: ["Buy box on 4 hero jar candles", "Halloween content waiting on approval"] },
-    { title: "Bright Citrus", value: -0.04, tag: "Resolved", points: ["2 SKUs out of stock Oct 2–4"] },
-    { title: "Hearthwood", value: -0.02, tag: "Live", points: ["Cedar & Smoke lost the buy box"] },
+    { fix: { kind: "ops", id: "buybox-review" }, title: "Buy box lost on hero SKUs to sellers below MAP", value: -0.102, tag: "Live", points: ["4 Aurelle jar candles and Hearthwood Cedar & Smoke", "Since Oct 1"] },
+    { title: "Bright Citrus out of stock Oct 2–4", value: -0.04, tag: "Resolved", points: ["PO landed Oct 5"] },
+    { fix: { kind: "content", id: "halloween" }, title: "Halloween content not live on 214 jar candles", value: -0.038, tag: "Live", points: ["One approval away in Mike's queue"] },
+    { fix: { kind: "play", id: "bw-media" }, title: "Brightwick cut gift-set prices 20%", value: -0.03, tag: "Live", points: ["Your share −0.6 pts"] },
+    { title: "Offers suppressed on 5 jar candles", value: -0.02, tag: "Resolved", points: ["Reinstated Oct 2"] },
+    { fix: { kind: "ops", id: "shipping" }, title: "Travel tins shipping slower than Prime", value: -0.01, tag: "Worth watching", points: ["2.5 days slower in 8 ZIPs"] },
   ],
   recommendations: [
     { title: "Enforce MAP on 4 hero SKUs", points: ["Biggest cause: about $100K of last week's gap"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } },
@@ -289,3 +299,14 @@ export function pathTo(id: string, n: GapNode = GAP_TREE, trail: string[] = []):
 
 /** Every node at one grain (the Business list's "Group by"). */
 export const nodesAt = (level: "SKU" | "Category" | "Brand") => flatten().filter((n) => n.level === level)
+
+/** Where each SKU sits: its category and brand (the parents above it in the tree). */
+export function parentsOf(id: string, n: GapNode = GAP_TREE, trail: GapNode[] = []): GapNode[] | undefined {
+  if (n.id === id) return trail
+  for (const c of n.children ?? []) {
+    const p = parentsOf(id, c, [...trail, n])
+    if (p) return p
+  }
+}
+/** Every SKU under a node (the node itself when it's a SKU). */
+export const skusUnder = (n: GapNode): GapNode[] => (n.level === "SKU" ? [n] : (n.children ?? []).flatMap(skusUnder))

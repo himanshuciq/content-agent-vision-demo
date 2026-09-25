@@ -136,10 +136,15 @@ function Michelle() {
           <>
             <BusinessHero />
             <BusinessView
-              onOpenOps={(batchId) => {
-                // A fix that's already drafted opens in the Ops view.
+              onOpenOps={(batchId, asin) => {
+                // A fix that's already drafted opens in the Ops view, on this SKU when it's one of the issue's.
+                const b = OPS_BATCHES.find((x) => x.id === batchId) ?? OPS_BATCHES.find((x) => batchId.startsWith(x.id))
+                if (!b) return
                 setView("ops")
-                selectBatch(OPS_BATCHES.find((b) => b.id === batchId)?.id ?? OPS_BATCHES.find((b) => batchId.startsWith(b.id))?.id ?? selectedId)
+                setSelectedId(b.id)
+                const onIt = asin && opsSkus(b).some((s) => s.asin === asin)
+                setSelectedSku(onIt ? asin! : null)
+                if (onIt) setExpandedId(b.id)
                 scrollToQueue()
               }}
             />
@@ -180,7 +185,7 @@ function Michelle() {
           <ResetDemoButton />
         </div>
       </div>
-      <AskBar placeholder="Ask Ally about your ops queue" />
+      <AskBar placeholder={view === "business" ? "Ask Ally about your business" : "Ask Ally about your ops queue"} />
     </PageShell>
   )
 }

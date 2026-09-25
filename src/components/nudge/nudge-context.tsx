@@ -18,9 +18,12 @@ interface StoredState {
   knowledge?: KnowledgeEntry[]
   /** How the Business view ranks top SKUs; set per customer in Settings. */
   businessSort?: BusinessSort
+  /** Which scope the Business view's chips offer first: categories or brands. */
+  businessGroup?: BusinessGroup
 }
 
 export type BusinessSort = "gap" | "sales"
+export type BusinessGroup = "Category" | "Brand"
 
 interface NudgeContextValue extends StoredState {
   nudge: (key: NudgeKey) => void
@@ -40,6 +43,8 @@ interface NudgeContextValue extends StoredState {
   setPeriod: (p: Period) => void
   businessSort: BusinessSort
   setBusinessSort: (s: BusinessSort) => void
+  businessGroup: BusinessGroup
+  setBusinessGroup: (g: BusinessGroup) => void
 }
 
 const EMPTY_STATE: StoredState = { nudged: {}, approved: {} }
@@ -145,6 +150,8 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
         setPeriod,
         businessSort: state.businessSort ?? "gap",
         setBusinessSort: (businessSort) => update((prev) => ({ ...prev, businessSort })),
+        businessGroup: state.businessGroup ?? "Category",
+        setBusinessGroup: (businessGroup) => update((prev) => ({ ...prev, businessGroup })),
       }}
     >
       {children}
