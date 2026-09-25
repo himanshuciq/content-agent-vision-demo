@@ -11,6 +11,7 @@ import { MikeProgress } from "@/components/nudge/mike/mike-progress"
 import { BatchList } from "@/components/nudge/mike/batch-list"
 import { BatchDetail } from "@/components/nudge/mike/batch-detail"
 import { SkuDetailPane } from "@/components/nudge/mike/sku-detail-pane"
+import { BackgroundProvider } from "@/components/nudge/mike/background-composer"
 import { contentBatches } from "@/components/nudge/data"
 import { useNudge } from "@/components/nudge/nudge-context"
 import type { Batch } from "@/components/nudge/types"
@@ -73,8 +74,10 @@ export default function MikePage() {
     }, 50)
   }
 
+  // Backgrounds applied per SKU are shared by the composer, the footer and the rail.
   return (
-    <PageShell className="bg-slate-50">
+    <BackgroundProvider>
+      <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <MikeHeader />
         <MikeProgress celebrate={celebrate} />
@@ -95,6 +98,7 @@ export default function MikePage() {
               onBack={() => setSelectedSkuId(null)}
               onApprove={handleApprove}
               onReviewAll={handleReviewAll}
+              onSelectSku={(skuId) => handleSelectSku(selected.id, skuId)}
             />
           ) : (
             <BatchDetail batch={selected} onApprove={handleApprove} onReviewAll={handleReviewAll} onSelect={handleSelectBatch} />
@@ -107,6 +111,7 @@ export default function MikePage() {
         </div>
       </div>
       <AskAlly questions={MIKE_QUESTIONS} renderAnswer={mikeAnswer} placeholder="Ask Ally about your content queue" />
-    </PageShell>
+      </PageShell>
+    </BackgroundProvider>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
-import { ChevronDown } from "lucide-react"
+import { Check, ChevronDown } from "lucide-react"
+import { useBackgrounds } from "./background-composer"
 import { cn } from "@/lib/utils"
 import { skuById } from "../data"
 import { useNudge } from "../nudge-context"
@@ -21,6 +22,7 @@ interface BatchListItemProps {
 /** One batch row: select it, or expand "See all N SKUs" to drill into a real SKU. */
 export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggleExpand, onSelectBatch, onSelectSku }: BatchListItemProps) {
   const { approved } = useNudge()
+  const bgs = useBackgrounds()
   const done = !!approved[batch.id]
 
   const skuCount = batch.inputSkus ?? batch.skus
@@ -75,10 +77,11 @@ export function BatchListItem({ batch, active, selectedSkuId, expanded, onToggle
                 className={cn("flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors", skuActive ? "bg-white ring-1 ring-slate-200" : "hover:bg-white")}
               >
                 <img src={sku.thumbnailUrl} alt={sku.title} className="size-8 shrink-0 rounded-md object-cover ring-1 ring-slate-200" />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="font-mono text-[11px] text-slate-500">{sku.asin}</div>
                   <div className="mt-0.5 text-[13px] leading-tight text-slate-950">{sku.title}</div>
                 </div>
+                {bgs.applied[row.skuId] && batch.tier === "input" && <Check className="size-4 shrink-0 text-success-600" aria-label="Background applied" />}
               </button>
             )
           })}

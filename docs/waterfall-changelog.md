@@ -196,3 +196,7 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Hero sample ends with "This is 1 of 12 hero SKUs…" + Review 12 SKUs + "Or approve all 12".
 - Autopilot parts (tails) get a sample SKU, "See all N SKUs", and "Hold these N SKUs for your review": `policy.holds` (one-off, not a rule) turns the part into a `<id>-held` item one approval away; Claire's buckets follow.
 - Concepts: new `background` section kind. `BackgroundComposer`: three SVG Halloween scenes or an upload, "Apply to this SKU" places the product photo on the scene; footer CTA "Apply to all 245 SKUs" (`need.cta`).
+
+## Concepts: apply per SKU, then next SKU or apply to all
+- `BackgroundProvider` (mike page) keeps the background applied per SKU; switching SKUs shows that SKU's own state (fixes "Applied" carrying over). New SKUs start from the last background used.
+- Composer: "Apply to this SKU" → "✓ Applied" + "Next SKU →". Footer: "N of 245 SKUs have a Halloween background. Use {scene} for the other X, or go one by one." with Next SKU and Apply to all 245 (disabled until one is applied). Rail shows a check on SKUs with a background.

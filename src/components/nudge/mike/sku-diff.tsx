@@ -161,12 +161,12 @@ function InputField({ section }: { section: SkuInputSection }) {
 }
 
 /** Every changed field for one SKU, live on Amazon beside Ally's version. */
-export function SkuSections({ sections, thumbnailUrl }: { sections: SkuSection[]; thumbnailUrl?: string }) {
+export function SkuSections({ sections, thumbnailUrl, skuId, onNext }: { sections: SkuSection[]; thumbnailUrl?: string; skuId?: string; onNext?: () => void }) {
   return (
     <div className="flex flex-col gap-3">
       {sections.map((section, i) => {
         if (section.kind === "input") return <InputField key={i} section={section} />
-        if (section.kind === "background") return <BackgroundComposer key={i} section={section} thumbnailUrl={thumbnailUrl} />
+        if (section.kind === "background") return <BackgroundComposer key={`${skuId}-${i}`} section={section} thumbnailUrl={thumbnailUrl} skuId={skuId ?? ""} onNext={onNext} />
         const rows = section.kind === "text" ? lineRows(section.live, section.draft.map((d) => d.text)) : []
         return (
           <div key={i} className="overflow-hidden rounded-xl border border-slate-200">

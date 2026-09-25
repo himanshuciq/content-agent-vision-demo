@@ -1,11 +1,47 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { createContext, useContext, useRef, useState } from "react"
 import { Check, ImagePlus, Upload } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SkuBackgroundSection } from "../types"
 
 type SceneId = "porch" | "moon" | "patch"
+export type Applied = { scene: SceneId | "upload"; upload: string | null }
+
+/**
+ * Backgrounds applied this session, per SKU, shared by the composer, the SKU
+ * pane footer and the rail's checkmarks. Switching SKUs shows that SKU's own state.
+ */
+const BackgroundContext = createContext<{
+  applied: Record<string, Applied>
+  apply: (skuId: string, bg: Applied) => void
+  last: Applied | null
+} | null>(null)
+
+export function BackgroundProvider({ children }: { children: React.ReactNode }) {
+  const [applied, setApplied] = useState<Record<string, Applied>>({})
+  const [last, setLast] = useState<Applied | null>(null)
+  return (
+    <BackgroundContext.Provider
+      value={{
+        applied,
+        last,
+        apply: (skuId, bg) => {
+          setApplied((a) => ({ ...a, [skuId]: bg }))
+          setLast(bg)
+        },
+      }}
+    >
+      {children}
+    </BackgroundContext.Provider>
+  )
+}
+
+export function useBackgrounds() {
+  return useContext(BackgroundContext) ?? { applied: {} as Record<string, Applied>, apply: () => {}, last: null }
+}
+
+export const sceneLabel = (bg: Applied) => (bg.scene === "upload" ? "your upload" : SCENES.find((s) => s.id === bg.scene)!.label)
 
 /** Three ready-made Halloween scenes, drawn in SVG so the demo works without uploads. */
 const SCENES: { id: SceneId; label: string }[] = [
@@ -94,17 +130,20 @@ export function Scene({ id, className }: { id: SceneId; className?: string }) {
  * The product photo sits on the scene as a framed card (a real cut-out needs
  * background removal, which this demo doesn't pretend to do).
  */
-export function BackgroundComposer({ section, thumbnailUrl }: { section: SkuBackgroundSection; thumbnailUrl?: string }) {
-  const [choice, setChoice] = useState<SceneId | "upload">("porch")
-  const [upload, setUpload] = useState<string | null>(null)
-  const [applied, setApplied] = useState<{ scene: SceneId | "upload"; upload: string | null } | null>(null)
+export function BackgroundComposer({ section, thumbnailUrl, skuId, onNext }: { section: SkuBackgroundSection; thumbnailUrl?: string; skuId: string; onNext?: () => void }) {
+  const bgs = useBackgrounds()
+  const applied = bgs.applied[skuId] ?? null
+  // Start from this SKU's background, else the last one used, so going one by one is quick.
+  const start = applied ?? bgs.last
+  const [choice, setChoice] = useState<SceneId | "upload">(start?.scene ?? "porch")
+  const [upload, setUpload] = useState<string | null>(start?.upload ?? null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const dirty = !applied || applied.scene !== choice || applied.upload !== upload
 
   function onFile(file?: File) {
     if (!file) return
     setUpload(URL.createObjectURL(file))
     setChoice("upload")
-    setApplied(null)
   }
 
   const background = (scene: SceneId | "upload", src: string | null) =>
@@ -154,10 +193,7 @@ export function BackgroundComposer({ section, thumbnailUrl }: { section: SkuBack
             <button
               key={s.id}
               type="button"
-              onClick={() => {
-                setChoice(s.id)
-                setApplied(null)
-              }}
+              onClick={() => setChoice(s.id)}
               aria-pressed={choice === s.id}
               className={cn(
                 "group w-28 overflow-hidden rounded-lg border bg-white text-left transition-colors",
@@ -189,14 +225,28 @@ export function BackgroundComposer({ section, thumbnailUrl }: { section: SkuBack
           </button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
 
-          <button
-            type="button"
-            onClick={() => setApplied({ scene: choice, upload })}
-            disabled={choice === "upload" && !upload}
-            className="ml-auto self-end rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs transition-colors hover:border-brand-300 hover:text-brand-700 disabled:opacity-50"
-          >
-            {applied ? "Applied to this SKU" : "Apply to this SKU"}
-          </button>
+          <div className="ml-auto flex items-center gap-3 self-end">
+            {!dirty && onNext && (
+              <button type="button" onClick={onNext} className="text-sm font-medium text-brand-700 hover:underline">
+                Next SKU →
+              </button>
+            )}
+            {dirty ? (
+              <button
+                type="button"
+                onClick={() => bgs.apply(skuId, { scene: choice, upload })}
+                disabled={choice === "upload" && !upload}
+                className="rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-xs transition-colors hover:border-brand-300 hover:text-brand-700 disabled:opacity-50"
+              >
+                Apply to this SKU
+              </button>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-1 py-2 text-sm font-medium text-success-700">
+                <Check className="size-4" />
+                Applied
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -4,7 +4,9 @@ import { ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { skuById } from "../data"
 import { useNudge } from "../nudge-context"
-import { PRIMARY } from "./buttons"
+import { PRIMARY, SECONDARY } from "./buttons"
+import { sceneLabel, useBackgrounds } from "./background-composer"
+import { cn } from "@/lib/utils"
 import { SkuSections } from "./sku-diff"
 import type { Batch, SkuRow } from "../types"
 
@@ -14,13 +16,22 @@ interface SkuDetailPaneProps {
   onBack: () => void
   onApprove: (batch: Batch) => void
   onReviewAll: (batch: Batch) => void
+  /** Open another SKU in this batch (for "Next SKU"). */
+  onSelectSku?: (skuId: string) => void
 }
 
 /**
  * The per-SKU view from "See all N SKUs": each field as one inline edit
  * (removed struck, kept black, added green), then the bulk approve.
  */
-export function SkuDetailPane({ batch, row, onBack, onApprove }: SkuDetailPaneProps) {
+export function SkuDetailPane({ batch, row, onBack, onApprove, onSelectSku }: SkuDetailPaneProps) {
+  const bgs = useBackgrounds()
+  // Batches that ask for a background: count the SKUs that have one, offer Next SKU or Apply to all.
+  const needsBackground = batch.skuRows.some((r) => r.sections.some((s) => s.kind === "background"))
+  const withBg = batch.skuRows.filter((r) => bgs.applied[r.skuId]).length
+  const idx = batch.skuRows.findIndex((r) => r.skuId === row.skuId)
+  const next = batch.skuRows[idx + 1]
+  const onNext = next && onSelectSku ? () => onSelectSku(next.skuId) : undefined
   const { approved } = useNudge()
   const sku = skuById(row.skuId)
   const done = !!approved[batch.id]
@@ -45,10 +56,45 @@ export function SkuDetailPane({ batch, row, onBack, onApprove }: SkuDetailPanePr
       </div>
 
       <div className="mt-6">
-        <SkuSections sections={row.sections} thumbnailUrl={sku.thumbnailUrl} />
+        <SkuSections sections={row.sections} thumbnailUrl={sku.thumbnailUrl} skuId={row.skuId} onNext={onNext} />
       </div>
 
-      {!done && batch.tier === "input" && (
+      {!done && batch.tier === "input" && needsBackground && (
+        <div className="mt-8 flex items-center gap-4 rounded-xl border border-warning-200 bg-warning-50 px-6 py-5">
+          <div className="min-w-0 flex-1">
+            {withBg === 0 ? (
+              <div className="text-sm font-semibold text-slate-950">Pick a background and apply it to this SKU first.</div>
+            ) : (
+              <>
+                <div className="text-sm font-semibold text-slate-950">
+                  {withBg} of {batch.inputSkus} SKUs {withBg === 1 ? "has" : "have"} a Halloween background.
+                </div>
+                <div className="mt-0.5 text-sm text-slate-500">
+                  Use {bgs.last ? sceneLabel(bgs.last) : "it"} for the other {(batch.inputSkus ?? 0) - withBg}, or go one by one.
+                </div>
+              </>
+            )}
+          </div>
+          {onNext && (
+            <button type="button" onClick={onNext} className={SECONDARY}>
+              Next SKU →
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={withBg === 0}
+            onClick={() => {
+              onApprove(batch)
+              toast.success(batch.need!.toast, { position: "top-right" })
+            }}
+            className={cn(PRIMARY, "disabled:opacity-50")}
+          >
+            {batch.need?.cta ?? "Send to Ally"}
+          </button>
+        </div>
+      )}
+
+      {!done && batch.tier === "input" && !needsBackground && (
         <div className="mt-8 flex items-center gap-4 rounded-xl border border-warning-200 bg-warning-50 px-6 py-5">
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-slate-950">Filled in? Ally drafts the rest and sends them back for one approval.</div>
