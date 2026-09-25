@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from "react"
+import { cn } from "@/lib/utils"
+import { AskBar, ChatProvider, ChatThread, useChat, useChatSource } from "@/components/nudge/chat/inline-chat"
+import { GapDiagnostic, GapTree } from "@/components/nudge/ops/gap-view"
 import { PageShell } from "@/components/layout/page-shell"
 import { MichelleHeader } from "@/components/nudge/ops/michelle-header"
 import { OpsProgress } from "@/components/nudge/ops/ops-progress"
 import { OpsBatchList } from "@/components/nudge/ops/ops-batch-list"
 import { OpsBatchDetail } from "@/components/nudge/ops/ops-batch-detail"
 import { OpsDelivered } from "@/components/nudge/ops/ops-delivered"
-import { AskAlly } from "@/components/nudge/claire/ask-ally"
 import { MICHELLE_QUESTIONS, michelleAnswer } from "@/components/nudge/ask-ally-personas"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
 import { opsBatches } from "@/components/nudge/data"
@@ -19,7 +21,28 @@ import type { OpsBatch } from "@/components/nudge/data"
  * approval from live, the inbox grouped by Claire's buckets, the selected batch,
  * then what ops delivered this quarter.
  */
+/** The inbox's questions for the Ask Ally bar (gap-to-plan registers its own per node). */
+function InboxChat() {
+  useChatSource(
+    { chips: MICHELLE_QUESTIONS.map((q) => ({ q, render: () => <div className="max-w-[860px] rounded-2xl bg-white px-5 py-4 text-[15px] leading-relaxed text-slate-700 ring-1 ring-slate-200">{michelleAnswer(q)}</div> })) },
+    "inbox",
+  )
+  return null
+}
+
 export default function MichellePage() {
+  return (
+    <ChatProvider>
+      <Michelle />
+    </ChatProvider>
+  )
+}
+
+function Michelle() {
+  const { clear } = useChat()
+  // Issues is the queue; Brand & category is gap to plan, computed on every node.
+  const [mode, setMode] = useState<"issues" | "gap">("issues")
+  const [nodeId, setNodeId] = useState("overall")
   const { approve, policy } = useNudge()
   const OPS_BATCHES = opsBatches(policy)
   // Open on the top of the inbox: the most valuable item one approval away.
@@ -51,16 +74,70 @@ export default function MichellePage() {
         <MichelleHeader />
         <OpsProgress celebrate={celebrate} />
         <div className="grid grid-cols-[340px_minmax(0,1fr)]">
-          <OpsBatchList selectedId={selectedId} onSelect={setSelectedId} onApproveAll={handleApproveAll} />
-          <OpsBatchDetail batch={selected} onAction={handleAction} />
+          <div className="border-r border-slate-200 bg-white">
+            <div className="flex gap-1 border-b border-slate-200 p-2">
+              {(
+                [
+                  ["issues", "Issues"],
+                  ["gap", "Brand & category"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    clear()
+                    setMode(id)
+                  }}
+                  className={cn(
+                    "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    mode === id ? "bg-slate-100 text-slate-950 ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-800",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {mode === "issues" ? (
+              <OpsBatchList selectedId={selectedId} onSelect={setSelectedId} onApproveAll={handleApproveAll} />
+            ) : (
+              <GapTree
+                selected={nodeId}
+                onSelect={(id) => {
+                  clear()
+                  setNodeId(id)
+                }}
+              />
+            )}
+          </div>
+          {mode === "issues" ? (
+            <OpsBatchDetail batch={selected} onAction={handleAction} />
+          ) : (
+            <GapDiagnostic
+              nodeId={nodeId}
+              onInbox={(batchId) => {
+                // A recommendation that's already a drafted item opens it in the queue.
+                clear()
+                setMode("issues")
+                setSelectedId(OPS_BATCHES.find((b) => b.id === batchId)?.id ?? OPS_BATCHES.find((b) => batchId.startsWith(b.id))?.id ?? selectedId)
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
+            />
+          )}
         </div>
+        {mode === "issues" && (
+          <>
+            <InboxChat />
+            <ChatThread />
+          </>
+        )}
         <OpsDelivered />
         {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
         <div className="flex justify-end px-10 pb-24 opacity-50 hover:opacity-100">
           <ResetDemoButton />
         </div>
       </div>
-      <AskAlly questions={MICHELLE_QUESTIONS} renderAnswer={michelleAnswer} placeholder="Ask Ally about your ops queue" />
+      <AskBar placeholder="Ask Ally about your ops queue" />
     </PageShell>
   )
 }

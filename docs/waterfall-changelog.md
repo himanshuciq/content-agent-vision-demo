@@ -230,3 +230,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - `OpsBatch` gains `skills`, `split`, `sellerSkus`, `email`, `mode`, `partLabel`, `reassure`. `opsBatches(policy)` cuts split items like content: hero one by one (`buybox-review`, 4 SKUs, +$480K), core in bulk (`buybox`, 2 SKUs, +$240K, with the no-hero line). The snapshot reads ops from it, so Claire's rows tie.
 - Detail pane: "Found by N skills · Show steps"; SKU pills with per-SKU seller comparison (price vs MAP, stock, rating, buy-box wins) and the latest crawls; the drafted vendor-manager email (editable, attachments); hero items need each SKU checked before Send. Send is a mock with a confirmation.
 - Hero line: "You're losing $9K a day right now" (urgent open value ÷ days left in the quarter). Approve all skips one-by-one items.
+
+## Michelle: gap to plan by brand and category, analysis inline
+- `ops/gap-data.ts`: Overall → brand → category → SKU, last week vs plan, week to date, projected end of week; each node's drivers (tagged Live, Resolved, Worth watching) sum to its gap, and its recommendations point to an inbox item, a play or a watch. Overall's projection ties to Claire's week view ($3.5M vs $3.7M).
+- Rail switch Issues | Brand & category. Picking a node shows three cards and "Explore more" chips; the analysis answers inline in the page's conversation: "Analyzed in 10 steps", key finding, plan vs actual, traffic × conversion × price = sales, drivers ranked by dollars, recommendations with actions. Crawl history for SKUs.
+- Michelle's page moves to the inline chat (ChatProvider, AskBar); the inbox registers its questions, each gap node its own.

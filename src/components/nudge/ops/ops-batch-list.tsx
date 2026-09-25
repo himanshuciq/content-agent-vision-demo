@@ -21,7 +21,7 @@ export function OpsBatchList({ selectedId, onSelect, onApproveAll }: OpsBatchLis
   const OPS_BATCHES = opsBatches(policy)
 
   return (
-    <div className="border-r border-slate-200 bg-white">
+    <div className="bg-white">
       {GROUPS.map((g, gi) => {
         // Bands run by ease (the group order); within a band, the most value first.
         const batches = OPS_BATCHES.filter((b) => b.tier === g.tier).sort((x, y) => money(y.value) - money(x.value))
