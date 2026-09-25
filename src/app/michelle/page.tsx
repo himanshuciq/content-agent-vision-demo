@@ -10,7 +10,7 @@ import { OpsDelivered } from "@/components/nudge/ops/ops-delivered"
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
 import { MICHELLE_QUESTIONS, michelleAnswer } from "@/components/nudge/ask-ally-personas"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
-import { OPS_BATCHES } from "@/components/nudge/data"
+import { opsBatches } from "@/components/nudge/data"
 import { useNudge } from "@/components/nudge/nudge-context"
 import type { OpsBatch } from "@/components/nudge/data"
 
@@ -20,8 +20,10 @@ import type { OpsBatch } from "@/components/nudge/data"
  * then what ops delivered this quarter.
  */
 export default function MichellePage() {
-  const { approve } = useNudge()
-  const [selectedId, setSelectedId] = useState<OpsBatch["id"]>("buybox")
+  const { approve, policy } = useNudge()
+  const OPS_BATCHES = opsBatches(policy)
+  // Open on the top of the inbox: the most valuable item one approval away.
+  const [selectedId, setSelectedId] = useState<OpsBatch["id"]>(() => [...OPS_BATCHES].filter((b) => b.tier === "approval").sort((x, y) => y.approveValue - x.approveValue)[0].id)
   const [celebrate, setCelebrate] = useState<{ value: number; label: string } | null>(null)
 
   const selected = OPS_BATCHES.find((b) => b.id === selectedId) ?? OPS_BATCHES[0]

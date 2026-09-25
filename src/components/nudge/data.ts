@@ -262,6 +262,47 @@ export function contentBatches(policy?: Policy, launched: string[] = []): Batch[
   return [...human, ...plays, ...auto]
 }
 
+/**
+ * Michelle's inbox under a review policy: an ops item with a tier split is cut
+ * like content (bulk keeps the id, one-by-one is "<id>-review"), each part with
+ * its own SKUs' evidence. Ops has no autopilot parts: an escalation always has a sender.
+ */
+export function opsBatches(policy?: Policy): OpsBatch[] {
+  if (!policy) return OPS_BATCHES
+  return OPS_BATCHES.flatMap((b) => {
+    if (!b.split || b.tier !== "approval") return [b]
+    const plan = shipPlan(policy, b.split)
+    const each = plan.each.skus
+    const bulk = plan.bulk.skus + plan.autopilot.skus
+    const tiersIn = (ids: SkuTier[]) => (b.sellerSkus ?? []).filter((x) => ids.includes(x.tier))
+    const eachTiers = TIERS.filter((t) => plan.each.byTier[t]) as SkuTier[]
+    const bulkTiers = TIERS.filter((t) => !eachTiers.includes(t)) as SkuTier[]
+    const label = (tiers: SkuTier[]) => (tiers.length === 1 ? TIER_INFO[tiers[0]].label : undefined)
+    const part = (id: string, skus: number, value: number, mode: ReviewMode, tiers: SkuTier[], extra: Partial<OpsBatch> = {}): OpsBatch => ({
+      ...b,
+      id,
+      mode,
+      partLabel: label(tiers),
+      skus,
+      value: fmtPart(value),
+      approveValue: value,
+      sellerSkus: tiersIn(tiers),
+      ...extra,
+    })
+    const parts: OpsBatch[] = []
+    if (each) parts.push(part(`${b.id}-review`, each, plan.each.value, "each", eachTiers))
+    if (bulk)
+      parts.push(
+        part(b.id, bulk, plan.bulk.value + plan.autopilot.value, "bulk", bulkTiers, {
+          reassure: each ? `None of these are hero SKUs. Your ${each} hero SKUs get reviewed one by one.` : undefined,
+        }),
+      )
+    return parts
+  })
+}
+
+const opsItem = (b: OpsBatch): WorkItem => ({ id: b.id, lever: "ops", tier: tierOf(b.tier), value: toM(b.value), skus: b.skus, urgent: b.urgent })
+
 /** Plays launched this session ("launch:<id>" in the acted map), in launch order. */
 export function launchedIds(acted: Acted = {}): string[] {
   return Object.keys(acted)
@@ -369,7 +410,8 @@ export const DELIVERED: Record<ClosedGrain, DeliveredPeriod> = {
  * Powers /michelle, mirroring Mike's content queue but with ops detections/actions.
  * ------------------------------------------------------------------------- */
 export interface OpsBatch {
-  id: "buybox" | "promo-badge" | "deal-page" | "oos" | "shipping" | "chargebacks" | "shorted-pos" | "promotions"
+  /** A seed id, or a policy part of one ("buybox-review"). */
+  id: string
   /** Which of Claire's buckets it sits in, so Michelle's inbox groups the same way her page does. */
   tier: "approval" | "input" | "autopilot"
   /** The kind of ops work. */
@@ -399,6 +441,51 @@ export interface OpsBatch {
   urgent?: boolean
   /** Autopilot: what Ally fixes on its own. */
   fixes?: { text: string; count: number }[]
+  /** The skills Ally ran to find and size it, shown as "Found by N skills · Show steps". */
+  skills?: { name: string; did: string }[]
+  /** SKUs by revenue tier, so the review policy can cut the item (hero reviewed one by one). */
+  split?: import("./policy").TierSplit
+  /** Per-SKU evidence for buy-box items: who's winning, at what price, crawl by crawl. */
+  sellerSkus?: SellerSku[]
+  /** The escalation Ally drafted for the person who can fix it (sent from the pane; mock). */
+  email?: { to: string; role: string; subject: string; body: string }
+  /** How this part ships under the review policy (set on policy parts). */
+  mode?: import("./policy").ReviewMode
+  /** "Hero", "Core" when a part is one tier. */
+  partLabel?: string
+  /** Under the bulk action: why it's safe. */
+  reassure?: string
+}
+
+export interface SellerSku {
+  asin: string
+  name: string
+  tier: import("./policy").SkuTier
+  /** Your offer on amazon.com, and the floor you set. */
+  price: number
+  map: number
+  sellers: { name: string; price: number; stock: string; rating: number; wins: number }[]
+  /** Latest crawls: time, city, who held the buy box. */
+  crawls: { when: string; city: string; winner: string }[]
+}
+
+const CITIES = ["Los Angeles (90028)", "New York (10025)", "Seattle (98101)", "Chicago (60611)", "Austin (78701)", "Miami (33130)"]
+const TIMES = ["Today, 10:00 AM", "Today, 8:00 AM", "Today, 6:00 AM", "Today, 4:00 AM", "Today, 2:00 AM", "Yesterday, 10:00 PM"]
+/** One buy-box SKU: two sellers undercutting MAP; the first wins most crawls. */
+function buyBoxSku(asin: string, name: string, tier: SellerSku["tier"], price: number, cut: number, wins: number): SellerSku {
+  const theirs = +(price * (1 - cut)).toFixed(2)
+  return {
+    asin,
+    name,
+    tier,
+    price,
+    map: +(price * 0.94).toFixed(2),
+    sellers: [
+      { name: "CandleDepot", price: theirs, stock: "In stock", rating: 4.2, wins },
+      { name: "WickWorks", price: theirs, stock: "In stock", rating: 4.1, wins: 12 - wins },
+    ],
+    crawls: TIMES.map((when, i) => ({ when, city: CITIES[i], winner: i % 5 === 3 ? "WickWorks" : "CandleDepot" })),
+  }
 }
 
 export const OPS_BATCHES: OpsBatch[] = [
@@ -406,44 +493,73 @@ export const OPS_BATCHES: OpsBatch[] = [
     id: "buybox",
     tier: "approval",
     type: "Buy box",
-    name: "Third-party seller below MAP",
+    name: "Third-party sellers below MAP",
     urgent: true,
     chip: "Losing the sale now",
     team: "Sales",
     skus: 6,
     value: "$720K",
     approveValue: 0.72,
-    detected: "A lower-priced third-party seller is winning the buy box on 6 SKUs, below the MAP floor.",
-    action: "Report MAP violation to Amazon",
-    doneLabel: "MAP violation reported · 6 SKUs",
-    exampleSku: "B08XYZ1234",
-    exampleName: "CleanPro Robot Vac R900",
-    evidence: [
-      "VacuMart_US at $289 vs our $319 — below the $499 MAP floor",
-      "Buy box win rate 2 of 6 crawls (NY, Chicago, Austin, Seattle, LA)",
-      "$62K gap to plan on the lead SKU alone",
+    detected: "Two third-party sellers are pricing below your MAP floor and winning the buy box on 6 SKUs.",
+    action: "Send to your vendor manager",
+    doneLabel: "Escalation sent · evidence attached",
+    exampleSku: "B07GR5MSKD",
+    exampleName: "Aurelle Amber Floral Soy Jar, 16 oz",
+    evidence: ["CandleDepot at $27.50 vs your $34.00, below your $32 MAP floor", "You win 0 of the last 12 crawls", "Losing about $8.6K a day"],
+    split: {
+      retailer: "Amazon",
+      brand: "Aurelle Candles",
+      skuGroup: "Jar candles",
+      tiers: { hero: { skus: 4, value: 0.48 }, core: { skus: 2, value: 0.24 }, tail: { skus: 0, value: 0 } },
+      titleSkus: 0,
+      imageSkus: 0,
+    },
+    skills: [
+      { name: "Store Walk", did: "Crawled each SKU 12 times today across 6 cities" },
+      { name: "Buy box check", did: "Compared every seller's price with your MAP floor" },
+      { name: "Revenue at risk", did: "Normal daily sales × days without the buy box" },
     ],
+    sellerSkus: [
+      buyBoxSku("B07GR5MSKD", "Aurelle Amber Floral Soy Jar, 16 oz", "hero", 34, 0.19, 10),
+      buyBoxSku("B08NF9KBZ4", "Aurelle Noir Cherry Large Jar, 22 oz", "hero", 38, 0.18, 9),
+      buyBoxSku("B00FLYWNYQ", "Aurelle Coastal Linen Large Jar, 22 oz", "hero", 38, 0.17, 10),
+      buyBoxSku("B09HWCD118", "Hearthwood Cedar & Smoke Jar, 18 oz", "hero", 32, 0.2, 8),
+      buyBoxSku("B0ATT30313", "Aurelle Travel Tin Trio", "core", 24, 0.16, 9),
+      buyBoxSku("B0BCM08080", "Bright Citrus Mini Jar, 8 oz", "core", 16, 0.15, 10),
+    ],
+    email: {
+      to: "Dana Ruiz",
+      role: "your Amazon vendor manager",
+      subject: "MAP violations taking the buy box on {n} SKUs",
+      body: "Hi Dana,\n\nCandleDepot and WickWorks are pricing {n} of our SKUs below our MAP floor and holding the buy box: we won 0 of the last 12 crawls on each. Crawl snapshots, seller IDs and price history are attached.\n\nCould you enforce MAP on these offers or open a case with the brand protection team? We're losing about {daily} a day while this runs.\n\nThanks,\nMichelle",
+    },
   },
   {
     id: "promo-badge",
     tier: "approval",
     type: "Promotions",
     name: "Missing promo badge",
-    chip: "Promo ends Oct 5",
+    chip: "Deal ends Oct 31",
     team: "Marketing",
     skus: 5,
     value: "$580K",
     approveValue: 0.58,
-    detected: "Deal is live (Sep 15–Oct 5) but the Deal badge and strike-through price aren't rendering on 5 SKUs.",
-    action: "Email Amazon to restore the Deal badge",
+    detected: "The Halloween deal is live (Oct 1–31) but the deal badge and strike-through price aren't showing on 5 SKUs.",
+    action: "Send to your vendor manager",
     doneLabel: "Badge fix requested · 5 SKUs",
-    exampleSku: "B0PRM001",
-    exampleName: "CleanPro Pro Cordless",
-    evidence: [
-      "Badge visible: no · Original price shown: no · Struck-through: yes",
-      "Selling $174 against MRP $194 — discount not surfaced",
-      "Promo window closes Oct 5",
+    exampleSku: "B08NF9KBZ4",
+    exampleName: "Aurelle Noir Cherry Large Jar, 22 oz",
+    evidence: ["Badge visible: no · Strike-through: no", "Selling $30.40 against $38.00 list; the 20% off isn't shown", "Deal window closes Oct 31"],
+    skills: [
+      { name: "Store Walk", did: "Checked the badge and price display on every deal SKU" },
+      { name: "Deal check", did: "Matched the live deal against what the page shows" },
     ],
+    email: {
+      to: "Dana Ruiz",
+      role: "your Amazon vendor manager",
+      subject: "Deal badge not showing on 5 Halloween SKUs",
+      body: "Hi Dana,\n\nOur Halloween deal (Oct 1–31) is live on 5 SKUs, but the deal badge and strike-through price aren't rendering. Screenshots from this morning's crawl are attached.\n\nCould you have the badge restored? The deal closes Oct 31.\n\nThanks,\nMichelle",
+    },
   },
   {
     id: "deal-page",
@@ -456,11 +572,15 @@ export const OPS_BATCHES: OpsBatch[] = [
     value: "$460K",
     approveValue: 0.46,
     detected: "Active deals aren't appearing on Amazon's deals page for 8 SKUs.",
-    action: "Email Amazon to fix deal page visibility",
+    action: "Send to your vendor manager",
     doneLabel: "Visibility fix requested · 8 SKUs",
-    exampleSku: "B0DPV001",
-    exampleName: "CleanPro Pro Cordless",
-    evidence: ["$42K gap to plan on the lead SKU", "Deal active but unlisted on the deals page"],
+    exampleSku: "B07GR5MSKD",
+    exampleName: "Aurelle Amber Floral Soy Jar, 16 oz",
+    evidence: ["Deal active but not listed on the deals page", "Deal-page traffic is 40% of event sales"],
+    skills: [
+      { name: "Store Walk", did: "Searched the deals page for each active deal" },
+      { name: "Revenue at risk", did: "Deal-page share of sales × days unlisted" },
+    ],
   },
   {
     id: "oos",
@@ -472,12 +592,16 @@ export const OPS_BATCHES: OpsBatch[] = [
     skus: 5,
     value: "$340K",
     approveValue: 0.34,
-    detected: "5 SKUs show unavailable on the page despite stock on hand — a suppressed-offer listing issue.",
+    detected: "5 SKUs show unavailable on the page despite stock on hand: a suppressed offer, not a stockout.",
     action: "Reinstate the suppressed offer",
     doneLabel: "Offer reinstated · 5 SKUs",
-    exampleSku: "B0STK001",
-    exampleName: "CleanPro AI Robot R2002",
-    evidence: ["24 units on hand, 0% rep OOS", "76% page unavailability", "Listing suppression, not a stockout"],
+    exampleSku: "B00FLYWNYQ",
+    exampleName: "Aurelle Coastal Linen Large Jar, 22 oz",
+    evidence: ["2,400 units on hand at the DC", "Page unavailable in 76% of crawls", "Offer suppressed on Sep 30"],
+    skills: [
+      { name: "Store Walk", did: "Found the buy button missing on 5 SKUs" },
+      { name: "Inventory check", did: "Confirmed stock on hand in Vendor Central" },
+    ],
   },
   {
     id: "shipping",
@@ -492,9 +616,10 @@ export const OPS_BATCHES: OpsBatch[] = [
     detected: "4 SKUs are shipping 2.5 days slower than the Prime bar across 8 ZIPs.",
     action: "Flag to the 3PL for expedited handling",
     doneLabel: "Flagged to 3PL · 4 SKUs",
-    exampleSku: "B0SHP001",
-    exampleName: "PlayMax Fusion Pro Wired",
-    evidence: ["Standard 4.5 days vs Prime 1.1 days", "Prime is 3.9 days faster across the 8 ZIPs sampled"],
+    exampleSku: "B0ATT30313",
+    exampleName: "Aurelle Travel Tin Trio",
+    evidence: ["Standard 4.5 days vs Prime 1.1 days", "Slower in 8 of 12 ZIPs sampled"],
+    skills: [{ name: "Store Walk", did: "Read the delivery promise in 12 ZIPs" }],
   },
   {
     id: "chargebacks",
@@ -539,8 +664,8 @@ export const OPS_BATCHES: OpsBatch[] = [
     inputCount: 6,
     inputNoun: "POs",
     inputs: [
-      { label: "PO 4480112 · CleanPro Robot Vac R900", detail: "Amazon received 180 of 240 units", placeholder: "Units shipped" },
-      { label: "PO 4480377 · CleanPro Pro Cordless", detail: "Amazon received 96 of 120 units", placeholder: "Units shipped" },
+      { label: "PO 4480112 · Aurelle Amber Floral Soy Jar", detail: "Amazon received 180 of 240 units", placeholder: "Units shipped" },
+      { label: "PO 4480377 · Aurelle Travel Tin Trio", detail: "Amazon received 96 of 120 units", placeholder: "Units shipped" },
     ],
   },
   {
@@ -800,7 +925,12 @@ export function getSnapshot(policy?: Policy, period: Period = "quarter", launche
       .map((p) => ({ id: `play:${p.id}`, lever: p.owner as AgentId, tier: p.tier, value: p.quarter, skus: p.skus }))
     const items =
       policy || launched.length
-        ? [...contentBatches(policy, launched).map(contentItem), ...SNAPSHOT.items.filter((i) => i.lever !== "content"), ...agentPlays]
+        ? [
+            ...contentBatches(policy, launched).map(contentItem),
+            ...opsBatches(policy).map(opsItem),
+            ...SNAPSHOT.items.filter((i) => i.lever !== "content" && i.lever !== "ops"),
+            ...agentPlays,
+          ]
         : SNAPSHOT.items
     byPolicy.set(key, { ...SNAPSHOT, items: items.map((i) => ({ ...i, value: i.value * shareIn(i, period) })) })
   }

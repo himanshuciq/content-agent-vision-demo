@@ -1,7 +1,8 @@
 "use client"
 
 import { PublishConfetti } from "@/components/home/publish-confetti"
-import { OPS_BATCHES } from "../data"
+import { AS_OF, opsBatches, periodEnd } from "../data"
+import { daysUntil } from "../model"
 import { DELIVERED } from "../delivered-periods"
 import { useNudge } from "../nudge-context"
 import { SplitBar } from "../mike/split-bar"
@@ -24,7 +25,8 @@ interface Celebrate {
  * ops work: banked, then what she acts on, against what's open. Same as Mike's.
  */
 export function OpsProgress({ celebrate }: { celebrate: Celebrate | null }) {
-  const { approved } = useNudge()
+  const { approved, policy } = useNudge()
+  const OPS_BATCHES = opsBatches(policy)
 
   const approvalBatches = OPS_BATCHES.filter((b) => b.tier === "approval")
   const doneValue = approvalBatches.reduce((sum, b) => sum + (approved[b.id] ? b.approveValue : 0), 0)
@@ -34,6 +36,8 @@ export function OpsProgress({ celebrate }: { celebrate: Celebrate | null }) {
   // Whatever is flagged urgent and still open, not a fixed batch.
   const urgent = approvalBatches.filter((b) => b.urgent && !approved[b.id]).reduce((sum, b) => sum + money(b.value), 0)
   const open = total - actedValue
+  // What the urgent items cost per day if they stay open to quarter end.
+  const perDay = urgent / Math.max(daysUntil(periodEnd("quarter"), AS_OF), 1)
 
   return (
     <>
@@ -49,7 +53,7 @@ export function OpsProgress({ celebrate }: { celebrate: Celebrate | null }) {
                 <>
                   {" "}
                   <span className="text-warning-600">
-                    <span className="font-mono">{fmt(urgent)}</span> of it is losing the sale right now.
+                    You&apos;re losing <span className="font-mono">{fmt(perDay)}</span> a day right now.
                   </span>
                 </>
               )}

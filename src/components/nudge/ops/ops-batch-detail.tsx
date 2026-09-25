@@ -5,7 +5,12 @@ import { Check, RefreshCw, Search } from "lucide-react"
 import { toast } from "sonner"
 import { useNudge } from "../nudge-context"
 import { PRIMARY } from "../mike/buttons"
+import { AS_OF, fmtValue, periodEnd } from "../data"
 import type { OpsBatch } from "../data"
+import { daysUntil } from "../model"
+import { EmailDraft, SellerEvidence, SkillsTrace } from "./ops-evidence"
+import { ShieldCheck } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface OpsBatchDetailProps {
   batch: OpsBatch
@@ -41,14 +46,38 @@ export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
   const { approved } = useNudge()
   const done = !!approved[batch.id]
   const [reviewing, setReviewing] = useState(false)
-  useEffect(() => setReviewing(false), [batch.id])
+  const skus = batch.sellerSkus ?? []
+  const [skuIdx, setSkuIdx] = useState(0)
+  // One-by-one items: every SKU gets its own look before the escalation goes.
+  const [checked, setChecked] = useState<Record<string, boolean>>({})
+  useEffect(() => {
+    setReviewing(false)
+    setSkuIdx(0)
+    setChecked({})
+  }, [batch.id])
+  const sku = skus[Math.min(skuIdx, skus.length - 1)]
+  const each = batch.mode === "each"
+  const allChecked = skus.every((x) => checked[x.asin])
+  const daily = fmtValue(batch.approveValue / Math.max(daysUntil(periodEnd("quarter"), AS_OF), 1))
+  function send() {
+    onAction(batch)
+    toast.success(batch.email ? `Sent to ${batch.email.to}, ${batch.email.role} · evidence attached` : batch.doneLabel, { position: "top-right" })
+  }
 
   return (
     <div className="flex min-w-0 flex-col px-10 py-8">
       <div className="flex items-start justify-between gap-8">
         <div className="min-w-0">
-          <div className="text-sm font-medium text-slate-500">{batch.type}</div>
+          <div className="text-sm font-medium text-slate-500">
+            {batch.type}
+            {batch.partLabel && ` · ${batch.partLabel}`}
+          </div>
           <div className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-950">{batch.name}</div>
+          {batch.skills && (
+            <div className="mt-2">
+              <SkillsTrace skills={batch.skills} />
+            </div>
+          )}
           <div className="mt-1.5 text-sm text-slate-500">
             {batch.team} · {batch.skus} {batch.tier === "input" ? batch.inputNoun : "SKUs"}
           </div>
@@ -58,6 +87,7 @@ export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
           <div className="mt-0.5 text-sm text-slate-500">
             {batch.tier === "autopilot" ? "leakage prevented this quarter" : done ? "sent" : "projected leakage prevented"}
           </div>
+          {batch.urgent && !done && <div className="mt-0.5 font-mono text-sm font-semibold text-error-600">−{daily} a day</div>}
         </div>
       </div>
 
@@ -122,9 +152,67 @@ export function OpsBatchDetail({ batch, onAction }: OpsBatchDetailProps) {
             )}
           </div>
         ) : (
-          <button type="button" onClick={() => onAction(batch)} className={PRIMARY}>
-            {batch.action}
-          </button>
+          <div className="flex flex-col gap-6">
+            {sku && (
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="mr-1 text-sm font-medium text-slate-500">SKUs ({skus.length})</span>
+                  {skus.map((x, i) => (
+                    <button
+                      key={x.asin}
+                      type="button"
+                      onClick={() => setSkuIdx(i)}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors",
+                        i === skuIdx ? "border-slate-300 bg-slate-100 text-slate-950" : "border-slate-200 text-slate-600 hover:border-slate-300",
+                      )}
+                    >
+                      {checked[x.asin] && <Check className="size-3.5 text-success-600" />}
+                      {x.name.split(",")[0]}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-xs text-slate-500">
+                  <span className="font-mono">{sku.asin}</span> · {sku.name}
+                </div>
+                <SellerEvidence sku={sku} />
+                {each && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setChecked((c) => ({ ...c, [sku.asin]: true }))
+                      if (skuIdx < skus.length - 1) setSkuIdx(skuIdx + 1)
+                    }}
+                    disabled={!!checked[sku.asin]}
+                    className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-medium text-slate-800 hover:border-brand-300 hover:text-brand-700 disabled:border-success-200 disabled:bg-success-50 disabled:text-success-700"
+                  >
+                    <Check className="size-4" />
+                    {checked[sku.asin] ? "Checked" : skuIdx < skus.length - 1 ? "Looks right · next SKU" : "Looks right"}
+                  </button>
+                )}
+              </div>
+            )}
+            {batch.email && <EmailDraft key={batch.id} email={batch.email} fill={{ n: String(batch.skus), daily }} />}
+            <div className="flex flex-col gap-3">
+              {batch.reassure && (
+                <div className="flex items-center gap-2 text-sm text-slate-700">
+                  <ShieldCheck className="size-4 shrink-0 text-success-600" />
+                  {batch.reassure}
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" onClick={send} disabled={each && !allChecked} className={cn(PRIMARY, "disabled:opacity-50")}>
+                  {batch.action}
+                  {each ? ` · ${batch.skus} hero SKUs` : ""}
+                </button>
+                {each && !allChecked && (
+                  <span className="text-sm text-slate-500">
+                    Check each hero SKU first · {skus.filter((x) => checked[x.asin]).length} of {skus.length}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
