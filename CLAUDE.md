@@ -40,6 +40,7 @@ Every doer page ties to the exec page: the doer's buckets add up to the exec's r
 
 - **Standards:** use the `ciq-prototype` skill (`.claude/skills/ciq-prototype/`). It covers the working loop, number and color rules, visual system, copy voice and the design audit checklist. Number rules also live in `design-specs.md`.
 - **Voice:** "Ally", not "the agent". Say "projected", "delivered" and "current run rate". Use K below $1M. A percentage always comes with its dollar total. Losses get a minus sign and red.
+- **No hard-coding:** logic never names a person, batch or lever. It reads fields (bucket, status, deadline, urgent). Add a work item, not a special case.
 - **Numbers tie:** derive totals from their parts. Mike's buckets ($740K + $560K + $200K) = Claire's content row ($1.5M). Michelle's ($2.4M + $600K + $200K) = Claire's ops row ($3.2M).
 - **Two Claire pages:** `/claire-waterfall` is the active design. `/claire` is frozen. Log every change that reaches shared data in `docs/waterfall-changelog.md`.
 - **Verify in the browser** before reporting (see `TESTING.md`). **Commit each change** on `claire-exec-demo`. Push when asked.
@@ -50,7 +51,9 @@ Every doer page ties to the exec page: the doer's buckets add up to the exec's r
 
 | What | Where |
 | --- | --- |
-| Shared mock data (tiers, batches, persona rows) | `src/components/nudge/data.ts` |
+| **Data model:** work items, people, activity → every total, row, status and nudge | `src/components/nudge/model.ts` (logic) and `data.ts` → `getSnapshot()` (the one place a database plugs in) |
+| Live view for the session (Claire's page reacts to Mike's and Michelle's actions) | `src/components/nudge/live-model.ts` (`useLive()`) |
+| Batches, delivered data, copy | `src/components/nudge/data.ts` |
 | Delivered and projected data by type of work | `src/components/nudge/delivered-content-data.ts` |
 | Results page data | `src/components/nudge/content-results-data.ts` |
 | Exec page | `src/app/claire-waterfall/page.tsx`, `src/components/nudge/{claire,waterfall}/` |

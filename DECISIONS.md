@@ -2,6 +2,13 @@
 
 Newest first. Each entry records the decision, why, and what was rejected.
 
+**Sep 2026: one table of work items drives everything.**
+- Each item has a lever, bucket, value, deadline and urgency. Tier rows, totals, the bridge, deadlines, statuses and nudges are all derived from the items plus this session's actions.
+- A nudge shows only for an owner who hasn't started.
+- Claire's page updates live when her team acts.
+- *Why:* a nudge rule keyed to "Mike" would break with real data. `getSnapshot()` is where a database plugs in.
+- *Rejected:* special cases by name or id.
+
 **Sep 2026: projected values are signed, not green.** "+$500K" in black, labeled "projected incremental sales". It turns green only once approved. *Why:* a bare "$500K" read as the SKUs' revenue, and green means delivered. *Rejected:* green projected values.
 
 **Sep 2026: the progress bar is labeled pieces plus a total.** Pieces are $520K banked, $X unlocked today and $1.5M open, with "$2.02M this quarter" at the end. *Why:* the user keeps the $1.5M they know, and the total is fine next to it. Content data was trimmed so the parts add up exactly.
