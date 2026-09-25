@@ -35,12 +35,15 @@ function MarketMap({ selected, onSelect, compact = false }: { selected?: string;
   // Drawn at the size it shows, so labels stay 11–12px.
   const W = compact ? 300 : 480
   const H = compact ? 170 : 400
-  const pad = compact ? { l: 8, r: 8, t: 8, b: 8 } : { l: 56, r: 24, t: 28, b: 48 }
+  // Both sizes carry real axes: a baseline, ticks and a title on each, so the quadrants read without explaining.
+  const pad = compact ? { l: 42, r: 8, t: 8, b: 30 } : { l: 64, r: 24, t: 28, b: 54 }
   const xMin = -6, xMax = 26, yMin = 0, yMax = 30
   const x = (v: number) => pad.l + ((v - xMin) / (xMax - xMin)) * (W - pad.l - pad.r)
   const y = (v: number) => H - pad.b - ((v - yMin) / (yMax - yMin)) * (H - pad.t - pad.b)
-  const r = (size: number) => Math.sqrt(size) * (compact ? 1.1 : 1.9)
+  const r = (size: number) => Math.sqrt(size) * (compact ? 1.0 : 1.9)
   const fill = (c: number) => (c > 0.05 ? "var(--color-success-500)" : c < -0.05 ? "var(--color-error-500)" : "var(--color-slate-400)")
+  const tick = compact ? "text-[10px]" : "text-[11px]"
+  const title = compact ? "text-[10px]" : "text-[12px]"
   const quad = [
     { label: "Defend", x: x(xMin) + 10, y: y(yMax) + 18, anchor: "start" },
     { label: "Lead", x: x(xMax) - 10, y: y(yMax) + 18, anchor: "end" },
@@ -54,6 +57,37 @@ function MarketMap({ selected, onSelect, compact = false }: { selected?: string;
       <rect x={x(MARKET_GROWTH)} y={y(SHARE_SPLIT)} width={x(xMax) - x(MARKET_GROWTH)} height={y(yMin) - y(SHARE_SPLIT)} fill="var(--color-brand-50)" />
       <line x1={x(MARKET_GROWTH)} x2={x(MARKET_GROWTH)} y1={y(yMax)} y2={y(yMin)} stroke="var(--color-slate-300)" strokeDasharray="4 4" />
       <line x1={x(xMin)} x2={x(xMax)} y1={y(SHARE_SPLIT)} y2={y(SHARE_SPLIT)} stroke="var(--color-slate-300)" strokeDasharray="4 4" />
+      {/* Axes */}
+      <line x1={x(xMin)} x2={x(xMax)} y1={y(yMin)} y2={y(yMin)} stroke="var(--color-slate-400)" />
+      <line x1={x(xMin)} x2={x(xMin)} y1={y(yMin)} y2={y(yMax)} stroke="var(--color-slate-400)" />
+      {[0, 10, 20].map((v) => (
+        <g key={`x${v}`}>
+          <line x1={x(v)} x2={x(v)} y1={y(yMin)} y2={y(yMin) + 4} stroke="var(--color-slate-400)" />
+          <text x={x(v)} y={y(yMin) + (compact ? 13 : 17)} textAnchor="middle" className={cn("fill-slate-500 font-mono", tick)}>
+            {v}%
+          </text>
+        </g>
+      ))}
+      {(compact ? [0, 10, 20] : [0, 10, 20, 30]).map((v) => (
+        <g key={`y${v}`}>
+          <line x1={x(xMin) - 4} x2={x(xMin)} y1={y(v)} y2={y(v)} stroke="var(--color-slate-400)" />
+          <text x={x(xMin) - 7} y={y(v) + 3.5} textAnchor="end" className={cn("fill-slate-500 font-mono", tick)}>
+            {v}%
+          </text>
+        </g>
+      ))}
+      <text x={(pad.l + W - pad.r) / 2} y={H - (compact ? 3 : 12)} textAnchor="middle" className={cn("fill-slate-600 font-medium", title)}>
+        {compact ? "Segment growth →" : "Segment growth vs last year →"}
+      </text>
+      <text
+        x={compact ? 7 : 16}
+        y={(pad.t + H - pad.b) / 2}
+        textAnchor="middle"
+        transform={`rotate(-90 ${compact ? 7 : 16} ${(pad.t + H - pad.b) / 2})`}
+        className={cn("fill-slate-600 font-medium", title)}
+      >
+        {compact ? "Your share →" : "Your share of the segment →"}
+      </text>
       {!compact &&
         quad.map((q) => (
           <text key={q.label} x={q.x} y={q.y} textAnchor={q.anchor} className="fill-slate-400 font-mono text-[11px] tracking-wide uppercase">
@@ -61,22 +95,9 @@ function MarketMap({ selected, onSelect, compact = false }: { selected?: string;
           </text>
         ))}
       {!compact && (
-        <>
-          <text x={(pad.l + W - pad.r) / 2} y={H - 10} textAnchor="middle" className="fill-slate-500 text-[12px]">
-            Segment growth, last 12 months →
-          </text>
-          <text x={14} y={(pad.t + H - pad.b) / 2} textAnchor="middle" transform={`rotate(-90 14 ${(pad.t + H - pad.b) / 2})`} className="fill-slate-500 text-[12px]">
-            Your share →
-          </text>
-          <text x={x(MARKET_GROWTH)} y={pad.t - 10} textAnchor="middle" className="fill-slate-400 text-[11px]">
-            Category +{MARKET_GROWTH}%
-          </text>
-          {[0, 10, 20].map((v) => (
-            <text key={v} x={x(v)} y={H - pad.b + 16} textAnchor="middle" className="fill-slate-400 font-mono text-[11px]">
-              {v}%
-            </text>
-          ))}
-        </>
+        <text x={x(MARKET_GROWTH)} y={pad.t - 10} textAnchor="middle" className="fill-slate-400 text-[11px]">
+          Category +{MARKET_GROWTH}%
+        </text>
       )}
       {[...SEGMENTS].sort((a, b) => b.size - a.size).map((s) => {
         const active = selected === s.id
@@ -107,7 +128,7 @@ function ReadinessDot({ state }: { state: "ready" | "partial" | "risk" }) {
         "inline-block size-2.5 rounded-full",
         state === "ready" && "bg-success-500",
         state === "partial" && "bg-warning-500",
-        state === "risk" && "border-2 border-error-500 bg-white",
+        state === "risk" && "bg-error-500",
       )}
     />
   )
@@ -179,7 +200,10 @@ function HomeCards({ onOpen }: { onOpen: () => void }) {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">3 risks. Last year 4 hero SKUs sold out on day 1.</p>
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            Last Black Friday you ran no deal on <span className="font-mono font-semibold text-slate-950">6</span> strong SKUs and lost the top sponsored slots to
+            Brightwick. That cost <span className="font-mono font-semibold text-error-600">−$420K</span>. This year: 3 risks, stock and deals not set.
+          </p>
           <span className="mt-auto pt-4 text-[15px] font-semibold text-brand-700">Get ready for Black Friday →</span>
           <span className="mt-0.5 text-xs text-slate-500">
             <span className="font-mono">$1.1M</span> at stake
