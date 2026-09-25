@@ -52,7 +52,6 @@ export function AutopilotDetail({ stage }: { stage: WaterfallStage }) {
   const totalOpen = rows.reduce((s, r) => s + r.open, 0)
   const share = Math.round((stage.value / totalOpen) * 100)
   const best = Math.round((rows.reduce((s, r) => s + (r.best / 100) * r.open, 0) / totalOpen) * 100)
-  const allRaised = rows.every((r) => raised[r.agent])
 
   function raise(agents: AgentId[]) {
     setRaised((prev) => ({ ...prev, ...Object.fromEntries(agents.map((a) => [a, true])) }))
@@ -70,22 +69,7 @@ export function AutopilotDetail({ stage }: { stage: WaterfallStage }) {
           </div>
         </div>
         <span className="text-right font-mono text-[15px] font-bold text-slate-950 tabular-nums">{fmtM(stage.value)}</span>
-        <div className="justify-self-end">
-          {allRaised ? (
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success-700">
-              <Check className="size-4" />
-              Increased
-            </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => raise(rows.filter((r) => !raised[r.agent]).map((r) => r.agent))}
-              className="rounded-md bg-brand-500 px-4 py-2 text-sm font-medium whitespace-nowrap text-white shadow-xs transition-colors hover:bg-brand-600"
-            >
-              Increase autopilot
-            </button>
-          )}
-        </div>
+        <div />
       </div>
 
       <div className={cn(GRID, "px-6 pt-3 pb-1 text-xs font-medium text-slate-500")}>
@@ -120,9 +104,9 @@ export function AutopilotDetail({ stage }: { stage: WaterfallStage }) {
                 <button
                   type="button"
                   onClick={() => raise([r.agent])}
-                  className="rounded-md border border-brand-200 bg-white px-3 py-1.5 text-sm font-medium whitespace-nowrap text-brand-700 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-brand-50 focus-visible:opacity-100"
+                  className="rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-medium whitespace-nowrap text-slate-700 shadow-xs transition-colors hover:border-brand-300 hover:text-brand-700"
                 >
-                  Increase
+                  Increase autopilot
                 </button>
               )}
             </div>

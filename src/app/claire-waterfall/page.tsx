@@ -7,7 +7,7 @@ import { WeeklyBanner } from "@/components/nudge/claire/weekly-banner"
 import { BusinessHero } from "@/components/nudge/claire/business-hero"
 import { WaterfallChart } from "@/components/nudge/waterfall/waterfall-chart"
 import type { WaterfallSelection } from "@/components/nudge/waterfall/waterfall-chart"
-import { AreaView } from "@/components/nudge/claire/area-view"
+import { AreaDetail } from "@/components/nudge/waterfall/area-detail"
 import { StageDetail } from "@/components/nudge/waterfall/stage-detail"
 import { ThisQuarterSection } from "@/components/nudge/claire/this-quarter-section"
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
@@ -40,14 +40,7 @@ export default function ClaireWaterfallPage() {
         <div className="px-12 pb-2">
           <WaterfallChart selectedId={selectedId} onSelect={setSelectedId} />
           {selectedId === "total" ? (
-            <div className="mt-6 overflow-hidden rounded-xl border border-slate-200">
-              <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-25 px-6 py-4">
-                <span className="text-lg font-semibold text-slate-950">Open opportunity by area</span>
-              </div>
-              <div className="px-6 py-4">
-                <AreaView />
-              </div>
-            </div>
+            <AreaDetail />
           ) : (
             <StageDetail stage={selected} />
           )}

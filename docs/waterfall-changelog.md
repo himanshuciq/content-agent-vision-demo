@@ -133,3 +133,11 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - **The "This quarter so far" drill-down is data-driven.** Any lever with a breakdown opens; media has none yet.
 - **Formats:** money uses K below $1M (for example $0.56M → $560K, and /claire's $0.9M → $900K). Business numbers keep one decimal when they aren't whole, so the parts add up on screen.
 - **Shared data:** media team work is $1.04M (was a typed $1.0M) so the team bucket really sums to $2.2M.
+- Stage tables: "Nudge team" removed. Each row nudges its owner only if they haven't started.
+- Autopilot: "Increase autopilot" moved from the header to each area's row, always visible, same button style as row nudges.
+- "Total opportunity" drill-down rebuilt as the same card as the other stage tables (`waterfall/area-detail.tsx`, live):
+  - title "Open opportunity by area", with the tie-out line "$40M current run rate + $6.8M open = $46.8M, against a $45M plan"
+  - one column-header row
+  - each area's open money as a stacked bar in the bridge's colors, with the three amounts under it
+  - values on the same edge as the other tables
+  - the old AreaView stays on /claire
