@@ -13,6 +13,18 @@ Page and component patterns: `references/patterns.md`. How value is measured and
 
 ---
 
+## Product tenets (judge every screen against these)
+
+1. **Action first, not dashboard first.** Lead with what to do and what it's worth.
+2. **Simple.** One primary action per area.
+3. **Apple, not Android.** Opinionated defaults, few choices, polish in every state.
+4. **Configuration lives in the background.** No settings on the main path.
+5. **Crisp, clear information.** Plain sentences, numbers that tie, one meaning per color.
+6. **Prove value.** Projected vs delivered, the method, and the reason for any gap.
+7. **Audit trail where it's needed.** Doers see what changed, when and why. Execs get the summary.
+
+**Personas:** the **exec** owns the sales number, sees business, risks, opportunities and strategy, and never goes to SKU level. The **doer or analyst** executes, reviews detail, gives input and needs the audit trail. Both work on one platform across content, media and operations.
+
 ## 1. Working loop (every change)
 
 1. **Understand, then act.** If a request is ambiguous and the answer changes what you build, ask one question. Otherwise build the obvious reading and say what you assumed.
