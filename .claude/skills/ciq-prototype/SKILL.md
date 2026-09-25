@@ -43,6 +43,19 @@ Don't just agree with him. If a request would contradict numbers elsewhere or hu
 
 ---
 
+## 1b. Story and disclosure
+
+- **Start from the business:** plan, run rate, gap, then what closes it. Then the split by lever, then what unlocks fastest.
+- **Summary up front, detail on demand:** one line for what Ally did, one for the value, one for the method. Everything else sits behind a click. Going too deep too soon is the first exec objection.
+- **Simplify the demo world:** one seasonal event per period, and lead with the lever being demoed.
+- **Prove value like a CFO is watching:**
+  - isolate each agent's value
+  - name the method
+  - own the gap with reasons that add up
+  - show the learning loop (what didn't work, what Ally changed)
+  - explain why value stacks over time (each change is tested against today's content), which answers the renewal question
+- **Secondary actions appear on hover** and line up with their column. The primary action is always visible. Nothing gets colored or added just because it was asked for if it looks wrong: say so and propose a better option.
+
 ## 2. Numbers must tie everywhere
 
 - One number, one source. Derive totals from their parts. Never hand-type the same figure in two places, because they drift (we once had $490K vs $500K).
@@ -104,6 +117,8 @@ Full table in the project's `design-specs.md` under "Number and Color Rules".
 - **Results are outcomes,** not actions. "Outgrew the category" is a result; "New title live" is not.
 - **Tense matches the time.** Past events are past tense ("3 needed your team's input"). Open asks are present tense ("3 SKUs need your team's input").
 - Active voice, contractions welcome, no em dashes, and never disparage competitors.
+- **Tight labels:** "Halloween seasonal updates", not a list of what's in them. Write "Mike Content", not "Mike, content analyst". Effort goes in minutes or hours ("45 min"), not "about half a day". Don't count items nobody needs.
+- **Consistent words:** "market share", not "share". "Reset", not "Reset demo". "PIM", not "BIM". Keep the type-of-work names fixed: Seasonal, Foundational, Retail readiness.
 - Say the same thing the same way everywhere, for example "Review N SKUs", "Approve N SKUs" and "Send to Ally".
 
 ## 6. Design audit checklist (run before every report)
