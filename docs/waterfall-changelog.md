@@ -212,3 +212,10 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 ## Inbox order and delivered bullets
 - Mike's and Michelle's rails: bands by ease (group order), items by value within a band. Mike's page opens on the top approval item (Halloween jar candles · Hero, +$240K).
 - Removed "Increase autopilot" from delivered bullets (content waterfall) and funnel rows. It stays on Claire's On autopilot rows.
+
+## Brain phase 1a: Grow beyond plan (Market, Competition, Event readiness) with the Ally panel
+- `market.ts`: candle segments (size, growth, share, change, bullets, plays), competitors (headline, moves, stats, at-risk), next event (Black Friday: readiness by lever, last year's replay, plays). Plays carry owner (content, media, ops, human), annual and quarter value, SKUs, tier.
+- Launching a play records `launch:<id>` in the shared state. `getSnapshot(policy, period, launched)` adds media and ops plays as work items; `contentBatches(policy, launched)` adds content plays as Mike's inbox items (`play:<id>`, Foundational, bulk). Human plays (NPI, pricing) are drafted briefs and don't touch the bridge.
+- Claire's page: `GrowCards` after "so far", labels derived from the data (top segment, competitor with most at risk, next event). Each opens a view (`views.tsx`) over the page with the top line only; Back returns to the same scroll.
+- `AllyPanel`: one thread per context (segment, competitor, event), answer contract (verdict, why, if nothing changes, actions, trust), suggested follow-ups, typed questions matched to them. Actions launch plays, ask follow-ups or confirm a watch.
+- Page container `overflow-clip` so the panel can stick. Chat scrolls its own list (newer browsers return a Promise from scrollIntoView).

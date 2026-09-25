@@ -1,6 +1,6 @@
 "use client"
 
-import { contentBatches } from "../data"
+import { contentBatches, launchedIds } from "../data"
 import { useNudge } from "../nudge-context"
 import { BatchListItem } from "./batch-list-item"
 import { ApproveAll, GROUPS, RailGroup } from "./rail"
@@ -27,7 +27,7 @@ const money = (s: string) => parseFloat(s.replace(/[$KM,]/g, "")) / (s.endsWith(
  */
 export function BatchList({ selectedId, selectedSkuId, expandedBatchId, onToggleExpand, onSelectBatch, onSelectSku, onApproveAll }: BatchListProps) {
   const { approved, policy } = useNudge()
-  const all = contentBatches(policy)
+  const all = contentBatches(policy, launchedIds(approved))
 
   return (
     <div className="border-r border-slate-200 bg-white">

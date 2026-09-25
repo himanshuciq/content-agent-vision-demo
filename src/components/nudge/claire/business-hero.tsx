@@ -15,14 +15,15 @@ const PERIOD_WORDS: Record<Period, string> = { week: "this week", month: "this m
  * plan, the gap, and the open opportunity that closes it. Then where it sits and
  * how fast it unlocks.
  */
-export function BusinessHero() {
+/** `topLineOnly`: just the greeting, period and icons (above a Grow view, which has its own headline). */
+export function BusinessHero({ topLineOnly = false }: { topLineOnly?: boolean } = {}) {
   const live = useLive()
   const { period } = live
   const b = { ...BUSINESS[period], pace: live.pace(period) }
   const gap = b.plan - b.pace
 
   return (
-    <section className="px-12 pt-9 pb-7">
+    <section className={topLineOnly ? "px-12 pt-9" : "px-12 pt-9 pb-7"}>
       <div className="flex items-start justify-between gap-6">
         <div className="flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
           <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
@@ -39,6 +40,7 @@ export function BusinessHero() {
         </div>
       </div>
 
+      {!topLineOnly && (<>
       {/* Fact, then the gap, then what closes it. The fact line is the same size as the first line on Mike's and Michelle's pages. */}
       <div className="mt-5 text-2xl font-semibold tracking-tight text-slate-700">
         You&apos;re tracking to <span className="font-mono text-slate-950">{fmtBiz(b.pace)}</span> in sales {PERIOD_WORDS[period]}.
@@ -74,6 +76,7 @@ export function BusinessHero() {
           </>
         )}
       </div>
+      </>)}
     </section>
   )
 }

@@ -9,6 +9,9 @@ import type { WaterfallSelection } from "@/components/nudge/waterfall/waterfall-
 import { AreaDetail } from "@/components/nudge/waterfall/area-detail"
 import { StageDetail } from "@/components/nudge/waterfall/stage-detail"
 import { ThisQuarterSection } from "@/components/nudge/claire/this-quarter-section"
+import { GrowCards } from "@/components/nudge/market/grow-cards"
+import type { GrowView } from "@/components/nudge/market/grow-cards"
+import { GrowViewSwitch } from "@/components/nudge/market/views"
 import { AskAlly } from "@/components/nudge/claire/ask-ally"
 import { useLive } from "@/components/nudge/live-model"
 import { useNudge } from "@/components/nudge/nudge-context"
@@ -24,6 +27,18 @@ let resetThisLoad = false
  */
 export default function ClaireWaterfallPage() {
   const [selectedId, setSelectedId] = useState<WaterfallSelection>("approval")
+  // A "Grow beyond plan" view opens over the page; Back returns to the same spot.
+  const [grow, setGrow] = useState<GrowView | null>(null)
+  const [homeScroll, setHomeScroll] = useState(0)
+  function openGrow(v: GrowView) {
+    setHomeScroll(window.scrollY)
+    setGrow(v)
+    window.scrollTo({ top: 0 })
+  }
+  function closeGrow() {
+    setGrow(null)
+    window.setTimeout(() => window.scrollTo({ top: homeScroll }), 0)
+  }
 
   const { stages } = useLive()
   const { resetDemo } = useNudge()
@@ -39,28 +54,31 @@ export default function ClaireWaterfallPage() {
 
   return (
     <PageShell className="bg-slate-50">
-      <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
-        <BusinessHero />
+      {/* overflow-clip (not hidden) keeps rounded corners without breaking the sticky Ally panel in a view. */}
+      <div className="mx-auto max-w-[1280px] overflow-clip bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
+        <BusinessHero topLineOnly={!!grow} />
+        {grow ? (
+          <GrowViewSwitch view={grow} onBack={closeGrow} />
+        ) : (
+          <>
+            <div className="px-12 pt-1 pb-3">
+              <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">Where it sits today</div>
+            </div>
 
-        <div className="px-12 pt-1 pb-3">
-          <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">Where it sits today</div>
-        </div>
+            <div className="px-12 pb-2">
+              <WaterfallChart selectedId={selectedId} onSelect={setSelectedId} />
+              {selectedId === "total" ? <AreaDetail /> : <StageDetail stage={selected} />}
+            </div>
 
-        <div className="px-12 pb-2">
-          <WaterfallChart selectedId={selectedId} onSelect={setSelectedId} />
-          {selectedId === "total" ? (
-            <AreaDetail />
-          ) : (
-            <StageDetail stage={selected} />
-          )}
-        </div>
-
-        <ThisQuarterSection />
-        {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
-        <div className="flex justify-end px-12 pt-6 pb-24 opacity-50 hover:opacity-100">
-          <ResetDemoButton />
-        </div>
-        <AskAlly />
+            <ThisQuarterSection />
+            <GrowCards onOpen={openGrow} />
+            {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
+            <div className="flex justify-end px-12 pt-6 pb-24 opacity-50 hover:opacity-100">
+              <ResetDemoButton />
+            </div>
+            <AskAlly />
+          </>
+        )}
       </div>
     </PageShell>
   )

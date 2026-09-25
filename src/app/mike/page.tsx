@@ -12,7 +12,7 @@ import { BatchList } from "@/components/nudge/mike/batch-list"
 import { BatchDetail } from "@/components/nudge/mike/batch-detail"
 import { SkuDetailPane } from "@/components/nudge/mike/sku-detail-pane"
 import { BackgroundProvider } from "@/components/nudge/mike/background-composer"
-import { contentBatches } from "@/components/nudge/data"
+import { contentBatches, launchedIds } from "@/components/nudge/data"
 import { useNudge } from "@/components/nudge/nudge-context"
 import type { Batch } from "@/components/nudge/types"
 
@@ -23,8 +23,8 @@ import type { Batch } from "@/components/nudge/types"
  * comparison on the right.
  */
 export default function MikePage() {
-  const { approve, policy } = useNudge()
-  const batches = contentBatches(policy)
+  const { approve, approved, policy } = useNudge()
+  const batches = contentBatches(policy, launchedIds(approved))
   // Open on the top of the inbox: the most valuable item one approval away (same order as the rail).
   const [selectedId, setSelectedId] = useState<Batch["id"]>(() => {
     const top = batches.filter((b) => b.tier === "approval").sort((x, y) => y.approveValue - x.approveValue)[0]

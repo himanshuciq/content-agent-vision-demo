@@ -5,6 +5,8 @@ import { actedValue, daysUntil, expiring, money, openByLever, sum, tierRows, tie
 import type { Acted, Snapshot, Tier, WorkItem } from "./model"
 import { TIERS, TIER_INFO, shipPlan } from "./policy"
 import type { Policy, ReviewMode, SkuTier } from "./policy"
+import { playById } from "./market"
+import type { Play } from "./market"
 
 /**
  * Real numbers from the Ally_Home reference artifact — keep exactly as given.
@@ -198,8 +200,9 @@ const fmtPart = (v: number) => (v >= 1 ? `$${+v.toFixed(2)}M` : `$${Math.round(v
  * one-by-one part is "<id>-review"; the autopilot part is "<id>-auto" and moves
  * to the autopilot band with its go-live date. No policy = the seed batches.
  */
-export function contentBatches(policy?: Policy): Batch[] {
-  if (!policy) return BATCHES
+export function contentBatches(policy?: Policy, launched: string[] = []): Batch[] {
+  const plays = launched.map(playById).filter((p): p is Play => !!p && p.owner === "content").map(playBatch)
+  if (!policy) return plays.length ? [...BATCHES, ...plays] : BATCHES
   const human: Batch[] = []
   const auto: Batch[] = []
   for (const b of BATCHES) {
@@ -256,7 +259,40 @@ export function contentBatches(policy?: Policy): Batch[] {
         }),
       )
   }
-  return [...human, ...auto]
+  return [...human, ...plays, ...auto]
+}
+
+/** Plays launched this session ("launch:<id>" in the acted map), in launch order. */
+export function launchedIds(acted: Acted = {}): string[] {
+  return Object.keys(acted)
+    .filter((k) => k.startsWith("launch:") && acted[k])
+    .map((k) => k.slice("launch:".length))
+}
+
+/** A launched content play as an inbox item: drafted by Ally for Content, one approval away. */
+function playBatch(p: Play): Batch {
+  const value = fmtPart(p.quarter)
+  return {
+    id: `play:${p.id}`,
+    tier: "approval",
+    mode: "bulk",
+    type: "Foundational",
+    name: p.what,
+    chip: "No deadline",
+    nudgeSource: "Launched by Claire from Grow beyond plan",
+    skus: p.skus,
+    reviewMinutes: 10,
+    value,
+    approveSkus: p.skus,
+    approveValue: p.quarter,
+    doneLabel: `${p.skus} published · ${value}`,
+    rationale: p.what,
+    exampleSkuId: "sku-5",
+    before: "",
+    after: "",
+    changes: [{ text: p.what, skus: p.skus }],
+    skuRows: [],
+  }
 }
 
 export function batchExampleSku(batch: Batch) {
@@ -753,11 +789,19 @@ function shareIn(item: WorkItem, period: Period) {
  * With a review policy, content items are the policy's parts (see contentBatches);
  * with a period, each item counts only the value that lands in it.
  */
-export function getSnapshot(policy?: Policy, period: Period = "quarter"): Snapshot {
-  if (!policy && period === "quarter") return SNAPSHOT
-  const key = `${period}|${JSON.stringify(policy ?? null)}`
+export function getSnapshot(policy?: Policy, period: Period = "quarter", launched: string[] = []): Snapshot {
+  if (!policy && period === "quarter" && !launched.length) return SNAPSHOT
+  const key = `${period}|${launched.join(",")}|${JSON.stringify(policy ?? null)}`
   if (!byPolicy.has(key)) {
-    const items = policy ? [...contentBatches(policy).map(contentItem), ...SNAPSHOT.items.filter((i) => i.lever !== "content")] : SNAPSHOT.items
+    // Launched media and ops plays are work items on their lever; content plays come in through contentBatches.
+    const agentPlays: WorkItem[] = launched
+      .map(playById)
+      .filter((p): p is Play => !!p && (p.owner === "media" || p.owner === "ops"))
+      .map((p) => ({ id: `play:${p.id}`, lever: p.owner as AgentId, tier: p.tier, value: p.quarter, skus: p.skus }))
+    const items =
+      policy || launched.length
+        ? [...contentBatches(policy, launched).map(contentItem), ...SNAPSHOT.items.filter((i) => i.lever !== "content"), ...agentPlays]
+        : SNAPSHOT.items
     byPolicy.set(key, { ...SNAPSHOT, items: items.map((i) => ({ ...i, value: i.value * shareIn(i, period) })) })
   }
   return byPolicy.get(key)!
@@ -767,7 +811,7 @@ const AUTOPILOT_ORDER: AgentId[] = ["content", "media", "ops"]
 
 /** A bucket as the pages show it, for this session's actions (none = the starting state). */
 export function tierView(tier: Tier, acted: Acted = {}, policy?: Policy, period?: Period) {
-  const snap = getSnapshot(policy, period)
+  const snap = getSnapshot(policy, period, launchedIds(acted))
   return {
     value: money(tierTotal(snap, tier, acted)),
     effort: snap.tiers[tier].effort,
@@ -778,7 +822,7 @@ export function tierView(tier: Tier, acted: Acted = {}, policy?: Policy, period?
 
 /** The bridge's three steps, in order from no effort to most. */
 export function waterfallStages(acted: Acted = {}, policy?: Policy, period?: Period): WaterfallStage[] {
-  const snap = getSnapshot(policy, period)
+  const snap = getSnapshot(policy, period, launchedIds(acted))
   const stage = (id: WaterfallStage["id"], tier: Tier, label: string, extra: Partial<WaterfallStage> = {}): WaterfallStage => {
     const view = tierView(tier, acted, policy, period)
     return { id, label, effort: view.effort, value: tierTotal(snap, tier, acted), rows: view.rows, canNudgeTeam: view.canNudgeTeam, ...extra }
@@ -792,7 +836,7 @@ export function waterfallStages(acted: Acted = {}, policy?: Policy, period?: Per
 
 /** Open value by lever and in total, as display strings. */
 export function openView(acted: Acted = {}, policy?: Policy, period?: Period) {
-  const snap = getSnapshot(policy, period)
+  const snap = getSnapshot(policy, period, launchedIds(acted))
   const byArea = openByLever(snap, acted).map((a) => ({ agent: a.agent, value: money(a.value) }))
   const total = sum(snap.items.filter((i) => !acted[i.id]))
   return { byArea, total, totalLabel: money(total), acted: actedValue(snap, acted) }
@@ -803,7 +847,7 @@ export function openView(acted: Acted = {}, policy?: Policy, period?: Period) {
  * undefined when nothing does. Pass `undefined` for every bucket (today $1.16M: the $420K Halloween concepts share Oct 8).
  */
 export function deadlineView(acted: Acted = {}, tier: Tier | undefined = "approval", policy?: Policy, period?: Period) {
-  const e = expiring(getSnapshot(policy, period), acted, tier)
+  const e = expiring(getSnapshot(policy, period, launchedIds(acted)), acted, tier)
   // A deadline after the period ends isn't this period's news (the week view doesn't warn about Oct 26).
   if (e && period && e.days > daysUntil(periodEnd(period), AS_OF)) return undefined
   return e && { days: e.days, date: e.date, expiring: money(e.value), value: e.value }

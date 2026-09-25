@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { BUSINESS, deadlineView, getSnapshot, openView, tierView, waterfallStages } from "./data"
+import { BUSINESS, deadlineView, getSnapshot, launchedIds, openView, tierView, waterfallStages } from "./data"
 import { useNudge } from "./nudge-context"
 import type { Period } from "./types"
 
@@ -16,7 +16,7 @@ export function useLive() {
     const open = openView(approved, policy, period)
     return {
       period,
-      snapshot: getSnapshot(policy, period),
+      snapshot: getSnapshot(policy, period, launchedIds(approved)),
       stages: waterfallStages(approved, policy, period),
       approval: tierView("approval", approved, policy, period),
       open,
