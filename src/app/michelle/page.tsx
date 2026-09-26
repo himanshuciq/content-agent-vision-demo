@@ -127,29 +127,31 @@ function Michelle() {
   return (
     <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-clip bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
-        <MichelleHeader />
-        <div className="px-10 pt-5">
-          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-25 p-1">
-            {(
-              [
-                ["business", "Business view"],
-                ["ops", "Ops view"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setView(id)}
-                className={cn(
-                  "rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors",
-                  view === id ? "bg-white text-slate-950 shadow-xs ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-800",
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <MichelleHeader
+          viewSwitch={
+            <div className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-slate-25 p-0.5">
+              {(
+                [
+                  ["business", "Business"],
+                  ["ops", "Ops"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setView(id)}
+                  aria-pressed={view === id}
+                  className={cn(
+                    "h-full rounded-md px-3 text-sm font-medium transition-colors",
+                    view === id ? "bg-white text-slate-950 shadow-xs ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-800",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          }
+        />
         {view === "business" ? (
           <>
             <BusinessHero />

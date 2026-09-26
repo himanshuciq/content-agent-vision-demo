@@ -1,16 +1,14 @@
 "use client"
 
 import { PeriodSwitch } from "../period-switch"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
 import { SettingsGear } from "../settings-gear"
 
 const Dot = () => <span className="text-slate-300">·</span>
 const Num = ({ children }: { children: React.ReactNode }) => <span className="font-mono font-semibold text-slate-950">{children}</span>
 const Up = ({ children }: { children: React.ReactNode }) => <span className="font-medium text-success-700">↑{children}</span>
 
-/** Michelle's top line, shaped like Mike's and Claire's: greeting, quarter, how her ops work is doing. */
-export function MichelleHeader() {
+/** Michelle's top line, shaped like Mike's and Claire's: greeting, quarter, how her ops work is doing; the view switch sits by the gear. */
+export function MichelleHeader({ viewSwitch }: { viewSwitch?: React.ReactNode }) {
   return (
     <header className="flex items-start justify-between gap-6 px-10 pt-8">
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
@@ -34,10 +32,7 @@ export function MichelleHeader() {
         </span>
       </div>
       <div className="flex shrink-0 items-center gap-3">
-        <Link href="/claire-waterfall" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700">
-          <ArrowLeft className="size-3" />
-          Claire&apos;s view
-        </Link>
+        {viewSwitch}
         <SettingsGear />
       </div>
     </header>
