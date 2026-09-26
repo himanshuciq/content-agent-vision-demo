@@ -17,3 +17,6 @@
 
 ## Fixed lever order instead of ranking (Sep 25, 2026)
 Claire's owner rows were listed content, ops, media, so Media ($560K) sat below Ops ($312K). Rule: rank urgency first (soonest deadline), then dollars, in every list, derived from the data. Now in the skill's number rules and audit checklist.
+
+## Chat answers never appeared (Sep 25, 2026)
+After adding anchored answers, `ChatThread` filtered turns into a new array every render and keyed its "working" timer on it, so the timer restarted forever and answers stayed on the dots. Rule: key effects on stable values (the newest turn's id), not on derived arrays. Also: scroll with a jump fallback (some browsers ignore smooth scroll), put page-level answers last, and clear the conversation when the view changes. Test chips on every page (TESTING.md).

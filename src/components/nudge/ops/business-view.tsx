@@ -251,7 +251,8 @@ export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapN
   const g = gapOf(n)
   const eow = n.eow.projected - n.eow.plan
   const byValue = [...n.drivers].sort((a, b) => (g < 0 ? a.value - b.value : b.value - a.value))
-  const analysis: Chip = { q: `Run gap-to-plan analysis for ${n.name} for last week`, render: () => <GapAnalysis node={n} onInbox={(id) => onOpenOps(id, n.asin)} /> }
+  const label = n.id === root.id ? "the overall business" : n.name
+  const analysis: Chip = { q: `Run gap-to-plan analysis for ${label} for last week`, render: () => <GapAnalysis node={n} onInbox={(id) => onOpenOps(id, n.asin)} /> }
   useChatSource({ about: n.id === root.id ? undefined : n.name, anchor: n.id, chips: [analysis] }, `business-${n.id}`)
 
   // One level down, where the next decision is: the overall business lists its categories,

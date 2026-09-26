@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { PageShell } from "@/components/layout/page-shell"
 import { ResetDemoButton } from "@/components/nudge/reset-demo-button"
-import { AskAlly } from "@/components/nudge/claire/ask-ally"
+import { AskBar, ChatProvider, ChatThread, useChatSource } from "@/components/nudge/chat/inline-chat"
 import { MIKE_QUESTIONS, mikeAnswer } from "@/components/nudge/ask-ally-personas"
 import { MikeHeader } from "@/components/nudge/mike/mike-header"
 import { MikeDelivered } from "@/components/nudge/mike/mike-delivered"
@@ -22,6 +22,15 @@ import type { Batch } from "@/components/nudge/types"
  * either the selected batch's summary or one real SKU's full field-by-field
  * comparison on the right.
  */
+/** Mike's questions for the Ask Ally bar; answers appear at the end of the page. */
+function MikeChat() {
+  useChatSource(
+    { chips: MIKE_QUESTIONS.map((q) => ({ q, render: () => <div className="max-w-[860px] rounded-2xl bg-white px-5 py-4 text-[15px] leading-relaxed text-slate-700 ring-1 ring-slate-200">{mikeAnswer(q)}</div> })) },
+    "mike",
+  )
+  return null
+}
+
 export default function MikePage() {
   const { approve, approved, policy } = useNudge()
   const batches = contentBatches(policy, launchedIds(approved))
@@ -88,6 +97,8 @@ export default function MikePage() {
   // Backgrounds applied per SKU are shared by the composer, the footer and the rail.
   return (
     <BackgroundProvider>
+      <ChatProvider>
+      <MikeChat />
       <PageShell className="bg-slate-50">
       <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <MikeHeader />
@@ -116,13 +127,16 @@ export default function MikePage() {
           )}
         </div>
         <MikeDelivered />
+        {/* Answers go last, so the conversation is the end of the page (same as Claire's and Michelle's). */}
+        <ChatThread />
         {/* Demo-only control, kept out of the product chrome, same as Claire's page. */}
         <div className="flex justify-end px-10 pb-24 opacity-50 hover:opacity-100">
           <ResetDemoButton />
         </div>
       </div>
-      <AskAlly questions={MIKE_QUESTIONS} renderAnswer={mikeAnswer} placeholder="Ask Ally about your content queue" />
+      <AskBar placeholder="Ask Ally about your content queue" />
       </PageShell>
+      </ChatProvider>
     </BackgroundProvider>
   )
 }

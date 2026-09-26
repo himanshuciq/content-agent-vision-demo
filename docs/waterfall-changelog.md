@@ -280,3 +280,7 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - SKU pane: hero "Looks right · add to note" steps through; when all are in, "Keep reviewing" or "Send note to vendor manager". Core: "Add N SKUs to your note".
 - `note` in the shared state (per SKU of an issue, day added, day sent), seeded with yesterday's deal-page work (Oct 7). `NoteBar` (sticky, top of the Ops view): "Note to Dana · N SKUs across M issues · started Oct 7 · −$X a day" with "Send note to vendor manager" anytime. At $12K a day waiting it turns amber: "Send now" / "Keep reviewing". Send opens one draft by Ally, a section per issue, a line per SKU ("and N more" for whole issues), attachments per issue, editable; "Send to Dana" stamps the items and approves issues sent whole, so Michelle's, Claire's and the Business view's numbers and statuses move.
 - Rail meta "In your note · k of n" / "Sent to Dana"; Business view fixes "ready to review" → "in your note to Dana · not sent" → "sent to Dana, Oct 8".
+
+## Ask Ally chips fixed and tested on every page
+- Answers were stuck on the "working" dots (effect keyed on a filtered array that changed every render); now keyed on the newest turn's id.
+- Scrolls to the new question with a jump fallback; page-level answers render last on Michelle's page; switching Business/Ops clears the conversation; Mike's page moves from the old popover to the same inline chat; "Run gap-to-plan analysis for the overall business".

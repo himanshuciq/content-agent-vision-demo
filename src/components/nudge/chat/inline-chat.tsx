@@ -95,15 +95,28 @@ export function ChatThread({ className, anchor }: { className?: string; anchor?:
   const lastRef = useRef<HTMLDivElement>(null)
   const [thinking, setThinking] = useState<number | null>(null)
 
+  // Keyed to the newest question's id, not the turns array: the filtered array is new every
+  // render, and keying on it restarted the "working" timer forever (answers never appeared).
+  const lastId = turns[turns.length - 1]?.id
   useEffect(() => {
-    const last = turns[turns.length - 1]
-    if (!last) return
-    setThinking(last.id)
+    if (lastId === undefined) return
+    setThinking(lastId)
     const t = window.setTimeout(() => setThinking(null), 650)
+    // Land on the new question. Smooth where the browser supports it; jump if it didn't move (some ignore smooth scroll).
     const el = lastRef.current
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: "smooth" })
-    return () => window.clearTimeout(t)
-  }, [turns])
+    let fallback: number | undefined
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 24
+      window.scrollTo({ top, behavior: "smooth" })
+      fallback = window.setTimeout(() => {
+        if (Math.abs(window.scrollY - top) > 8) window.scrollTo({ top })
+      }, 500)
+    }
+    return () => {
+      window.clearTimeout(t)
+      window.clearTimeout(fallback)
+    }
+  }, [lastId])
 
   if (!turns.length) return null
   return (

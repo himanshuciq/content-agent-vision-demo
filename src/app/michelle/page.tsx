@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react"
 import { toast } from "sonner"
-import { AskBar, ChatProvider, ChatThread, useChatSource } from "@/components/nudge/chat/inline-chat"
+import { AskBar, ChatProvider, ChatThread, useChat, useChatSource } from "@/components/nudge/chat/inline-chat"
 import { OpsSkuPane } from "@/components/nudge/ops/ops-sku-pane"
 import { NoteBar } from "@/components/nudge/ops/note-bar"
 import { BusinessHero, BusinessPane, BusinessRail } from "@/components/nudge/ops/business-view"
@@ -43,6 +43,7 @@ export default function MichellePage() {
 }
 
 function Michelle() {
+  const { clear } = useChat()
   const { approve, policy, businessGroup, note, addToNote } = useNudge()
   // The Business view's hierarchy in the customer's order; the pane starts on the whole of Amazon.
   const tree = treeFor(businessGroup)
@@ -139,7 +140,11 @@ function Michelle() {
                 <button
                   key={id}
                   type="button"
-                  onClick={() => setView(id)}
+                  onClick={() => {
+                    // Each view starts its own conversation.
+                    clear()
+                    setView(id)
+                  }}
                   aria-pressed={view === id}
                   className={cn(
                     "h-full rounded-md px-3 text-sm font-medium transition-colors",
@@ -161,7 +166,6 @@ function Michelle() {
               </div>
               <BusinessPane root={tree} nodeId={nodeId} onSelect={setNodeId} onOpenOps={openOps} />
             </div>
-            <ChatThread />
           </>
         ) : (
           <>
@@ -190,10 +194,11 @@ function Michelle() {
           )}
         </div>
         <InboxChat />
-        <ChatThread />
           </>
         )}
         <OpsDelivered />
+        {/* Page-level answers go last, so the conversation is the end of the page. Business-view answers sit under the pane they're about. */}
+        <ChatThread />
         {/* Demo-only control, kept out of the product chrome. Room below for the floating Ask Ally bar. */}
         <div className="flex justify-end px-10 pb-24 opacity-50 hover:opacity-100">
           <ResetDemoButton />

@@ -26,3 +26,6 @@ Prototype only: there are no automated tests. Check changes by hand in the brows
 - Stale hot-reload errors can be phantom. Reload before debugging.
 - Scrolled screenshots sometimes come back blank. Scroll 1px and retake, or read the DOM text.
 - If JSX drops a space after `}` or `</span>`, add an explicit `{" "}`.
+
+## Ask Ally chips (run on every page after any chat change)
+For Claire home, one Claire view, Michelle Ops, Michelle Business and Mike: focus the bar, click a chip, wait 1.5s, and check (1) the answer rendered (no "working" dots left), (2) it's on screen (the page scrolled to it), (3) it sits at the end of the page, or under the pane it's about in the Business view, (4) a follow-up chip does the same. Switching views starts a fresh conversation.
