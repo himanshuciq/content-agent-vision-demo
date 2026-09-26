@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils"
 import { opsSkus } from "../data"
 import type { OpsBatch } from "../data"
 import { useNudge } from "../nudge-context"
-import { PRIMARY } from "../mike/buttons"
+import { PRIMARY, SECONDARY } from "../mike/buttons"
+import { VENDOR_MANAGER } from "./note-bar"
 import { SkuEvidence, SkuHeader } from "./ops-evidence"
 import { flatten } from "./gap-data"
 
@@ -61,30 +62,41 @@ export function OpsSkuPane({ batch, asin, checked, onBack, onCheck, onSend }: Op
       </div>
 
       {!done && batch.tier === "approval" && (
-        <div className="mt-8 flex items-center gap-4 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
+        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
           <div className="min-w-0 flex-1">
             {each ? (
               <>
                 <div className="text-sm font-semibold text-slate-950">
-                  {all ? `All ${skus.length} hero SKUs checked.` : `Hero SKU ${i + 1} of ${skus.length}. Check it before the escalation goes.`}
+                  {all ? `All ${skus.length} hero SKUs are in your note to ${VENDOR_MANAGER.name}.` : `Hero SKU ${i + 1} of ${skus.length}. Check it, then add it to your note.`}
                 </div>
-                <div className="mt-0.5 text-sm text-slate-500">{nChecked} of {skus.length} checked</div>
+                <div className="mt-0.5 text-sm text-slate-500">
+                  {nChecked} of {skus.length} in your note · it goes out as one email when you send
+                </div>
               </>
             ) : (
               <>
                 <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.skus - 1} SKUs have the same issue.</div>
-                <div className="mt-0.5 text-sm text-slate-500">Send them in one go, or pick another SKU on the left.</div>
+                <div className="mt-0.5 text-sm text-slate-500">Add them all to your note, or pick another SKU on the left.</div>
               </>
             )}
           </div>
           {each && !checked[sku.asin] ? (
             <button type="button" onClick={() => onCheck(sku.asin)} className={PRIMARY}>
               <Check className="mr-1.5 inline size-4" />
-              {i < skus.length - 1 ? "Looks right · next SKU" : "Looks right"}
+              Looks right · add to note
             </button>
+          ) : each ? (
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={onBack} className={SECONDARY}>
+                Keep reviewing
+              </button>
+              <button type="button" onClick={() => window.dispatchEvent(new Event("open-note"))} className={PRIMARY}>
+                Send note to vendor manager
+              </button>
+            </div>
           ) : (
-            <button type="button" onClick={() => onSend(batch)} disabled={each && !all} className={cn(PRIMARY, "disabled:opacity-50")}>
-              {batch.action} · {batch.skus} {each ? "hero SKUs" : "SKUs"}
+            <button type="button" onClick={() => skus.forEach((s) => onCheck(s.asin))} className={PRIMARY}>
+              Add {batch.skus} SKUs to your note
             </button>
           )}
         </div>

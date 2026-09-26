@@ -20,7 +20,20 @@ interface StoredState {
   businessSort?: BusinessSort
   /** The Business view's hierarchy: Brand › Category › SKU (default) or Category › Brand › SKU. */
   businessGroup?: BusinessGroup
+  /** Michelle's running note to the vendor manager: fixes approved, not yet sent. */
+  note?: NoteItem[]
 }
+
+/** One SKU of one ops issue, added to the note on a day; sentOn once the note goes. */
+export interface NoteItem {
+  batchId: string
+  asin: string
+  addedOn: string
+  sentOn?: string
+}
+
+/** The demo's note starts with yesterday's work, so it's clearly built up over time. */
+const SEED_NOTE: NoteItem[] = ["B07GR5MSKD", "B09HWCD118", "B0ATT30313"].map((asin) => ({ batchId: "deal-page", asin, addedOn: "Oct 7" }))
 
 export type BusinessSort = "gap" | "sales"
 export type BusinessGroup = "Category" | "Brand"
@@ -45,6 +58,10 @@ interface NudgeContextValue extends StoredState {
   setBusinessSort: (s: BusinessSort) => void
   businessGroup: BusinessGroup
   setBusinessGroup: (g: BusinessGroup) => void
+  note: NoteItem[]
+  addToNote: (batchId: string, asins: string[]) => void
+  /** Sends everything unsent: stamps the items and approves every issue whose SKUs have all been sent. */
+  sendNote: (complete: string[]) => void
 }
 
 const EMPTY_STATE: StoredState = { nudged: {}, approved: {} }
@@ -152,6 +169,19 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
         setBusinessSort: (businessSort) => update((prev) => ({ ...prev, businessSort })),
         businessGroup: state.businessGroup ?? "Brand",
         setBusinessGroup: (businessGroup) => update((prev) => ({ ...prev, businessGroup })),
+        note: state.note ?? SEED_NOTE,
+        addToNote: (batchId, asins) =>
+          update((prev) => {
+            const cur = prev.note ?? SEED_NOTE
+            const fresh = asins.filter((a) => !cur.some((i) => i.batchId === batchId && i.asin === a))
+            return { ...prev, note: [...cur, ...fresh.map((asin) => ({ batchId, asin, addedOn: "Oct 8" }))] }
+          }),
+        sendNote: (complete) =>
+          update((prev) => ({
+            ...prev,
+            note: (prev.note ?? SEED_NOTE).map((i) => (i.sentOn ? i : { ...i, sentOn: "Oct 8" })),
+            approved: { ...prev.approved, ...Object.fromEntries(complete.map((id) => [id, true])) },
+          })),
       }}
     >
       {children}

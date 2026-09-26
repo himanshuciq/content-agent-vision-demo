@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowRight, Check, ChevronDown, RefreshCw, Search } from "lucide-react"
+import { ArrowRight, Check, ChevronDown, Mail, RefreshCw, Search } from "lucide-react"
 import { toast } from "sonner"
 import { useNudge } from "../nudge-context"
 import { PRIMARY, SECONDARY } from "../mike/buttons"
 import { OPS_DAYS_SAVED, fmtValue, opsSkus } from "../data"
 import type { OpsBatch } from "../data"
-import { EmailDraft, SkillsTrace, SkuEvidence, SkuHeader } from "./ops-evidence"
+import { SkillsTrace, SkuEvidence, SkuHeader } from "./ops-evidence"
+import { VENDOR_MANAGER, useNote } from "./note-bar"
 import { ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -55,6 +56,14 @@ export function OpsBatchDetail({ batch, onAction, onReviewAll }: OpsBatchDetailP
     setShowSample(false)
   }, [batch.id])
   const each = batch.mode === "each"
+  const { addToNote } = useNudge()
+  const { inNote, sent } = useNote()
+  const noted = skus.filter((x) => inNote(batch.id, x.asin)).length
+  const sentAll = skus.length > 0 && skus.every((x) => sent(batch.id, x.asin))
+  const addAll = () => {
+    addToNote(batch.id, skus.map((x) => x.asin))
+    toast.success(`Added ${batch.skus} SKUs to your note to ${VENDOR_MANAGER.name}`, { position: "top-right" })
+  }
   const daily = fmtValue(batch.perDay ?? batch.approveValue / OPS_DAYS_SAVED)
   // The page confirms the send (same toast from the issue pane and the SKU pane).
   const send = () => onAction(batch)
@@ -147,8 +156,13 @@ export function OpsBatchDetail({ batch, onAction, onReviewAll }: OpsBatchDetailP
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-8">
-            {batch.email && <EmailDraft key={batch.id} email={batch.email} fill={{ n: String(batch.skus), daily }} />}
+          <div className="flex flex-col gap-6">
+            {noted > 0 && (
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <Mail className="size-4 text-brand-600" />
+                {sentAll ? `Sent to ${VENDOR_MANAGER.name}` : `${noted} of ${skus.length} SKUs in your note to ${VENDOR_MANAGER.name} · not sent`}
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 {each ? (
@@ -156,11 +170,11 @@ export function OpsBatchDetail({ batch, onAction, onReviewAll }: OpsBatchDetailP
                     Review {batch.skus} SKUs
                   </button>
                 ) : (
-                  <button type="button" onClick={send} className={PRIMARY}>
-                    {batch.action} · {batch.skus} SKUs
+                  <button type="button" onClick={addAll} disabled={noted === skus.length} className={cn(PRIMARY, "disabled:opacity-50")}>
+                    {noted === skus.length ? "All in your note" : `Add ${batch.skus} SKUs to your note`}
                   </button>
                 )}
-                {sample && (
+                {!each && sample && (
                   <button type="button" onClick={() => setShowSample((v) => !v)} className={SECONDARY}>
                     {showSample ? "Hide sample" : "Review sample SKU"}
                     <ChevronDown className={cn("size-4 text-slate-400 transition-transform", showSample && "rotate-180")} />
@@ -179,31 +193,19 @@ export function OpsBatchDetail({ batch, onAction, onReviewAll }: OpsBatchDetailP
                   <ArrowRight className="size-3.5" />
                 </button>
               )}
+              <div className="text-xs text-slate-500">Nothing is sent from here. Reviewed SKUs join your note to {VENDOR_MANAGER.name}, which goes out as one email.</div>
             </div>
-            {showSample && sample && (
+            {showSample && sample && !each && (
               <div className="border-t border-slate-100 pt-8">
                 <SkuHeader asin={sample.asin} name={sample.name} label="Sample" />
                 <div className="mt-4">
                   <SkuEvidence batch={batch} asin={sample.asin} />
                 </div>
                 <div className="mt-6 flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-25 px-6 py-5">
-                  {each ? (
-                    <>
-                      <div className="text-sm font-semibold text-slate-950">
-                        This is 1 of {batch.skus} {batch.partLabel ? `${batch.partLabel.toLowerCase()} SKUs` : "SKUs"}. Your review policy has you check them one by one.
-                      </div>
-                      <button type="button" onClick={() => onReviewAll(batch)} className={cn(PRIMARY, "w-fit")}>
-                        Review {batch.skus} SKUs
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.skus - 1} SKUs have the same issue.</div>
-                      <button type="button" onClick={send} className={cn(PRIMARY, "w-fit")}>
-                        {batch.action} · {batch.skus} SKUs
-                      </button>
-                    </>
-                  )}
+                  <div className="text-sm font-semibold text-slate-950">Looks right? The other {batch.skus - 1} SKUs have the same issue.</div>
+                  <button type="button" onClick={addAll} disabled={noted === skus.length} className={cn(PRIMARY, "w-fit disabled:opacity-50")}>
+                    {noted === skus.length ? "All in your note" : `Add ${batch.skus} SKUs to your note`}
+                  </button>
                 </div>
               </div>
             )}

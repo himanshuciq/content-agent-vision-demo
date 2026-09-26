@@ -18,6 +18,7 @@ import type { AgentId, Period } from "../types"
 import { GAP_TREE, findIn, skusUnder } from "./gap-data"
 import type { Driver, Fix, GapNode } from "./gap-data"
 import { GapAnalysis } from "./gap-view"
+import { VENDOR_MANAGER } from "./note-bar"
 
 /** $M → "$5.8K" / "$240K" / "$2.1M"; signed when asked. */
 const m = (v: number, signed = false) => {
@@ -81,7 +82,7 @@ interface FixView {
 }
 
 function useFixes(onOpenOps: (batchId: string, asin?: string) => void) {
-  const { approved, nudged, policy } = useNudge()
+  const { approved, nudged, policy, note } = useNudge()
   const { launch, isLaunched } = useLaunch()
   const ops = opsBatches(policy)
   const content = contentBatches(policy, launchedIds(approved))
@@ -89,8 +90,10 @@ function useFixes(onOpenOps: (batchId: string, asin?: string) => void) {
     if (fix.kind === "ops") {
       const b = ops.find((x) => x.id === fix.id) ?? ops.find((x) => x.id.startsWith(fix.id))
       if (!b) return undefined
-      const done = !!approved[b.id]
-      return { lever: "ops", name: b.fixName ?? b.name, owner: "You", status: done ? "sent" : "drafted, not sent", tone: done ? "done" : "todo", open: () => onOpenOps(b.id, asin), openLabel: "Open" }
+      const mine = note.filter((i) => i.batchId === b.id && (!asin || i.asin === asin))
+      const sentOn = mine.find((i) => i.sentOn)?.sentOn
+      const status = approved[b.id] || sentOn ? `sent to ${VENDOR_MANAGER.name}, ${sentOn ?? "Oct 8"}` : mine.length ? `in your note to ${VENDOR_MANAGER.name} · not sent` : "ready to review"
+      return { lever: "ops", name: b.fixName ?? b.name, owner: "You", status, tone: approved[b.id] || sentOn ? "done" : mine.length ? "moving" : "todo", open: () => onOpenOps(b.id, asin), openLabel: "Open" }
     }
     if (fix.kind === "content") {
       const b = content.find((x) => x.id === fix.id)

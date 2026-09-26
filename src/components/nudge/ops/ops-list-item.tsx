@@ -7,6 +7,7 @@ import { opsSkus } from "../data"
 import type { OpsBatch } from "../data"
 import { useNudge } from "../nudge-context"
 import { ITEM_ACTIVE, ITEM_IDLE, MetaLine } from "../mike/rail"
+import { VENDOR_MANAGER, useNote } from "./note-bar"
 
 interface OpsListItemProps {
   batch: OpsBatch
@@ -29,6 +30,9 @@ export function OpsListItem({ batch, active, selectedSku, expanded, checked, onT
   const { approved } = useNudge()
   const done = !!approved[batch.id]
   const skus = opsSkus(batch)
+  const { inNote, sent } = useNote()
+  const noted = skus.filter((s) => inNote(batch.id, s.asin)).length
+  const allSent = skus.length > 0 && skus.every((s) => sent(batch.id, s.asin))
   const count = batch.tier === "input" ? batch.inputCount : batch.skus
   const noun = batch.tier === "input" ? (batch.inputNoun ?? "items") : "SKUs"
 
@@ -57,8 +61,13 @@ export function OpsListItem({ batch, active, selectedSku, expanded, checked, onT
                 {count} {noun}
               </span>
             ),
-            batch.mode === "each" && !done && <span key="m">review each</span>,
-            done && <span key="d" className="font-medium text-success-700">{batch.tier === "input" ? "Sent to Ally" : "Sent"}</span>,
+            batch.mode === "each" && !done && !noted && <span key="m">review each</span>,
+            !done && noted > 0 && !allSent && (
+              <span key="note" className="font-medium text-brand-700">
+                In your note · {noted} of {skus.length}
+              </span>
+            ),
+            done && <span key="d" className="font-medium text-success-700">{batch.tier === "input" ? "Sent to Ally" : `Sent to ${VENDOR_MANAGER.name}`}</span>,
             !done && batch.tier === "autopilot" && <span key="a" className="font-medium text-info-700">Running</span>,
             !done && batch.tier !== "autopilot" && batch.chip && <span key="c" className="font-medium text-warning-700">{batch.chip}</span>,
           ]}

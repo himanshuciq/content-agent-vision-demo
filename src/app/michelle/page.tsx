@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { AskBar, ChatProvider, ChatThread, useChatSource } from "@/components/nudge/chat/inline-chat"
 import { OpsSkuPane } from "@/components/nudge/ops/ops-sku-pane"
+import { NoteBar } from "@/components/nudge/ops/note-bar"
 import { BusinessHero, BusinessPane, BusinessRail } from "@/components/nudge/ops/business-view"
 import { treeFor } from "@/components/nudge/ops/gap-data"
 import { cn } from "@/lib/utils"
@@ -42,12 +43,12 @@ export default function MichellePage() {
 }
 
 function Michelle() {
-  const { approve, policy, businessGroup } = useNudge()
+  const { approve, policy, businessGroup, note, addToNote } = useNudge()
   // The Business view's hierarchy in the customer's order; the pane starts on the whole of Amazon.
   const tree = treeFor(businessGroup)
   const [nodeId, setNodeId] = useState("overall")
   // Business: the quarterback view (where you stand, why, is the work moving). Ops: the queue of fixes.
-  const [view, setView] = useState<"business" | "ops">("business")
+  const [view, setView] = useState<"business" | "ops">("ops")
   const OPS_BATCHES = opsBatches(policy)
   // Open on the top of the inbox: the most valuable item one approval away.
   const [selectedId, setSelectedId] = useState<OpsBatch["id"]>(() => [...OPS_BATCHES].filter((b) => b.tier === "approval").sort((x, y) => y.approveValue - x.approveValue)[0].id)
@@ -57,8 +58,9 @@ function Michelle() {
   // Same model as Mike's page: a SKU open side by side, its issue's list open in the rail.
   const [selectedSku, setSelectedSku] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  // One-by-one review: which SKUs of each issue are checked.
-  const [checked, setChecked] = useState<Record<string, Record<string, boolean>>>({})
+  // Reviewed = in the note to the vendor manager (sent or not), per issue.
+  const checked: Record<string, Record<string, boolean>> = {}
+  for (const i of note) checked[i.batchId] = { ...(checked[i.batchId] ?? {}), [i.asin]: true }
   const queueRef = useRef<HTMLDivElement>(null)
 
   function scrollToQueue() {
@@ -99,7 +101,7 @@ function Michelle() {
 
   function check(asin: string) {
     const skus = opsSkus(selected)
-    setChecked((c) => ({ ...c, [selected.id]: { ...(c[selected.id] ?? {}), [asin]: true } }))
+    addToNote(selected.id, [asin])
     const next = skus[skus.findIndex((s) => s.asin === asin) + 1]
     if (next) setSelectedSku(next.asin)
   }
@@ -124,7 +126,7 @@ function Michelle() {
 
   return (
     <PageShell className="bg-slate-50">
-      <div className="mx-auto max-w-[1280px] overflow-hidden bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
+      <div className="mx-auto max-w-[1280px] overflow-clip bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
         <MichelleHeader />
         <div className="px-10 pt-5">
           <div className="inline-flex rounded-lg border border-slate-200 bg-slate-25 p-1">
@@ -162,6 +164,7 @@ function Michelle() {
         ) : (
           <>
         <OpsProgress celebrate={celebrate} />
+        <NoteBar />
         <div ref={queueRef} className="grid grid-cols-[340px_minmax(0,1fr)]">
           <div className="border-r border-slate-200 bg-white">
             <OpsBatchList
