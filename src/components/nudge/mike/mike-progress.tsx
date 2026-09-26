@@ -50,7 +50,7 @@ export function MikeProgress({ celebrate }: { celebrate: Celebrate | null }) {
 
   return (
     <>
-      <div className="px-10 pt-4 pb-7">
+      <div className="px-10 pt-2 pb-7">
         <div className="text-2xl font-semibold tracking-tight text-slate-700">
           <span className="font-mono text-slate-950">{fmt(open)}</span> of content opportunity is {actedValue > 0 ? "still " : ""}open this quarter.
         </div>

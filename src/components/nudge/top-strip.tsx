@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -10,7 +10,7 @@ import { SettingsGear } from "./settings-gear"
 /** Ally's mark, redrawn as a vector from the brand file (public/ally-logo.png): hair and ring, two sparks and a streak. */
 export function AllyLogo({ className }: { className?: string }) {
   return (
-    <svg viewBox="11 6 44 37" className={cn("h-7 w-auto", className)} role="img" aria-label="Ally">
+    <svg viewBox="11 6 44 37" className={cn("h-8 w-auto", className)} role="img" aria-label="Ally">
       <defs>
         <linearGradient id="ally-streak" x1="21" y1="31" x2="38" y2="26" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#EDE9FE" stopOpacity="0.2" />
@@ -25,8 +25,9 @@ export function AllyLogo({ className }: { className?: string }) {
       <path d="M13.5 17.2c-.3-5 3.8-8.2 8.3-7.2 1.3.3 2.4.9 3.2 1.7-3.3 1.8-5 5.2-4.9 9.3.1 1.3.3 2.4.7 3.4-4.1-.5-7.1-3.2-7.3-7.2z" fill="#2E1065" />
       <path d="M21.2 22c.4-8.2 6.4-13.6 13.8-13.4 6.3.2 10.8 3.9 12.2 9-3.4-2.6-7.6-2.9-10.6-.9-3.9 2.6-7.3 5.9-15.4 8.4z" fill="#2E1065" />
       <path d="M21 31.5L38 24.7l.4 2.6z" fill="url(#ally-streak)" />
-      <path d="M38.4 18.6c.8 4.4 2.3 5.9 6.7 6.7-4.4.8-5.9 2.3-6.7 6.7-.8-4.4-2.3-5.9-6.7-6.7 4.4-.8 5.9-2.3 6.7-6.7z" fill="url(#ally-spark)" />
-      <path d="M48.4 19.4c.5 2.8 1.4 3.7 4.2 4.2-2.8.5-3.7 1.4-4.2 4.2-.5-2.8-1.4-3.7-4.2-4.2 2.8-.5 3.7-1.4 4.2-4.2z" fill="url(#ally-spark)" />
+      {/* Two sparks, the eyes. A thin white edge keeps the second one from melting into the ring at small sizes. */}
+      <path d="M37.6 18.4c.8 4.4 2.3 5.9 6.7 6.7-4.4.8-5.9 2.3-6.7 6.7-.8-4.4-2.3-5.9-6.7-6.7 4.4-.8 5.9-2.3 6.7-6.7z" fill="url(#ally-spark)" stroke="white" strokeWidth="1.2" paintOrder="stroke" />
+      <path d="M45.6 18.4c.6 3.1 1.6 4.1 4.6 4.6-3 .6-4 1.6-4.6 4.6-.6-3-1.6-4-4.6-4.6 3-.5 4-1.5 4.6-4.6z" fill="url(#ally-spark)" stroke="white" strokeWidth="1.2" paintOrder="stroke" />
     </svg>
   )
 }
@@ -94,8 +95,8 @@ interface TopStripProps {
   controls?: React.ReactNode
   /** Global icons that differ by page (Claire's email and team bell; Mike's bell); the gear is always last. */
   icons?: React.ReactNode
-  /** Where the logo goes (the person's home). */
-  home: string
+  /** The person's home (kept for callers; the breadcrumb's first step links there). */
+  home?: string
   /** Side padding, to line up with the page's content. */
   className?: string
 }
@@ -103,19 +104,53 @@ interface TopStripProps {
 const Sep = () => <span className="text-slate-300">·</span>
 
 /**
+ * The glance metrics. They get whatever room is left on the row, and a metric
+ * either fits whole or drops out (last first, with its separator): never cut mid-number.
+ */
+function Facts({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  useLayoutEffect(() => {
+    const box = ref.current
+    const row = box?.parentElement
+    if (!box || !row) return
+    const fit = () => {
+      const items = [...box.children] as HTMLElement[]
+      items.forEach((el) => (el.style.display = ""))
+      box.style.display = ""
+      const limit = row.getBoundingClientRect().right
+      let cut = items.findIndex((el) => el.getBoundingClientRect().right > limit + 0.5)
+      if (cut === -1) return
+      // Don't leave a separator dangling at the end.
+      while (cut > 0 && items[cut - 1].textContent?.trim() === "·") cut--
+      items.slice(cut).forEach((el) => (el.style.display = "none"))
+      if (cut <= 1) box.style.display = "none"
+    }
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(row)
+    return () => ro.disconnect()
+  }, [children])
+  return (
+    <span ref={ref} className="flex shrink-0 items-center gap-x-2">
+      <Sep />
+      {children}
+    </span>
+  )
+}
+
+/**
  * The one top strip, the same on every page: brand, where you are, the period,
  * then page controls, the global icons and who's signed in. Home pages greet;
  * every other screen shows a breadcrumb whose first step is the way back.
  */
-export function TopStrip({ person, greeting, crumbs, period, facts, controls, icons, home, className }: TopStripProps) {
+export function TopStrip({ person, greeting, crumbs, period, facts, controls, icons, className }: TopStripProps) {
   return (
-    <header className={cn("flex min-h-16 items-center justify-between gap-6 px-10 pt-6 pb-2", className)}>
-      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
-        <Link href={home} aria-label="Ally home" className="mr-1 shrink-0">
-          <AllyLogo />
-        </Link>
+    // Always one row: the left side never wraps; when it runs out of room, whole metrics drop from the end.
+    <header className={cn("flex h-[72px] items-center justify-between gap-6 px-10 pt-4", className)}>
+      <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-x-2 overflow-hidden text-sm whitespace-nowrap text-slate-500">
+        {/* No logo: the strip starts with where you are (the greeting, or the breadcrumb home). AllyLogo stays available above. */}
         {crumbs?.length ? (
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5">
+          <nav aria-label="Breadcrumb" className="flex shrink-0 items-center gap-1.5">
             {crumbs.map((c, i) => {
               const last = i === crumbs.length - 1
               const cls = last ? "font-semibold text-slate-950" : "text-slate-500 hover:text-brand-700 hover:underline"
@@ -138,7 +173,7 @@ export function TopStrip({ person, greeting, crumbs, period, facts, controls, ic
             })}
           </nav>
         ) : (
-          <span>{greeting}</span>
+          <span className="shrink-0">{greeting}</span>
         )}
         {period && (
           <>
@@ -146,15 +181,10 @@ export function TopStrip({ person, greeting, crumbs, period, facts, controls, ic
             <PeriodSwitch />
           </>
         )}
-        {facts && (
-          <>
-            <Sep />
-            {facts}
-          </>
-        )}
+        {facts && <Facts>{facts}</Facts>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        {controls && <div className="mr-2">{controls}</div>}
+        {controls && <div className="mr-2 flex items-center">{controls}</div>}
         {icons}
         <SettingsGear />
         <Avatar person={person} className="ml-1" />

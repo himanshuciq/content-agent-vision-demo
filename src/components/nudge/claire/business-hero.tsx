@@ -38,10 +38,10 @@ export function BusinessHero({ topLineOnly = false, crumbs }: { topLineOnly?: bo
           </>
         }
       />
-    <section className={topLineOnly ? "" : "px-12 pt-3 pb-7"}>
+    <section className={topLineOnly ? "" : "px-12 pt-2 pb-7"}>
       {!topLineOnly && (<>
       {/* Fact, then the gap, then what closes it. The fact line is the same size as the first line on Mike's and Michelle's pages. */}
-      <div className="mt-5 text-2xl font-semibold tracking-tight text-slate-700">
+      <div className="text-2xl font-semibold tracking-tight text-slate-700">
         You&apos;re tracking to <span className="font-mono text-slate-950">{fmtBiz(b.pace)}</span> in sales {PERIOD_WORDS[period]}.
       </div>
 

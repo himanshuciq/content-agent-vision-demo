@@ -41,7 +41,7 @@ export function BusinessHero() {
   const pace = l.pace(l.period)
   const weekGap = GAP_TREE.eow.projected - GAP_TREE.eow.plan
   return (
-    <div className="px-10 pt-4 pb-7">
+    <div className="px-10 pt-2 pb-7">
       <div className="text-2xl font-semibold tracking-tight text-slate-700">
         Amazon is projected to land at <span className="font-mono text-slate-950">{fmtBiz(pace)}</span> {PERIOD_WORDS[l.period]}.
       </div>
