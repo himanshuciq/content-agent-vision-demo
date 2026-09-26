@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { ChevronRight, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { candleThumbnail } from "@/lib/candle-thumbnails"
@@ -144,11 +144,20 @@ const topCause = (n: GapNode) => [...n.drivers].sort((a, b) => (gapOf(n) < 0 ? a
 function RailRow({ node, depth, selected, trail, onSelect, sort, path }: { node: GapNode; depth: number; selected: string; trail: string[]; onSelect: (id: string) => void; sort: "gap" | "sales"; path?: string }) {
   const kids = [...(node.children ?? [])].sort(rank(sort))
   const [open, setOpen] = useState(depth === 0 || trail.includes(node.id))
+  const onPath = trail.includes(node.id)
+  const rowRef = useRef<HTMLDivElement>(null)
+  // The rail follows the pane: picking something below this row opens it, and the picked row scrolls into view.
+  useEffect(() => {
+    if (onPath) setOpen(true)
+  }, [onPath])
+  useEffect(() => {
+    if (selected === node.id) rowRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+  }, [selected, node.id])
   const g = gapOf(node)
   const cause = topCause(node)
   return (
     <div>
-      <div className={cn("flex items-start gap-1 rounded-lg px-2 py-2.5 transition-colors", selected === node.id ? ITEM_ACTIVE : ITEM_IDLE)} style={{ marginLeft: depth * 12 }}>
+      <div ref={rowRef} className={cn("flex scroll-mt-4 items-start gap-1 rounded-lg px-2 py-2.5 transition-colors", selected === node.id ? ITEM_ACTIVE : ITEM_IDLE)} style={{ marginLeft: depth * 12 }}>
         {kids.length ? (
           <button type="button" onClick={() => setOpen((o) => !o)} aria-label={open ? "Collapse" : "Expand"} className="mt-0.5 text-slate-400 hover:text-slate-700">
             <ChevronRight className={cn("size-4 transition-transform", open && "rotate-90")} />
@@ -158,7 +167,7 @@ function RailRow({ node, depth, selected, trail, onSelect, sort, path }: { node:
         )}
         <button type="button" onClick={() => onSelect(node.id)} className="min-w-0 flex-1 text-left outline-none">
           <div className="flex items-baseline justify-between gap-2">
-            <span className={cn("truncate text-sm", node.level === "SKU" ? "text-slate-950" : "font-semibold text-slate-950")}>{node.id === "overall" ? "Amazon" : node.name}</span>
+            <span className={cn("truncate text-sm", node.level === "SKU" ? "text-slate-950" : "font-semibold text-slate-950")}>{node.id === "overall" ? "Overall business" : node.name}</span>
             <span className={cn("shrink-0 font-mono text-[13px] font-semibold", g < 0 ? "text-error-600" : "text-success-700")}>{m(g, true)}</span>
           </div>
           <div className="mt-0.5 truncate text-xs text-slate-500">{path ?? (cause ? `${cause.title} · ${cause.tag.toLowerCase()}` : "On track")}</div>
@@ -242,9 +251,13 @@ export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapN
   const analysis: Chip = { q: `Run gap-to-plan analysis for ${n.name} for last week`, render: () => <GapAnalysis node={n} onInbox={(id) => onOpenOps(id, n.asin)} /> }
   useChatSource({ about: n.id === root.id ? undefined : n.name, anchor: n.id, chips: [analysis] }, `business-${n.id}`)
 
-  const ranked = skusUnder(n)
-    .filter((x) => businessSort === "sales" || gapOf(x) < 0)
-    .sort(rank(businessSort))
+  // One level down, where the next decision is: the overall business lists its categories,
+  // a brand its categories, a category its SKUs.
+  const categories = (x: GapNode): GapNode[] => (x.level === "Category" ? [x] : (x.children ?? []).flatMap(categories))
+  const below = n.id === root.id || n.level === "Brand" ? categories(n) : skusUnder(n)
+  const belowNoun = below[0]?.level === "SKU" ? "SKUs" : "categories"
+  const brandOf = (x: GapNode) => (x.level === "Category" ? findIn(root, x.id)?.trail.find((t) => t.level === "Brand")?.name : undefined)
+  const ranked = below.filter((x) => businessSort === "sales" || gapOf(x) < 0).sort(rank(businessSort))
   const top = all ? ranked : ranked.slice(0, 5)
 
   return (
@@ -254,7 +267,7 @@ export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapN
           {found.trail.map((t) => (
             <Fragment key={t.id}>
               <button type="button" onClick={() => onSelect(t.id)} className="hover:text-brand-700 hover:underline">
-                {t.id === root.id ? "Amazon" : t.name}
+                {t.id === root.id ? "Overall business" : t.name}
               </button>
               <ChevronRight className="size-3.5 text-slate-300" />
             </Fragment>
@@ -265,7 +278,7 @@ export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapN
         {n.asin && <img src={candleThumbnail(n.asin)} alt="" className="size-12 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-slate-200" />}
         <div className="min-w-0">
           <div className="text-sm font-medium text-slate-500">{n.level ?? "All brands"}</div>
-          <div className="text-2xl font-semibold tracking-tight text-slate-950">{n.id === root.id ? "Amazon" : n.name}</div>
+          <div className="text-2xl font-semibold tracking-tight text-slate-950">{n.id === root.id ? "Overall business" : n.name}</div>
           {n.asin && <div className="font-mono text-xs text-slate-500">{n.asin}</div>}
         </div>
       </div>
@@ -317,7 +330,9 @@ export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapN
             </div>
           </div>
           <div className={BOX}>
-            <div className={HEAD}>{businessSort === "sales" ? "Top SKUs by sales" : "Top SKUs behind plan"}</div>
+            <div className={HEAD}>
+              Top {Math.min(5, ranked.length)} {belowNoun} {businessSort === "sales" ? "by sales" : "behind plan"}
+            </div>
             {top.map((x) => {
               const xg = gapOf(x)
               const c = topCause(x)
@@ -330,7 +345,10 @@ export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapN
                 >
                   {x.asin && <img src={candleThumbnail(x.asin)} alt="" className="size-8 shrink-0 rounded-md object-cover ring-1 ring-slate-200" />}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-slate-950">{x.name}</span>
+                    <span className="block truncate text-sm font-medium text-slate-950">
+                      {x.name}
+                      {brandOf(x) && n.level !== "Brand" && <span className="font-normal text-slate-500"> · {brandOf(x)}</span>}
+                    </span>
                     {c && (
                       <span className="block truncate text-xs text-slate-500">
                         {c.title} · <span className={STATE[c.tag]}>{c.tag.toLowerCase()}</span>
@@ -355,7 +373,7 @@ export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapN
         <button type="button" onClick={() => ask(analysis, n.id)} className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-4 py-2 text-sm text-brand-700 transition-colors hover:bg-brand-50">
           <Sparkles className="size-3.5" /> Run gap-to-plan analysis
         </button>
-        <span className="text-xs text-slate-500">or ask about {n.id === root.id ? "Amazon" : n.name} in the bar below</span>
+        <span className="text-xs text-slate-500">or ask about {n.id === root.id ? "the overall business" : n.name} in the bar below</span>
       </div>
       {/* Answers about what's open here appear here. */}
       <ChatThread anchor={n.id} className="mt-4" />

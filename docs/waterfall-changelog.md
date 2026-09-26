@@ -268,3 +268,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - Rail (`BusinessRail`): the hierarchy in Mike's rail style, ranked at every level (gap, or sales per Settings); each row shows its gap and top cause with state; expand/collapse; "All SKUs" flat mode with each SKU's path. Replaces the table and the scope chips.
 - Pane (`BusinessPane`): breadcrumbs; header with last week vs plan, this week projected, week to date. A brand, category or Amazon: "What's wrong" (cause · $ · state → fix, linked) and its top SKUs behind plan (click to open). A SKU: "Why last week" and "Right now → the fix". "Run gap-to-plan analysis" answers under the pane's content (anchored).
 - `treeFor(order)` regroups the stored Brand › Category › SKU tree into Category › Brand › SKU (categories sum their brands; totals tie). Hearthwood and Bright Citrus get a Jar candles category. Settings → Business view → "Organize the Business view as".
+
+## Business view: "Overall business", one level down, rail follows the pane
+- Top level named "Overall business" (rail, breadcrumbs, pane).
+- The pane lists one level down: overall → top 5 categories (with their brand), brand → its categories, category → top 5 SKUs.
+- Picking anything in the pane opens its path in the rail, highlights it and scrolls it into view (`RailRow` opens when on the selected path).
