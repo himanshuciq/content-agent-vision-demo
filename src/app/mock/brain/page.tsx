@@ -260,7 +260,7 @@ const PLAYS: Record<string, { plays: { who: string; what: string; value: string 
   soy: {
     points: [
       "Growing 3× the category",
-      "Shoppers search \"clean burn\", \"non-toxic\", \"soy\"; your PDPs don't",
+      "Shoppers search \"clean burn\", \"non-toxic\", \"soy\"; your PDPs don't use those words",
       "Leaders: Brightwick 31%, Lumen & Co 18%",
       "Your $/oz 18% above median; one 8 oz pack",
     ],
