@@ -284,3 +284,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 ## Ask Ally chips fixed and tested on every page
 - Answers were stuck on the "working" dots (effect keyed on a filtered array that changed every render); now keyed on the newest turn's id.
 - Scrolls to the new question with a jump fallback; page-level answers render last on Michelle's page; switching Business/Ops clears the conversation; Mike's page moves from the old popover to the same inline chat; "Run gap-to-plan analysis for the overall business".
+
+## Plays act per row; briefs are real documents; bar a little higher
+- `PlayList`: each play has its own action on its row (Launch for Ally's plays, Draft brief → View brief for a person's decision); the combined "Launch N plays" is gone. Chat answers offer one action per play too.
+- "NPI" → "new product" everywhere. `Play.brief`: the new product brief (opportunity, product, why it wins, numbers, risks, if approved, then "Take this to your product team?") and the pricing brief (options A/B/C, B recommended). `BriefDoc` opens under the row; the decision confirms and records.
+- Ask Ally bar sits 32px above the bottom (was 20px).

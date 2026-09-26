@@ -181,7 +181,7 @@ export function AskBar({ placeholder = "Ask Ally: what can I take from your plat
   const showChips = (open || turns.length > 0) && chips.length > 0
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-8 z-40 flex justify-center px-4">
       <div ref={rootRef} className="pointer-events-auto flex w-full max-w-[760px] flex-col gap-2">
         {(showChips || turns.length > 0) && (
           <div className="flex items-end justify-between gap-3">

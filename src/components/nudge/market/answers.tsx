@@ -47,15 +47,16 @@ export function answerFor(c: PanelContext, q: string): Answer {
     const agents = agentPlays(s.plays)
     const briefs = humanPlays(s.plays)
     const launch: Action[] = [
-      ...(agents.length ? [{ label: `Launch the ${agents.length === 1 ? "play" : `${agents.length} plays`} · +${fmtValue(annual(agents))} a year`, plays: agents }] : []),
-      ...briefs.map((b) => ({ label: "Draft the NPI brief", plays: [b] })),
+      // One action per play, named for what it does (never "Launch 2 plays").
+      ...agents.map((p) => ({ label: `${p.what} · +${fmtValue(p.annual)} a year`, plays: [p] })),
+      ...briefs.map((b) => ({ label: "Draft the new product brief", plays: [b] })),
     ]
     const adds = Math.round(s.size * (s.growth / 100))
     if (i === 1)
       return {
         verdict: `In ${s.name.toLowerCase()}, Brightwick holds 31% and Lumen & Co 18%. You hold ${s.share}%.`,
         visual: "competitors",
-        why: "Brightwick leads on sponsored slots and the clean-burn wording; Lumen & Co leads on price per ounce. Neither has a 12 oz jar at the median price, which is the gap an NPI brief would fill.",
+        why: "Brightwick leads on sponsored slots and the clean-burn wording; Lumen & Co leads on price per ounce. Neither has a 12 oz jar at the median price, which is the gap a new product brief would fill.",
         actions: [...launch, { label: "Watch this segment weekly", watch: s.name }],
         trust: "Medium confidence: competitor sales are estimated from share and rank.",
       }
@@ -104,7 +105,7 @@ export function answerFor(c: PanelContext, q: string): Answer {
       why: "Your gift sets now sit 25% above theirs, and their ads crowd you out on gift terms. Your branded terms still hold. Their stock covers about 3 weeks at this pace, so the cut may be temporary.",
       ifNothing: `You lose about ${fmtValue(comp.atRisk)} this quarter, most of it in the gift-giving weeks.`,
       actions: [
-        ...(agents.length ? [{ label: `Launch ${agents.length} plays · +${fmtValue(annual(agents))} a year`, plays: agents }] : []),
+        ...agents.map((p) => ({ label: `${p.what} · +${fmtValue(p.annual)} a year`, plays: [p] })),
         ...(brief ? [{ label: "Draft the pricing brief", plays: [brief] }] : []),
         { label: "Should we match their price?", ask: suggestions(c)[1] },
         { label: `Watch ${comp.name} weekly`, watch: comp.name },
@@ -133,7 +134,7 @@ export function answerFor(c: PanelContext, q: string): Answer {
     why: `${risks.map((r) => `${r.name}: ${r.note.charAt(0).toLowerCase()}${r.note.slice(1)}`).join(". ")}. Media is planned and paced.`,
     ifNothing: `Expect a repeat of last year: about ${fmtValue(ev.lastYear.lost)} lost.`,
     actions: [
-      { label: `Launch the ${ev.plays.length} readiness plays · +${fmtValue(ev.plays.reduce((n, p) => n + p.quarter, 0))}`, plays: ev.plays },
+      ...ev.plays.map((p) => ({ label: `${p.what} · +${fmtValue(p.quarter)}`, plays: [p] })),
       { label: "What went wrong last year?", ask: suggestions(c)[1] },
       { label: `Remind me weekly until ${ev.name}`, watch: ev.name },
     ],

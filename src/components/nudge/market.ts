@@ -22,6 +22,17 @@ export interface Play {
   skus: number
   /** Human plays land with Claire's team; agent plays arrive drafted, one approval away. */
   tier: "approval" | "input"
+  /** For a person's decision: the brief Ally drafts (bullets, one decision at the end). */
+  brief?: Brief
+}
+
+export interface Brief {
+  kind: string
+  title: string
+  to: string
+  sections: { heading: string; points: string[] }[]
+  /** The decision the brief asks for, and its options (the first is Ally's recommendation). */
+  decision: { ask: string; options: string[] }
 }
 
 export interface Segment {
@@ -59,7 +70,29 @@ export const SEGMENTS: Segment[] = [
     plays: [
       { id: "soy-content", owner: "content", what: "Rewrite 11 PDPs for clean-burn query language", annual: 0.14, quarter: 0.035, skus: 11, tier: "approval" },
       { id: "soy-media", owner: "media", what: "Bid the clean-burn term cluster (+$12K a month)", annual: 0.095, quarter: 0.024, skus: 11, tier: "approval" },
-      { id: "soy-npi", owner: "human", what: "NPI brief: a 12 oz soy jar at the median $/oz", annual: 0.105, quarter: 0, skus: 0, tier: "input" },
+      {
+        id: "soy-npi",
+        owner: "human",
+        what: "New product brief: a 12 oz soy jar at the median $/oz",
+        annual: 0.105,
+        quarter: 0,
+        skus: 0,
+        tier: "input",
+        brief: {
+          kind: "New product brief",
+          title: "A 12 oz clean-burn soy jar at the segment's median price",
+          to: "Your product team",
+          sections: [
+            { heading: "The opportunity", points: ["Clean-burn soy: $120M a year, +22% (category +7%)", "You hold 4%; Brightwick 31%, Lumen & Co 18%", "No leader sells a 12 oz jar at the median $/oz"] },
+            { heading: "The product", points: ["12 oz soy jar, cotton wick, clean-burn formula", "3 scents from your best sellers: Amber Floral, Coastal Linen, Noir Cherry", "$21, or $1.75/oz: the segment median (your 8 oz is 18% above it)"] },
+            { heading: "Why it wins", points: ["Fills the gap between Lumen's 8 oz and Brightwick's 16 oz", "Your ratings run 4.6 vs 4.3 for the segment", "Ally drafts the clean-burn titles, bullets and images before launch"] },
+            { heading: "The numbers", points: ["Year one: +$105K, about 0.1 pt of the segment", "48% margin at $21", "Net of about $12K pulled from your 8 oz jar"] },
+            { heading: "Risks", points: ["\"Non-toxic\" needs substantiation before it goes on the page", "10-week supplier lead time", "Brightwick could follow on price"] },
+            { heading: "If approved", points: ["Specs from your product team by Oct 24", "Ally drafts the listing and images", "Live ahead of Valentine's Day"] },
+          ],
+          decision: { ask: "Take this to your product team?", options: ["Approve", "Not now"] },
+        },
+      },
     ],
   },
   {
@@ -129,7 +162,27 @@ export const COMPETITORS: Competitor[] = [
     plays: [
       { id: "bw-media", owner: "media", what: "Win back 4 sponsored slots on gift terms", annual: 0.24, quarter: 0.06, skus: 8, tier: "approval" },
       { id: "bw-content", owner: "content", what: "Add a gift-with-purchase angle to 8 hero gift sets", annual: 0.16, quarter: 0.04, skus: 8, tier: "approval" },
-      { id: "bw-price", owner: "human", what: "Pricing brief: match on 8 hero gift sets, or hold", annual: 0.3, quarter: 0, skus: 0, tier: "input" },
+      {
+        id: "bw-price",
+        owner: "human",
+        what: "Pricing brief: match on 8 hero gift sets, or hold",
+        annual: 0.3,
+        quarter: 0,
+        skus: 0,
+        tier: "input",
+        brief: {
+          kind: "Pricing brief",
+          title: "Brightwick's 20% gift-set cut: match, or hold and win back slots",
+          to: "Claire and your pricing lead",
+          sections: [
+            { heading: "What happened", points: ["Brightwick cut 14 gift sets 20% on Oct 1", "They took 4 more sponsored slots on gift terms", "Your gift-set share −0.6 pts; about $180K at risk this quarter"] },
+            { heading: "Option A: match on 8 hero gift sets", points: ["Protects most of the $180K", "Costs about $40K of margin this quarter", "Resets the price you'll have to defend in Q1"] },
+            { heading: "Option B: hold price, win back slots (recommended)", points: ["Ally for Media wins back 4 slots (+$60K this quarter)", "Ally for Content adds a gift-with-purchase angle (+$40K)", "No margin given up; Brightwick's stock covers about 3 weeks at this pace"] },
+            { heading: "Option C: do nothing", points: ["About −$180K this quarter, most of it in gift-giving weeks"] },
+          ],
+          decision: { ask: "Which option?", options: ["Option B: hold and win back slots", "Option A: match on 8 hero gift sets", "Not now"] },
+        },
+      },
     ],
   },
 ]
