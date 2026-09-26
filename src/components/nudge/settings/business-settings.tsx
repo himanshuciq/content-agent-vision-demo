@@ -11,8 +11,8 @@ const OPTIONS: { id: BusinessSort; label: string; note: string }[] = [
 ]
 
 const GROUPS: { id: BusinessGroup; label: string; note: string }[] = [
-  { id: "Category", label: "Category", note: "Category managers, or one brand across categories" },
-  { id: "Brand", label: "Brand", note: "Several brands, each with its own owner" },
+  { id: "Brand", label: "Brand › Category › SKU", note: "Several brands, each with its own owner (default)" },
+  { id: "Category", label: "Category › Brand › SKU", note: "Category managers, or brands sharing categories" },
 ]
 
 /** How the Business view ranks its list and which scope it offers, set once per customer. */
@@ -21,7 +21,7 @@ export function BusinessSettings() {
   return (
     <div className="flex flex-col gap-6">
     <Choice title="Rank the Business view by" options={OPTIONS} value={businessSort} onChange={setBusinessSort} />
-    <Choice title="Narrow the Business view by" options={GROUPS} value={businessGroup} onChange={setBusinessGroup} />
+    <Choice title="Organize the Business view as" options={GROUPS} value={businessGroup} onChange={setBusinessGroup} />
     </div>
   )
 }

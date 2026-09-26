@@ -18,7 +18,7 @@ interface StoredState {
   knowledge?: KnowledgeEntry[]
   /** How the Business view ranks top SKUs; set per customer in Settings. */
   businessSort?: BusinessSort
-  /** Which scope the Business view's chips offer first: categories or brands. */
+  /** The Business view's hierarchy: Brand › Category › SKU (default) or Category › Brand › SKU. */
   businessGroup?: BusinessGroup
 }
 
@@ -150,7 +150,7 @@ export function NudgeProvider({ children }: { children: React.ReactNode }) {
         setPeriod,
         businessSort: state.businessSort ?? "gap",
         setBusinessSort: (businessSort) => update((prev) => ({ ...prev, businessSort })),
-        businessGroup: state.businessGroup ?? "Category",
+        businessGroup: state.businessGroup ?? "Brand",
         setBusinessGroup: (businessGroup) => update((prev) => ({ ...prev, businessGroup })),
       }}
     >

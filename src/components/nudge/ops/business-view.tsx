@@ -1,11 +1,12 @@
 "use client"
 
 import { Fragment, useState } from "react"
-import Link from "next/link"
-import { ArrowRight, ChevronRight, Sparkles } from "lucide-react"
+import { ChevronRight, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { candleThumbnail } from "@/lib/candle-thumbnails"
-import { BUSINESS, INFLIGHT, contentBatches, fmtBiz, launchedIds, opsBatches } from "../data"
+import { BUSINESS, contentBatches, fmtBiz, launchedIds, opsBatches } from "../data"
+import { ITEM_ACTIVE, ITEM_IDLE } from "../mike/rail"
+import { Points } from "../points"
 import { AGENT_DOT } from "../agent-style"
 import { useLive } from "../live-model"
 import { playById } from "../market"
@@ -14,7 +15,7 @@ import { useNudge } from "../nudge-context"
 import { ChatThread, useChat, useChatSource } from "../chat/inline-chat"
 import type { Chip } from "../chat/inline-chat"
 import type { AgentId, Period } from "../types"
-import { GAP_TREE, GAP_WEEK, nodesAt, skusUnder } from "./gap-data"
+import { GAP_TREE, findIn, skusUnder } from "./gap-data"
 import type { Driver, Fix, GapNode } from "./gap-data"
 import { GapAnalysis } from "./gap-view"
 
@@ -132,207 +133,232 @@ function FixLine({ f }: { f: FixView }) {
 }
 
 /* ------------------------------------------------------------------------- */
-/* The view                                                                   */
+/* Rail: the hierarchy, ranked at every level                                  */
 /* ------------------------------------------------------------------------- */
 
-const GRID = "grid grid-cols-[minmax(0,1.4fr)_104px_minmax(0,1.3fr)_104px_minmax(0,1.6fr)] items-start gap-x-5"
+const gapOf = (n: GapNode) => n.lastWeek.sales - n.lastWeek.plan
+const rank = (sort: "gap" | "sales") => (a: GapNode, b: GapNode) => (sort === "sales" ? b.lastWeek.sales - a.lastWeek.sales : gapOf(a) - gapOf(b))
+/** The cause that explains most of a node's week, in its own words. */
+const topCause = (n: GapNode) => [...n.drivers].sort((a, b) => (gapOf(n) < 0 ? a.value - b.value : b.value - a.value))[0]
 
-/**
- * The quarterback view, weekly. A scope (all, a category or a brand) says what's
- * wrong in it, then its top SKUs behind plan: last week against plan and why,
- * this week's projection, and what's wrong right now paired with the fix in
- * flight. A row opens its full analysis, answered right under it.
- */
-export function BusinessView({ onOpenOps }: { onOpenOps: (batchId: string, asin?: string) => void }) {
-  const { businessSort, businessGroup } = useNudge()
-  const { ask } = useChat()
-  const fixFor = useFixes(onOpenOps)
-  const [scopeId, setScopeId] = useState("overall")
-  const [open, setOpen] = useState<string | null>(null)
-  const [all, setAll] = useState(false)
-
-  const scopes = [...nodesAt(businessGroup)].sort((a, b) => a.lastWeek.sales - a.lastWeek.plan - (b.lastWeek.sales - b.lastWeek.plan))
-  const scope = scopes.find((s) => s.id === scopeId) ?? GAP_TREE
-  const gapOf = (n: GapNode) => n.lastWeek.sales - n.lastWeek.plan
-  const ranked = skusUnder(scope)
-    .filter((n) => (businessSort === "sales" ? true : gapOf(n) < 0))
-    .sort((a, b) => (businessSort === "sales" ? b.lastWeek.sales - a.lastWeek.sales : gapOf(a) - gapOf(b)))
-  const rows = all ? ranked : ranked.slice(0, 5)
-
-  const chipsFor = (n: GapNode): Chip[] => [{ q: `Run gap-to-plan analysis for ${n.name} for last week`, render: () => <GapAnalysis node={n} onInbox={(id) => onOpenOps(id, n.asin)} /> }]
-  const openNode = rows.find((r) => r.id === open)
-  // The bar follows what's open: questions about the open row are answered under it.
-  useChatSource(openNode ? { about: openNode.name, anchor: openNode.id, chips: chipsFor(openNode) } : { about: scope.id === "overall" ? undefined : scope.name, chips: chipsFor(scope) }, `business-${open ?? scope.id}`)
-
-  const scopeGap = gapOf(scope)
-  const causes = [...scope.drivers].sort((a, b) => a.value - b.value)
-
+function RailRow({ node, depth, selected, trail, onSelect, sort, path }: { node: GapNode; depth: number; selected: string; trail: string[]; onSelect: (id: string) => void; sort: "gap" | "sales"; path?: string }) {
+  const kids = [...(node.children ?? [])].sort(rank(sort))
+  const [open, setOpen] = useState(depth === 0 || trail.includes(node.id))
+  const g = gapOf(node)
+  const cause = topCause(node)
   return (
-    <section className="px-10 pb-10">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-sm text-slate-500">Where the gap is</span>
-        {[GAP_TREE, ...scopes].map((s) => {
-          const g = gapOf(s)
-          return (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => {
-                setScopeId(s.id)
-                setOpen(null)
-                setAll(false)
-              }}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
-                scope.id === s.id ? "border-slate-300 bg-slate-100 text-slate-950" : "border-slate-200 text-slate-600 hover:border-slate-300",
-              )}
-            >
-              {s.id === "overall" ? "All" : s.name}
-              <span className={cn("font-mono text-xs font-semibold", g < 0 ? "text-error-600" : "text-success-700")}>{m(g, true)}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* What's wrong in this scope, before its SKUs. */}
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white px-5 py-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <div className="text-lg font-semibold text-slate-950">
-            {scope.id === "overall" ? "Amazon" : scope.name} · last week <span className={cn("font-mono", scopeGap < 0 ? "text-error-600" : "text-success-700")}>{m(scopeGap, true)}</span>{" "}
-            <span className="text-base font-normal text-slate-500">vs plan ({pct(scope.lastWeek.sales, scope.lastWeek.plan)})</span>
+    <div>
+      <div className={cn("flex items-start gap-1 rounded-lg px-2 py-2.5 transition-colors", selected === node.id ? ITEM_ACTIVE : ITEM_IDLE)} style={{ marginLeft: depth * 12 }}>
+        {kids.length ? (
+          <button type="button" onClick={() => setOpen((o) => !o)} aria-label={open ? "Collapse" : "Expand"} className="mt-0.5 text-slate-400 hover:text-slate-700">
+            <ChevronRight className={cn("size-4 transition-transform", open && "rotate-90")} />
+          </button>
+        ) : (
+          <span className="w-4 shrink-0" />
+        )}
+        <button type="button" onClick={() => onSelect(node.id)} className="min-w-0 flex-1 text-left outline-none">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className={cn("truncate text-sm", node.level === "SKU" ? "text-slate-950" : "font-semibold text-slate-950")}>{node.id === "overall" ? "Amazon" : node.name}</span>
+            <span className={cn("shrink-0 font-mono text-[13px] font-semibold", g < 0 ? "text-error-600" : "text-success-700")}>{m(g, true)}</span>
           </div>
-          <div className="text-sm text-slate-500">
-            This week, projected <span className={cn("font-mono font-semibold", scope.eow.projected < scope.eow.plan ? "text-error-600" : "text-success-700")}>{m(scope.eow.projected - scope.eow.plan, true)}</span>
-          </div>
-        </div>
-        <div className="mt-3 flex flex-col gap-2.5">
-          {causes.map((d) => {
-            const f = d.fix && fixFor(d.fix)
-            return (
-              <div key={d.title} className="grid grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)] items-start gap-4 text-sm">
-                <span>
-                  <span className="text-slate-950">{d.title}</span> <span className={cn("text-xs", STATE[d.tag])}>· {d.tag}</span>
-                </span>
-                <span className={cn("text-right font-mono font-semibold", d.value < 0 ? "text-error-600" : "text-success-700")}>{m(d.value, true)}</span>
-                <span>{f ? <FixLine f={f} /> : <span className="text-slate-500">{d.tag === "Resolved" ? "No action needed" : d.tag === "Worth watching" ? "Watching · no action yet" : "See the SKUs below"}</span>}</span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-baseline justify-between gap-3">
-        <div>
-          <div className="text-lg font-semibold text-slate-950">
-            {businessSort === "sales" ? "Top SKUs by sales" : `Top SKUs behind plan`}
-            {scope.id !== "overall" && <span className="font-normal text-slate-500"> in {scope.name}</span>}
-          </div>
-          <div className="mt-0.5 text-sm text-slate-500">
-            Weekly view · last week {GAP_WEEK.last} and this week ·{" "}
-            <Link href="/settings?tab=business" className="text-brand-700 hover:underline">
-              ranking
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
-        <div className={cn(GRID, "border-b border-slate-100 bg-slate-25 px-5 py-3 text-xs font-medium text-slate-500")}>
-          <span>SKU</span>
-          <span className="text-right">Last week vs plan</span>
-          <span>Why last week</span>
-          <span className="text-right">This week, projected</span>
-          <span>Right now → the fix</span>
-        </div>
-        {rows.map((n) => {
-          const gap = gapOf(n)
-          const eow = n.eow.projected - n.eow.plan
-          const byValue = [...n.drivers].sort((a, b) => (gap < 0 ? a.value - b.value : b.value - a.value))
-          const why = byValue[0]
-          const now = byValue.filter(live)
-          const isOpen = open === n.id
-          return (
-            <Fragment key={n.id}>
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setOpen(isOpen ? null : n.id)}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpen(isOpen ? null : n.id)}
-                className={cn(GRID, "cursor-pointer border-t border-slate-100 px-5 py-3.5 text-sm outline-none first-of-type:border-t-0 hover:bg-slate-25", isOpen && "bg-slate-25")}
-              >
-                <span className="flex min-w-0 items-center gap-2.5">
-                  <ChevronRight className={cn("-ml-1 size-4 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-90")} />
-                  {n.asin && <img src={candleThumbnail(n.asin)} alt="" className="size-8 shrink-0 rounded-md object-cover ring-1 ring-slate-200" />}
-                  <span className="min-w-0">
-                    <span className="block truncate font-medium text-slate-950">{n.name}</span>
-                    <span className="block truncate font-mono text-xs text-slate-500">{n.asin}</span>
-                  </span>
-                </span>
-                <span className="text-right">
-                  <span className={cn("block font-mono font-semibold", gap < 0 ? "text-error-600" : "text-success-700")}>{m(gap, true)}</span>
-                  <span className="block text-xs text-slate-500">{pct(n.lastWeek.sales, n.lastWeek.plan)} of plan</span>
-                </span>
-                <span className="min-w-0">
-                  {why && (
-                    <>
-                      <span className="block text-slate-950">{why.title}</span>
-                      <span className={cn("block text-xs", STATE[why.tag])}>{why.tag}</span>
-                    </>
-                  )}
-                </span>
-                <span className="text-right">
-                  <span className={cn("block font-mono font-semibold", eow < 0 ? "text-error-600" : "text-success-700")}>{m(eow, true)}</span>
-                  <span className="block text-xs text-slate-500">{pct(n.eow.projected, n.eow.plan)} of plan</span>
-                </span>
-                <span className="flex min-w-0 flex-col gap-2">
-                  {now.length ? (
-                    now.slice(0, 2).map((d) => {
-                      const f = d.fix && fixFor(d.fix, n.asin)
-                      return (
-                        <span key={d.title} className="flex flex-col gap-1">
-                          <span className="text-slate-700">{d === why ? "Still live" : d.title}</span>
-                          {f ? <FixLine f={f} /> : <span className="text-xs text-slate-500">{d.tag === "Worth watching" ? "Watching · no action yet" : "No fix in flight"}</span>}
-                        </span>
-                      )
-                    })
-                  ) : (
-                    <span className="text-success-700">{gap < 0 ? "Resolved · no action needed" : "On track"}</span>
-                  )}
-                  {now.length > 2 && <span className="text-xs text-slate-500">+{now.length - 2} more</span>}
-                </span>
-              </div>
-              {isOpen && (
-                <div className="border-t border-slate-100 bg-slate-25 px-5 py-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {chipsFor(n).map((c) => (
-                      <button
-                        key={c.q}
-                        type="button"
-                        onClick={() => ask(c, n.id)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-4 py-2 text-sm text-brand-700 transition-colors hover:bg-brand-50"
-                      >
-                        <Sparkles className="size-3.5" /> Run gap-to-plan analysis
-                      </button>
-                    ))}
-                    <span className="text-xs text-slate-500">or ask about {n.name} in the bar below</span>
-                  </div>
-                  {/* Answers about this SKU appear here, under its row. */}
-                  <ChatThread anchor={n.id} className="mt-4" />
-                </div>
-              )}
-            </Fragment>
-          )
-        })}
-      </div>
-      {ranked.length > 5 && (
-        <button type="button" onClick={() => setAll((a) => !a)} className="mt-3 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-brand-700">
-          {all ? "Show the top 5" : `Show all ${ranked.length} SKUs ${businessSort === "sales" ? "" : "behind plan"}`}
-          <ArrowRight className="size-3.5" />
+          <div className="mt-0.5 truncate text-xs text-slate-500">{path ?? (cause ? `${cause.title} · ${cause.tag.toLowerCase()}` : "On track")}</div>
         </button>
-      )}
-    </section>
+      </div>
+      {open && kids.map((c) => <RailRow key={c.id} node={c} depth={depth + 1} selected={selected} trail={trail} onSelect={onSelect} sort={sort} />)}
+    </div>
   )
 }
 
-/** For the hero's period label elsewhere. */
-export const periodName = (p: Period) => INFLIGHT[p].name
+export function BusinessRail({ root, selected, onSelect }: { root: GapNode; selected: string; onSelect: (id: string) => void }) {
+  const { businessSort, businessGroup } = useNudge()
+  const [flat, setFlat] = useState(false)
+  const trail = (findIn(root, selected)?.trail ?? []).map((n) => n.id)
+  const skus = skusUnder(root).sort(rank(businessSort))
+  const pathOf = (id: string) =>
+    (findIn(root, id)?.trail ?? [])
+      .filter((n) => n.id !== root.id)
+      .map((n) => n.name)
+      .join(" › ")
+  return (
+    <div className="px-2 py-3">
+      <div className="mb-2 flex rounded-lg border border-slate-200 bg-slate-25 p-1">
+        {[
+          [false, businessGroup === "Brand" ? "Brand › Category › SKU" : "Category › Brand › SKU"],
+          [true, "All SKUs"],
+        ].map(([v, label]) => (
+          <button
+            key={String(v)}
+            type="button"
+            onClick={() => setFlat(v as boolean)}
+            className={cn("flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors", flat === v ? "bg-white text-slate-950 shadow-xs ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-800")}
+          >
+            {label as string}
+          </button>
+        ))}
+      </div>
+      <div className="px-2 pb-2 text-[11px] text-slate-500">
+        Last week vs plan · ranked by {businessSort === "sales" ? "sales" : "gap"}
+      </div>
+      {flat ? (
+        skus.map((n) => <RailRow key={n.id} node={n} depth={0} selected={selected} trail={[]} onSelect={onSelect} sort={businessSort} path={pathOf(n.id)} />)
+      ) : (
+        <RailRow node={root} depth={0} selected={selected} trail={trail} onSelect={onSelect} sort={businessSort} />
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------------- */
+/* Pane: a scope's story (what's wrong, its top SKUs) or one SKU's             */
+/* ------------------------------------------------------------------------- */
+
+function Cause({ d, fixFor, asin }: { d: Driver; fixFor: ReturnType<typeof useFixes>; asin?: string }) {
+  const f = d.fix && fixFor(d.fix, asin)
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_76px_minmax(0,1fr)] items-start gap-4 border-t border-slate-100 py-3 text-sm first:border-t-0">
+      <span>
+        <span className="text-slate-950">{d.title}</span> <span className={cn("text-xs", STATE[d.tag])}>· {d.tag}</span>
+      </span>
+      <span className={cn("text-right font-mono font-semibold", d.value < 0 ? "text-error-600" : "text-success-700")}>{m(d.value, true)}</span>
+      <span>{f ? <FixLine f={f} /> : <span className="text-slate-500">{d.tag === "Resolved" ? "No action needed" : d.tag === "Worth watching" ? "Watching · no action yet" : "No fix in flight"}</span>}</span>
+    </div>
+  )
+}
+
+const BOX = "overflow-hidden rounded-xl border border-slate-200 bg-white"
+const HEAD = "border-b border-slate-100 bg-slate-25 px-5 py-3 text-sm font-semibold text-slate-950"
+
+export function BusinessPane({ root, nodeId, onSelect, onOpenOps }: { root: GapNode; nodeId: string; onSelect: (id: string) => void; onOpenOps: (batchId: string, asin?: string) => void }) {
+  const { businessSort } = useNudge()
+  const { ask } = useChat()
+  const fixFor = useFixes(onOpenOps)
+  const [all, setAll] = useState(false)
+  const found = findIn(root, nodeId) ?? { node: root, trail: [] }
+  const n = found.node
+  const isSku = n.level === "SKU"
+  const g = gapOf(n)
+  const eow = n.eow.projected - n.eow.plan
+  const byValue = [...n.drivers].sort((a, b) => (g < 0 ? a.value - b.value : b.value - a.value))
+  const analysis: Chip = { q: `Run gap-to-plan analysis for ${n.name} for last week`, render: () => <GapAnalysis node={n} onInbox={(id) => onOpenOps(id, n.asin)} /> }
+  useChatSource({ about: n.id === root.id ? undefined : n.name, anchor: n.id, chips: [analysis] }, `business-${n.id}`)
+
+  const ranked = skusUnder(n)
+    .filter((x) => businessSort === "sales" || gapOf(x) < 0)
+    .sort(rank(businessSort))
+  const top = all ? ranked : ranked.slice(0, 5)
+
+  return (
+    <div className="flex min-w-0 flex-col px-10 py-8">
+      {found.trail.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1 text-sm text-slate-500">
+          {found.trail.map((t) => (
+            <Fragment key={t.id}>
+              <button type="button" onClick={() => onSelect(t.id)} className="hover:text-brand-700 hover:underline">
+                {t.id === root.id ? "Amazon" : t.name}
+              </button>
+              <ChevronRight className="size-3.5 text-slate-300" />
+            </Fragment>
+          ))}
+        </div>
+      )}
+      <div className="mt-1 flex items-start gap-4">
+        {n.asin && <img src={candleThumbnail(n.asin)} alt="" className="size-12 shrink-0 rounded-lg object-cover shadow-sm ring-1 ring-slate-200" />}
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-slate-500">{n.level ?? "All brands"}</div>
+          <div className="text-2xl font-semibold tracking-tight text-slate-950">{n.id === root.id ? "Amazon" : n.name}</div>
+          {n.asin && <div className="font-mono text-xs text-slate-500">{n.asin}</div>}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-500">
+        <span>
+          Last week <span className={cn("font-mono font-semibold", g < 0 ? "text-error-600" : "text-success-700")}>{m(g, true)}</span> vs plan ({pct(n.lastWeek.sales, n.lastWeek.plan)})
+        </span>
+        <span>
+          This week, projected <span className={cn("font-mono font-semibold", eow < 0 ? "text-error-600" : "text-success-700")}>{m(eow, true)}</span> ({pct(n.eow.projected, n.eow.plan)})
+        </span>
+        <span>
+          Week to date <span className="font-mono font-semibold text-slate-950">{m(n.wtd)}</span>
+        </span>
+      </div>
+
+      {isSku ? (
+        <div className="mt-6 flex flex-col gap-4">
+          {byValue[0] && (
+            <div className={BOX}>
+              <div className={HEAD}>Why last week</div>
+              <div className="px-5 py-4 text-sm">
+                <div>
+                  <span className="font-medium text-slate-950">{byValue[0].title}</span> <span className={cn("text-xs", STATE[byValue[0].tag])}>· {byValue[0].tag}</span>
+                  <span className={cn("ml-2 font-mono font-semibold", byValue[0].value < 0 ? "text-error-600" : "text-success-700")}>{m(byValue[0].value, true)}</span>
+                </div>
+                <Points className="mt-2" items={byValue[0].points} />
+              </div>
+            </div>
+          )}
+          <div className={BOX}>
+            <div className={HEAD}>Right now → the fix</div>
+            <div className="px-5 py-1">
+              {byValue.filter(live).length ? (
+                byValue.filter(live).map((d) => <Cause key={d.title} d={d} fixFor={fixFor} asin={n.asin} />)
+              ) : (
+                <div className="py-3 text-sm text-success-700">{g < 0 ? "Resolved · nothing live" : "On track"}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 flex flex-col gap-4">
+          <div className={BOX}>
+            <div className={HEAD}>What&apos;s wrong{n.id === root.id ? "" : ` in ${n.name}`}</div>
+            <div className="px-5 py-1">
+              {byValue.map((d) => (
+                <Cause key={d.title} d={d} fixFor={fixFor} />
+              ))}
+            </div>
+          </div>
+          <div className={BOX}>
+            <div className={HEAD}>{businessSort === "sales" ? "Top SKUs by sales" : "Top SKUs behind plan"}</div>
+            {top.map((x) => {
+              const xg = gapOf(x)
+              const c = topCause(x)
+              return (
+                <button
+                  key={x.id}
+                  type="button"
+                  onClick={() => onSelect(x.id)}
+                  className="flex w-full items-center gap-3 border-t border-slate-100 px-5 py-3 text-left first-of-type:border-t-0 hover:bg-slate-25"
+                >
+                  {x.asin && <img src={candleThumbnail(x.asin)} alt="" className="size-8 shrink-0 rounded-md object-cover ring-1 ring-slate-200" />}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-slate-950">{x.name}</span>
+                    {c && (
+                      <span className="block truncate text-xs text-slate-500">
+                        {c.title} · <span className={STATE[c.tag]}>{c.tag.toLowerCase()}</span>
+                      </span>
+                    )}
+                  </span>
+                  <span className={cn("shrink-0 font-mono text-sm font-semibold", xg < 0 ? "text-error-600" : "text-success-700")}>{m(xg, true)}</span>
+                  <ChevronRight className="size-4 shrink-0 text-slate-300" />
+                </button>
+              )
+            })}
+            {ranked.length > 5 && (
+              <button type="button" onClick={() => setAll((a) => !a)} className="w-full border-t border-slate-100 px-5 py-2.5 text-left text-sm text-slate-500 hover:text-brand-700">
+                {all ? "Show the top 5" : `Show all ${ranked.length}`}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => ask(analysis, n.id)} className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-4 py-2 text-sm text-brand-700 transition-colors hover:bg-brand-50">
+          <Sparkles className="size-3.5" /> Run gap-to-plan analysis
+        </button>
+        <span className="text-xs text-slate-500">or ask about {n.id === root.id ? "Amazon" : n.name} in the bar below</span>
+      </div>
+      {/* Answers about what's open here appear here. */}
+      <ChatThread anchor={n.id} className="mt-4" />
+    </div>
+  )
+}

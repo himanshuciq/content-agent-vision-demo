@@ -4,7 +4,8 @@ import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { AskBar, ChatProvider, ChatThread, useChatSource } from "@/components/nudge/chat/inline-chat"
 import { OpsSkuPane } from "@/components/nudge/ops/ops-sku-pane"
-import { BusinessHero, BusinessView } from "@/components/nudge/ops/business-view"
+import { BusinessHero, BusinessPane, BusinessRail } from "@/components/nudge/ops/business-view"
+import { treeFor } from "@/components/nudge/ops/gap-data"
 import { cn } from "@/lib/utils"
 import { PageShell } from "@/components/layout/page-shell"
 import { MichelleHeader } from "@/components/nudge/ops/michelle-header"
@@ -41,7 +42,10 @@ export default function MichellePage() {
 }
 
 function Michelle() {
-  const { approve, policy } = useNudge()
+  const { approve, policy, businessGroup } = useNudge()
+  // The Business view's hierarchy in the customer's order; the pane starts on the whole of Amazon.
+  const tree = treeFor(businessGroup)
+  const [nodeId, setNodeId] = useState("overall")
   // Business: the quarterback view (where you stand, why, is the work moving). Ops: the queue of fixes.
   const [view, setView] = useState<"business" | "ops">("business")
   const OPS_BATCHES = opsBatches(policy)
@@ -78,6 +82,18 @@ function Michelle() {
     setSelectedId(batch.id)
     setSelectedSku(first?.asin ?? null)
     setExpandedId(batch.id)
+    scrollToQueue()
+  }
+
+  /** A drafted fix opens in the Ops view, on the SKU when it's one of the issue's. */
+  function openOps(batchId: string, asin?: string) {
+    const b = OPS_BATCHES.find((x) => x.id === batchId) ?? OPS_BATCHES.find((x) => batchId.startsWith(x.id))
+    if (!b) return
+    setView("ops")
+    setSelectedId(b.id)
+    const onIt = !!asin && opsSkus(b).some((s) => s.asin === asin)
+    setSelectedSku(onIt ? asin! : null)
+    if (onIt) setExpandedId(b.id)
     scrollToQueue()
   }
 
@@ -135,19 +151,12 @@ function Michelle() {
         {view === "business" ? (
           <>
             <BusinessHero />
-            <BusinessView
-              onOpenOps={(batchId, asin) => {
-                // A fix that's already drafted opens in the Ops view, on this SKU when it's one of the issue's.
-                const b = OPS_BATCHES.find((x) => x.id === batchId) ?? OPS_BATCHES.find((x) => batchId.startsWith(x.id))
-                if (!b) return
-                setView("ops")
-                setSelectedId(b.id)
-                const onIt = asin && opsSkus(b).some((s) => s.asin === asin)
-                setSelectedSku(onIt ? asin! : null)
-                if (onIt) setExpandedId(b.id)
-                scrollToQueue()
-              }}
-            />
+            <div className="grid grid-cols-[340px_minmax(0,1fr)] border-t border-slate-200">
+              <div className="border-r border-slate-200 bg-white">
+                <BusinessRail root={tree} selected={nodeId} onSelect={setNodeId} />
+              </div>
+              <BusinessPane root={tree} nodeId={nodeId} onSelect={setNodeId} onOpenOps={openOps} />
+            </div>
             <ChatThread />
           </>
         ) : (

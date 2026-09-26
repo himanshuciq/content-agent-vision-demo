@@ -241,8 +241,21 @@ const hearthwood: GapNode = {
   equation: { traffic: -2, conversion: 0, price: 0, sales: -2 },
   drivers: [{ fix: { kind: "ops", id: "buybox-review" }, title: "Cedar & Smoke lost the buy box", value: -0.02, tag: "Live", points: ["Part of the MAP escalation"] }],
   recommendations: [{ title: "Included in the MAP escalation", points: ["Hero SKU, reviewed one by one"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } }],
-  children: [cedar],
-  more: 23,
+  children: [
+    {
+      id: "hw-jar",
+      name: "Jar candles",
+      level: "Category",
+      lastWeek: { sales: 0.78, plan: 0.8 },
+      wtd: 0.44,
+      eow: { projected: 0.81, plan: 0.81 },
+      equation: { traffic: -2, conversion: 0, price: 0, sales: -2 },
+      drivers: [{ fix: { kind: "ops", id: "buybox-review" }, title: "Cedar & Smoke lost the buy box", value: -0.02, tag: "Live", points: ["Part of the MAP escalation"] }],
+      recommendations: [{ title: "Included in the MAP escalation", points: ["Hero SKU, reviewed one by one"], action: { kind: "inbox", label: "Open the escalation", batchId: "buybox-review" } }],
+      children: [cedar],
+      more: 23,
+    },
+  ],
 }
 
 const bright: GapNode = {
@@ -255,8 +268,21 @@ const bright: GapNode = {
   equation: { traffic: -4, conversion: -3, price: 0, sales: -7 },
   drivers: [{ title: "2 SKUs out of stock Oct 2–4", value: -0.04, tag: "Resolved", points: ["PO landed Oct 5", "Weeks of cover now 3.2"] }],
   recommendations: [{ title: "Keep cover above 3 weeks into Black Friday", points: ["Ally for Ops drafts the PO expedite"], action: { kind: "play", label: "Launch the stock play", playId: "bf-stock" } }],
-  children: [citrusMini],
-  more: 17,
+  children: [
+    {
+      id: "bc-jar",
+      name: "Jar candles",
+      level: "Category",
+      lastWeek: { sales: 0.54, plan: 0.58 },
+      wtd: 0.32,
+      eow: { projected: 0.57, plan: 0.59 },
+      equation: { traffic: -4, conversion: -3, price: 0, sales: -7 },
+      drivers: [{ title: "2 SKUs out of stock Oct 2–4", value: -0.04, tag: "Resolved", points: ["PO landed Oct 5", "Weeks of cover now 3.2"] }],
+      recommendations: [{ title: "Keep cover above 3 weeks into Black Friday", points: ["Ally for Ops drafts the PO expedite"], action: { kind: "play", label: "Launch the stock play", playId: "bf-stock" } }],
+      children: [citrusMini],
+      more: 17,
+    },
+  ],
 }
 
 export const GAP_TREE: GapNode = {
@@ -310,3 +336,45 @@ export function parentsOf(id: string, n: GapNode = GAP_TREE, trail: GapNode[] = 
 }
 /** Every SKU under a node (the node itself when it's a SKU). */
 export const skusUnder = (n: GapNode): GapNode[] => (n.level === "SKU" ? [n] : (n.children ?? []).flatMap(skusUnder))
+
+export type Hierarchy = "Brand" | "Category"
+
+/**
+ * The same tree in the customer's order. Brand › Category › SKU is the data as
+ * stored; Category › Brand › SKU regroups it: a category sums its brands, and
+ * each brand under it keeps that brand's numbers, causes and SKUs, so every
+ * total still ties.
+ */
+export function treeFor(order: Hierarchy): GapNode {
+  if (order === "Brand") return GAP_TREE
+  const byCat = new Map<string, { brand: GapNode; cat: GapNode }[]>()
+  for (const brand of GAP_TREE.children ?? [])
+    for (const cat of brand.children ?? []) byCat.set(cat.name, [...(byCat.get(cat.name) ?? []), { brand, cat }])
+  const add = (xs: number[]) => +xs.reduce((a, b) => a + b, 0).toFixed(4)
+  const cats: GapNode[] = [...byCat.entries()].map(([name, parts]) => {
+    const kids: GapNode[] = parts.map(({ brand, cat }) => ({ ...cat, id: `${cat.id}~b`, name: brand.name, level: "Brand" }))
+    const biggest = [...kids].sort((a, b) => b.lastWeek.sales - a.lastWeek.sales)[0]
+    return {
+      id: `cat~${name}`,
+      name,
+      level: "Category",
+      lastWeek: { sales: add(kids.map((k) => k.lastWeek.sales)), plan: add(kids.map((k) => k.lastWeek.plan)) },
+      wtd: add(kids.map((k) => k.wtd)),
+      eow: { projected: add(kids.map((k) => k.eow.projected)), plan: add(kids.map((k) => k.eow.plan)) },
+      equation: biggest.equation,
+      drivers: kids.flatMap((k) => k.drivers),
+      recommendations: kids.flatMap((k) => k.recommendations),
+      children: kids,
+    }
+  })
+  return { ...GAP_TREE, children: cats }
+}
+
+/** A node anywhere in a tree, and the trail of parents above it. */
+export function findIn(root: GapNode, id: string, trail: GapNode[] = []): { node: GapNode; trail: GapNode[] } | undefined {
+  if (root.id === id) return { node: root, trail }
+  for (const c of root.children ?? []) {
+    const f = findIn(c, id, [...trail, root])
+    if (f) return f
+  }
+}
