@@ -1,8 +1,6 @@
 "use client"
 
-import { PeriodSwitch } from "../period-switch"
-import Link from "next/link"
-import { ArrowLeft, Bell } from "lucide-react"
+import { Bell } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useNudge } from "../nudge-context"
-import { SettingsGear } from "../settings-gear"
+import { TopStrip, useViewer } from "../top-strip"
 import { nudgeTargets } from "../data"
 import type { NudgeKey } from "../types"
 
@@ -25,33 +23,31 @@ export function MikeHeader() {
   const targets = nudgeTargets(policy)
   const nudgedTargets = (Object.keys(targets) as NudgeKey[]).filter((k) => nudged[k] && targets[k]?.recipient === "mike").map((k) => targets[k]!)
 
+  // Claire (or Michelle) opening Mike's queue sees a way back to her own home.
+  const { viewer, visiting, home } = useViewer("mike")
   return (
-    <header className="flex items-start justify-between gap-6 px-10 pt-8">
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
-        <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
-          <span className="size-1.5 rounded-full bg-brand-200" />
-        </span>
-        <span>Hi Mike</span>
-        <Dot />
-        <PeriodSwitch />
-        <Dot />
-        <span>
-          SEO share of voice <Num>42%</Num> <Up>0.8 pts</Up>
-        </span>
-        <Dot />
-        <span>
-          AI share of voice <Num>34%</Num> <Up>1.4 pts</Up>
-        </span>
-        <Dot />
-        <span>
-          <Num>7.7</Num> days saved
-        </span>
-      </div>
-      <div className="flex shrink-0 items-center gap-3">
-        <Link href="/claire-waterfall" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700">
-          <ArrowLeft className="size-3" />
-          Claire&apos;s view
-        </Link>
+    <TopStrip
+      person={viewer}
+      home={home}
+      greeting={visiting ? undefined : "Hi Mike"}
+      crumbs={visiting ? [{ label: "Home", href: home }, { label: "Mike's queue" }] : undefined}
+      period
+      facts={
+        <>
+          <span>
+            SEO share of voice <Num>42%</Num> <Up>0.8 pts</Up>
+          </span>
+          <Dot />
+          <span>
+            AI share of voice <Num>34%</Num> <Up>1.4 pts</Up>
+          </span>
+          <Dot />
+          <span>
+            <Num>7.7</Num> days saved
+          </span>
+        </>
+      }
+      icons={
         <DropdownMenu onOpenChange={(open) => { if (!open) clearNotification() }}>
           <DropdownMenuTrigger className="relative flex size-9 items-center justify-center rounded-md border border-slate-200 hover:bg-slate-50">
             <Bell className="size-4 text-slate-500" />
@@ -79,8 +75,7 @@ export function MikeHeader() {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        <SettingsGear />
-      </div>
-    </header>
+      }
+    />
   )
 }

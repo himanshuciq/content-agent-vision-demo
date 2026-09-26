@@ -289,3 +289,8 @@ Each row is a waterfall change to port to `/claire` if we keep it.
 - `PlayList`: each play has its own action on its row (Launch for Ally's plays, Draft brief → View brief for a person's decision); the combined "Launch N plays" is gone. Chat answers offer one action per play too.
 - "NPI" → "new product" everywhere. `Play.brief`: the new product brief (opportunity, product, why it wins, numbers, risks, if approved, then "Take this to your product team?") and the pricing brief (options A/B/C, B recommended). `BriefDoc` opens under the row; the decision confirms and records.
 - Ask Ally bar sits 32px above the bottom (was 20px).
+
+## One top strip on every page
+- `TopStrip` (top-strip.tsx): Ally logo (redrawn from public/ally-logo.png) → where you are (greeting on a home page, a breadcrumb anywhere else, first crumb is the way back) → period (where numbers follow it) → page facts (analyst KPIs) … page controls (Business | Ops) → page icons (email, bell) → gear → avatar (illustrated, no real faces).
+- Used by Claire's home and views (views drop "Back to home"; breadcrumb Home › Market), Mike, Michelle, Settings (Home › Settings) and results (Home › Content results).
+- `useViewer`: links from someone else's page carry `?from=claire` / `?from=michelle`; the page then shows "Home › Mike's queue" with the viewer's avatar instead of Mike's greeting.

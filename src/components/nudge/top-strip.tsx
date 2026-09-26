@@ -1,0 +1,164 @@
+"use client"
+
+import { Fragment, useEffect, useState } from "react"
+import Link from "next/link"
+import { ChevronRight } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { PeriodSwitch } from "./period-switch"
+import { SettingsGear } from "./settings-gear"
+
+/** Ally's mark, redrawn as a vector from the brand file (public/ally-logo.png): hair and ring, two sparks and a streak. */
+export function AllyLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="11 6 44 37" className={cn("h-7 w-auto", className)} role="img" aria-label="Ally">
+      <defs>
+        <linearGradient id="ally-streak" x1="21" y1="31" x2="38" y2="26" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#EDE9FE" stopOpacity="0.2" />
+          <stop offset="1" stopColor="#7C3AED" />
+        </linearGradient>
+        <linearGradient id="ally-spark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#8B5CF6" />
+          <stop offset="1" stopColor="#6D28D9" />
+        </linearGradient>
+      </defs>
+      <path d="M19.23 22.4 A15 15 0 1 1 21 32.5" fill="none" stroke="#2E1065" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M13.5 17.2c-.3-5 3.8-8.2 8.3-7.2 1.3.3 2.4.9 3.2 1.7-3.3 1.8-5 5.2-4.9 9.3.1 1.3.3 2.4.7 3.4-4.1-.5-7.1-3.2-7.3-7.2z" fill="#2E1065" />
+      <path d="M21.2 22c.4-8.2 6.4-13.6 13.8-13.4 6.3.2 10.8 3.9 12.2 9-3.4-2.6-7.6-2.9-10.6-.9-3.9 2.6-7.3 5.9-15.4 8.4z" fill="#2E1065" />
+      <path d="M21 31.5L38 24.7l.4 2.6z" fill="url(#ally-streak)" />
+      <path d="M38.4 18.6c.8 4.4 2.3 5.9 6.7 6.7-4.4.8-5.9 2.3-6.7 6.7-.8-4.4-2.3-5.9-6.7-6.7 4.4-.8 5.9-2.3 6.7-6.7z" fill="url(#ally-spark)" />
+      <path d="M48.4 19.4c.5 2.8 1.4 3.7 4.2 4.2-2.8.5-3.7 1.4-4.2 4.2-.5-2.8-1.4-3.7-4.2-4.2 2.8-.5 3.7-1.4 4.2-4.2z" fill="url(#ally-spark)" />
+    </svg>
+  )
+}
+
+export type Person = "claire" | "mike" | "michelle"
+
+/** Illustrated people in the logo's style: no real faces. Each is a skin tone, a hair shape and a backdrop. */
+const PEOPLE: Record<Person, { name: string; bg: string; skin: string; hair: string; style: "bob" | "short" | "long" }> = {
+  claire: { name: "Claire Bennett", bg: "#EDE9FE", skin: "#F1C7A5", hair: "#5B3A29", style: "bob" },
+  mike: { name: "Mike Chen", bg: "#DBEAFE", skin: "#E8B98F", hair: "#1F2937", style: "short" },
+  michelle: { name: "Michelle Ortiz", bg: "#FCE7F3", skin: "#C98E68", hair: "#2B1B14", style: "long" },
+}
+
+export function Avatar({ person, className }: { person: Person; className?: string }) {
+  const p = PEOPLE[person]
+  return (
+    <svg viewBox="0 0 36 36" className={cn("size-9 rounded-full ring-1 ring-slate-200", className)} role="img" aria-label={p.name}>
+      <title>{p.name}</title>
+      <circle cx="18" cy="18" r="18" fill={p.bg} />
+      {p.style === "long" && <path d="M8.5 17c0-6.8 4.2-10.8 9.5-10.8s9.5 4 9.5 10.8v10.5h-19z" fill={p.hair} />}
+      {/* Shoulders */}
+      <path d="M5 36c.8-6.6 6.2-10.4 13-10.4S30.2 29.4 31 36z" fill={person === "mike" ? "#1E3A8A" : person === "claire" ? "#6D28D9" : "#9D174D"} />
+      {/* Neck and head */}
+      <rect x="15.2" y="20" width="5.6" height="6.4" rx="2.4" fill={p.skin} />
+      <ellipse cx="18" cy="15.6" rx="6.3" ry="7" fill={p.skin} />
+      {p.style === "bob" && <path d="M11.2 17.4c-1.2-6.6 2-10.8 6.8-10.8 5 0 8.2 4.2 6.8 10.8-.6-3.4-2.6-5.6-6.8-6-4.2.4-6.2 2.6-6.8 6z" fill={p.hair} />}
+      {p.style === "short" && <path d="M11.6 14.2c0-4.8 2.8-7.6 6.4-7.6 3.8 0 6.6 2.6 6.4 7.4-1.4-2.4-3.8-3.2-6.6-3.2s-4.8.8-6.2 3.4z" fill={p.hair} />}
+      {p.style === "long" && <path d="M11.6 15c.2-4.6 2.8-7.8 6.4-7.8s6.4 3.2 6.4 7.8c-1.8-2.4-4-3.6-6.4-3.6s-4.6 1.2-6.4 3.6z" fill={p.hair} />}
+    </svg>
+  )
+}
+
+const HOMES: Record<Person, string> = { claire: "/claire-waterfall", mike: "/mike", michelle: "/michelle" }
+
+/**
+ * Who's looking at a page. A link from someone else's page carries ?from=claire,
+ * so the page isn't their home: the strip shows a breadcrumb back instead of a greeting.
+ */
+export function useViewer(owner: Person): { viewer: Person; visiting: boolean; home: string } {
+  const [from, setFrom] = useState<Person | null>(null)
+  useEffect(() => {
+    const f = new URLSearchParams(window.location.search).get("from") as Person | null
+    if (f && f in HOMES && f !== owner) setFrom(f)
+  }, [owner])
+  const viewer = from ?? owner
+  return { viewer, visiting: !!from, home: HOMES[viewer] }
+}
+
+export interface Crumb {
+  label: string
+  href?: string
+  onClick?: () => void
+}
+
+interface TopStripProps {
+  person: Person
+  /** Home pages: "Hi Claire". Any other screen passes crumbs instead (the first one is the way back). */
+  greeting?: string
+  crumbs?: Crumb[]
+  /** Show the period switch (only where the numbers follow it). */
+  period?: boolean
+  /** Short facts after the period, home pages only (an analyst's KPIs). */
+  facts?: React.ReactNode
+  /** Page controls, just before the global icons (Michelle's Business | Ops). */
+  controls?: React.ReactNode
+  /** Global icons that differ by page (Claire's email and team bell; Mike's bell); the gear is always last. */
+  icons?: React.ReactNode
+  /** Where the logo goes (the person's home). */
+  home: string
+  /** Side padding, to line up with the page's content. */
+  className?: string
+}
+
+const Sep = () => <span className="text-slate-300">·</span>
+
+/**
+ * The one top strip, the same on every page: brand, where you are, the period,
+ * then page controls, the global icons and who's signed in. Home pages greet;
+ * every other screen shows a breadcrumb whose first step is the way back.
+ */
+export function TopStrip({ person, greeting, crumbs, period, facts, controls, icons, home, className }: TopStripProps) {
+  return (
+    <header className={cn("flex min-h-16 items-center justify-between gap-6 px-10 pt-6 pb-2", className)}>
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+        <Link href={home} aria-label="Ally home" className="mr-1 shrink-0">
+          <AllyLogo />
+        </Link>
+        {crumbs?.length ? (
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5">
+            {crumbs.map((c, i) => {
+              const last = i === crumbs.length - 1
+              const cls = last ? "font-semibold text-slate-950" : "text-slate-500 hover:text-brand-700 hover:underline"
+              return (
+                <Fragment key={c.label}>
+                  {i > 0 && <ChevronRight className="size-3.5 text-slate-300" />}
+                  {last ? (
+                    <span className={cls}>{c.label}</span>
+                  ) : c.href ? (
+                    <Link href={c.href} className={cls}>
+                      {c.label}
+                    </Link>
+                  ) : (
+                    <button type="button" onClick={c.onClick} className={cls}>
+                      {c.label}
+                    </button>
+                  )}
+                </Fragment>
+              )
+            })}
+          </nav>
+        ) : (
+          <span>{greeting}</span>
+        )}
+        {period && (
+          <>
+            <Sep />
+            <PeriodSwitch />
+          </>
+        )}
+        {facts && (
+          <>
+            <Sep />
+            {facts}
+          </>
+        )}
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        {controls && <div className="mr-2">{controls}</div>}
+        {icons}
+        <SettingsGear />
+        <Avatar person={person} className="ml-1" />
+      </div>
+    </header>
+  )
+}

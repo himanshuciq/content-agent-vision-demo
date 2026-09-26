@@ -101,7 +101,7 @@ function useFixes(onOpenOps: (batchId: string, asin?: string) => void) {
       const done = !!approved[b.id]
       const pinged = b.nudgeKey && nudged[b.nudgeKey]
       const status = done ? (b.tier === "input" ? "sent to Ally" : "approved") : b.tier === "input" ? "waiting on your team" : pinged ? "nudged, waiting for approval" : "waiting for approval"
-      return { lever: "content", name: b.fixName ?? b.name, owner: "Mike", status, tone: done ? "done" : b.tier === "input" ? "todo" : "moving", open: () => (window.location.href = `/mike?batch=${b.id}`), openLabel: "Open in Mike's queue" }
+      return { lever: "content", name: b.fixName ?? b.name, owner: "Mike", status, tone: done ? "done" : b.tier === "input" ? "todo" : "moving", open: () => (window.location.href = `/mike?batch=${b.id}&from=michelle`), openLabel: "Open in Mike's queue" }
     }
     const p = playById(fix.id)
     if (!p) return undefined

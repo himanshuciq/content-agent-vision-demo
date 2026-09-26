@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { TopStrip } from "@/components/nudge/top-strip"
 import { cn } from "@/lib/utils"
 import { PageShell } from "@/components/layout/page-shell"
 import { ReviewPolicy } from "@/components/nudge/settings/review-policy"
@@ -27,11 +27,9 @@ function Settings() {
   }
 
   return (
-    <div className="flex flex-col gap-6 px-12 py-8">
-      <button type="button" onClick={back} className="inline-flex w-fit items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
-        <ArrowLeft className="size-4" />
-        Back
-      </button>
+    <>
+    <TopStrip person="claire" home="/claire-waterfall" className="px-12" crumbs={[{ label: "Home", onClick: back }, { label: "Settings" }]} />
+    <div className="flex flex-col gap-6 px-12 pt-4 pb-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="text-[28px] font-semibold tracking-tight text-slate-950">Settings</h1>
         <div className="flex rounded-lg border border-slate-200 bg-slate-25 p-1">
@@ -52,6 +50,7 @@ function Settings() {
       </div>
       {tab === "policy" ? <ReviewPolicy /> : tab === "knowledge" ? <Knowledge /> : <BusinessSettings />}
     </div>
+    </>
   )
 }
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtBiz, fmtValue } from "../data"
 import { COMPETITORS, MARKET, NEXT_EVENT, SEGMENTS, TOP_COMPETITOR, TOP_SEGMENT } from "../market"
@@ -57,12 +56,9 @@ function Shell({ eyebrow, title, sub, context, onBack, children }: { eyebrow: st
     JSON.stringify(context),
   )
   return (
-    <div className="px-12 pt-8 pb-10">
-      <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
-        <ArrowLeft className="size-4" />
-        Back to home
-      </button>
-      <div className="mt-4 font-mono text-xs tracking-wide text-slate-500 uppercase">{eyebrow}</div>
+    // The way back is "Home" in the top strip's breadcrumb, so the view starts with its own content.
+    <div className="px-12 pt-4 pb-10">
+      <div className="font-mono text-xs tracking-wide text-slate-500 uppercase">{eyebrow}</div>
       <h1 className="mt-2 text-[28px] leading-tight font-bold tracking-tight text-slate-950">{title}</h1>
       <p className="mt-2 text-base text-slate-500">{sub}</p>
       <div className="mt-6">{children}</div>

@@ -1,9 +1,9 @@
 "use client"
 
 import { BUSINESS, fmtBiz } from "../data"
-import { PeriodSwitch } from "../period-switch"
 import { useLive } from "../live-model"
-import { SettingsGear } from "../settings-gear"
+import { TopStrip } from "../top-strip"
+import type { Crumb } from "../top-strip"
 import { EmailPdfButton } from "./email-pdf-button"
 import { TeamBell } from "./team-bell"
 import type { Period } from "../types"
@@ -15,31 +15,30 @@ const PERIOD_WORDS: Record<Period, string> = { week: "this week", month: "this m
  * plan, the gap, and the open opportunity that closes it. Then where it sits and
  * how fast it unlocks.
  */
-/** `topLineOnly`: just the greeting, period and icons (above a Grow view, which has its own headline). */
-export function BusinessHero({ topLineOnly = false }: { topLineOnly?: boolean } = {}) {
+/** `topLineOnly`: just the top strip (above a Grow view, which has its own headline); `crumbs` replace the greeting there. */
+export function BusinessHero({ topLineOnly = false, crumbs }: { topLineOnly?: boolean; crumbs?: Crumb[] } = {}) {
   const live = useLive()
   const { period } = live
   const b = { ...BUSINESS[period], pace: live.pace(period) }
   const gap = b.plan - b.pace
 
   return (
-    <section className={topLineOnly ? "px-12 pt-9" : "px-12 pt-9 pb-7"}>
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
-          <span className="mr-1 flex size-5 items-center justify-center rounded-md bg-brand-500" aria-label="Ally">
-            <span className="size-1.5 rounded-full bg-brand-200" />
-          </span>
-          <span>Hi Claire</span>
-          <span className="text-slate-300">·</span>
-          <PeriodSwitch />
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <EmailPdfButton period={period} />
-          <TeamBell />
-          <SettingsGear />
-        </div>
-      </div>
-
+    <>
+      <TopStrip
+        person="claire"
+        home="/claire-waterfall"
+        className="px-12"
+        greeting={crumbs ? undefined : "Hi Claire"}
+        crumbs={crumbs}
+        period
+        icons={
+          <>
+            <EmailPdfButton period={period} />
+            <TeamBell />
+          </>
+        }
+      />
+    <section className={topLineOnly ? "" : "px-12 pt-3 pb-7"}>
       {!topLineOnly && (<>
       {/* Fact, then the gap, then what closes it. The fact line is the same size as the first line on Mike's and Michelle's pages. */}
       <div className="mt-5 text-2xl font-semibold tracking-tight text-slate-700">
@@ -78,5 +77,6 @@ export function BusinessHero({ topLineOnly = false }: { topLineOnly?: boolean } 
       </div>
       </>)}
     </section>
+    </>
   )
 }

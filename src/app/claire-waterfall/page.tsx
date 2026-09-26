@@ -75,7 +75,11 @@ function ClaireWaterfall() {
     <PageShell className="bg-slate-50">
       {/* overflow-clip (not hidden) keeps rounded corners without breaking the sticky Ally panel in a view. */}
       <div className="mx-auto max-w-[1280px] overflow-clip bg-white shadow-pane-lg sm:my-6 sm:rounded-2xl sm:ring-1 sm:ring-slate-900/6">
-        <BusinessHero topLineOnly={!!grow} />
+        {/* A view shows where you are instead of the greeting; "Home" is the way back. */}
+        <BusinessHero
+          topLineOnly={!!grow}
+          crumbs={grow ? [{ label: "Home", onClick: closeGrow }, { label: grow === "market" ? "Market" : grow === "competition" ? "Competition" : "Event readiness" }] : undefined}
+        />
         {grow ? (
           <>
             <GrowViewSwitch view={grow} onBack={closeGrow} />

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { fmtValue } from "../data"
 import { ResultsMetrics } from "./results-metrics"
 import { ResultsTable } from "./results-table"
-import { SettingsGear } from "../settings-gear"
+import { TopStrip } from "../top-strip"
 import { RESULTS_BY_PERIOD } from "../content-results-data"
 import type { ResultPeriod, ResultType } from "../content-results-data"
 
@@ -71,15 +71,10 @@ export function ContentResults() {
   }
 
   return (
-    <div className="flex flex-col gap-7 px-12 py-8">
+    <>
+    <TopStrip person="claire" home="/claire-waterfall" className="px-12" crumbs={[{ label: "Home", onClick: back }, { label: "Content results" }]} />
+    <div className="flex flex-col gap-7 px-12 pt-4 pb-8">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <button type="button" onClick={back} className="inline-flex w-fit items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
-            <ArrowLeft className="size-4" />
-            Back to overview
-          </button>
-          <SettingsGear />
-        </div>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -131,5 +126,6 @@ export function ContentResults() {
         <ResultsTable key={s.type} section={s} />
       ))}
     </div>
+    </>
   )
 }

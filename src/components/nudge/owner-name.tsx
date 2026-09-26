@@ -16,7 +16,7 @@ export function OwnerName({ lever, name, className }: { lever: AgentId; name: st
   if (!page) return <span className={cn("font-medium", className)}>{name}</span>
   return (
     <Link
-      href={page}
+      href={`${page}?from=claire`}
       onClick={(e) => e.stopPropagation()}
       title={`Open ${name}'s page`}
       className={cn("group/owner inline-flex items-center gap-0.5 font-medium underline decoration-slate-300 underline-offset-2 transition-colors hover:text-brand-700 hover:decoration-brand-300", className)}
